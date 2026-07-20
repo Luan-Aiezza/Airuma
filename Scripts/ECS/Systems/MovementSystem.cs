@@ -14,10 +14,15 @@ public static class MovementSystem
         player.Input.InputDirection = direction.Normalized();
     }
 
-    public static void MovePlayer(PlayerEntity player, Rect2 bounds, float delta)
+    public static void MovePlayer(PlayerEntity player, Rect2 bounds, float delta, Vector2 windVector)
     {
         player.Movement.Velocity = player.Input.InputDirection * player.Movement.Speed;
-        player.Transform.Position += player.Movement.Velocity * delta;
+        
+        // Calcula a velocidade total = Movimento do Jogador + (Vento * Modificador)
+        Vector2 totalVelocity = player.Movement.Velocity + (windVector * player.WindModifier.Value);
+        
+        // Aplica na posição
+        player.Transform.Position += totalVelocity * delta;
 
         float clampedX = Mathf.Clamp(player.Transform.Position.X, bounds.Position.X, bounds.End.X);
         float clampedY = Mathf.Clamp(player.Transform.Position.Y, bounds.Position.Y, bounds.End.Y);

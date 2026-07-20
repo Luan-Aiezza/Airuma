@@ -11,4 +11,5 @@ public class PlayerEntity
     public HitboxComponent Hitbox;
     public HealthComponent Health;
     public RenderComponent Render;
+    public WindModifierComponent WindModifier; // <-- Nova linha
 }

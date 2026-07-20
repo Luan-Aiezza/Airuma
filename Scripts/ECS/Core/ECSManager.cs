@@ -10,6 +10,7 @@ public partial class ECSManager : Node2D
     private BulletData[] _bulletPool = new BulletData[1000];
     private Texture2D _bulletTexture;
     private BulletEmitterComponent _bossEmitter;
+    private WindState _globalWind;
 
     public override void _Ready()
     {
@@ -25,7 +26,8 @@ public partial class ECSManager : Node2D
             Weapon = new PlayerWeaponComponent { PowerLevel = 3, FireRate = 0.1f, BulletSpeed = 800f, TimeSinceLastFire = 0f },
             Render = new RenderComponent { SpriteNode = GetNode<Sprite2D>("PlayerSprite") },
             Hitbox = new HitboxComponent { Radius = 4f },
-            Health = new HealthComponent { CurrentHealth = 1, MaxHealth = 1, Lives = 3, InvincibilityTimer = 0f }
+            Health = new HealthComponent { CurrentHealth = 1, MaxHealth = 1, Lives = 3, InvincibilityTimer = 0f },
+            WindModifier = new WindModifierComponent { Value = 1.0f }
         };
 
         _boss = new BossEntity
@@ -44,6 +46,8 @@ public partial class ECSManager : Node2D
             FireRate = 1.0f, TimeSinceLastFire = 0f,
             BulletsPerVolley = 36, SpreadAngle = 360f, BaseAngle = 0f, BulletSpeed = 150f
         };
+
+        WindSystem.RandomizeWind(ref _globalWind);
     }
 
     public override void _PhysicsProcess(double delta)
@@ -55,14 +59,20 @@ public partial class ECSManager : Node2D
         BulletSystem.UpdatePlayerWeapons(_player, _bulletPool, floatDelta);
         BulletSystem.UpdateBossWeapons(_boss, ref _bossEmitter, _bulletPool, floatDelta);
 
-        // 2. MOVIMENTAÇÃO
-        MovementSystem.MovePlayer(_player, _screenBounds, floatDelta);
+        // 2. MOVIMENTAÇÃO (Passando o CurrentWindVector)
+        MovementSystem.MovePlayer(_player, _screenBounds, floatDelta, _globalWind.CurrentWindVector);
         MovementSystem.MoveBoss(_boss, _screenBounds, floatDelta);
-        BulletSystem.MoveBullets(_bulletPool, _screenBounds, floatDelta);
+        BulletSystem.MoveBullets(_bulletPool, _screenBounds, floatDelta, _globalWind.CurrentWindVector);
         
-        // 3. COLISÕES E VIDA
+        // 3. COLISÕES E VIDA (Capturando a mudança de fase)
         CombatSystem.ProcessCollisions(_bulletPool, _player, _boss);
-        CombatSystem.ProcessHealth(_player, _boss, floatDelta);
+        
+        bool bossPhaseChanged = CombatSystem.ProcessHealth(_player, _boss, floatDelta);
+        if (bossPhaseChanged)
+        {
+            // Se a chefe perdeu uma vida, o vento e a mecânica mudam drasticamente!
+            WindSystem.RandomizeWind(ref _globalWind);
+        }
 
         // 4. RENDERIZAÇÃO
         RenderSystem.SyncNodes(_player, _boss);

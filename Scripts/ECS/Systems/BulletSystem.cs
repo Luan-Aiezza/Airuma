@@ -16,6 +16,7 @@ public static class BulletSystem
                 pool[i].Position = position;
                 pool[i].Velocity = velocity;
                 pool[i].Faction = faction;
+                pool[i].WindModifier = 1.0f; // <-- A bala recebe 100% da força do vento
                 break; 
             }
         }
@@ -68,13 +69,17 @@ public static class BulletSystem
         }
     }
 
-    public static void MoveBullets(BulletData[] pool, Rect2 bounds, float delta)
+    // Adicione o parâmetro 'Vector2 windVector'
+    public static void MoveBullets(BulletData[] pool, Rect2 bounds, float delta, Vector2 windVector)
     {
         for (int i = 0; i < pool.Length; i++)
         {
             if (pool[i].IsActive)
             {
-                pool[i].Position += pool[i].Velocity * delta;
+                // Soma a velocidade natural da bala com a força do vento
+                Vector2 totalVelocity = pool[i].Velocity + (windVector * pool[i].WindModifier);
+                pool[i].Position += totalVelocity * delta;
+                
                 if (!bounds.HasPoint(pool[i].Position))
                 {
                     pool[i].IsActive = false;
