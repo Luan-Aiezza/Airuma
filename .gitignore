@@ -1,0 +1,21 @@
+# Godot 4+ specific ignores
+.godot/
+!res://.godot/
+
+# C# / .NET / Mono ignores
+.mono/
+data_*/
+mono_crash.*.json
+bin/
+obj/
+Properties/
+
+# Export folders (if you create them later)
+export/
+Export/
+exports/
+Exports/
+
+# OS specific files
+.DS_Store
+Thumbs.db
