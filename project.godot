@@ -17,8 +17,8 @@ config/icon="res://Assets/icon.svg"
 
 [display]
 
-window/size/viewport_width=600
-window/size/viewport_height=800
+window/size/viewport_width=950
+window/size/viewport_height=775
 window/stretch/mode="canvas_items"
 
 [dotnet]
@@ -32,3 +32,4 @@ project/assembly_name="Daimaku"
 [rendering]
 
 rendering_device/driver.windows="d3d12"
+textures/vram_compression/import_etc2_astc=true

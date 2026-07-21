@@ -12,9 +12,20 @@ public partial class ECSManager : Node2D
     private BulletEmitterComponent _bossEmitter;
     private WindState _globalWind;
 
+    // Variáveis da Interface de Usuário
+    private Label _livesLabel;
+    private Label _powerLabel;
+    private Label _windLabel;
+    private Label _bossHpLabel;
+
+    // Variáveis da UI de Fim de Jogo
+    private Panel _endGamePanel;
+    private Label _endGameTitle;
+    private Button _restartButton;
+
     public override void _Ready()
     {
-        _screenBounds = new Rect2(0, 0, 600, 800);
+        _screenBounds = new Rect2(0, 0, 600, 775);
         _bulletTexture = GD.Load<Texture2D>("res://Assets/icon.svg"); // Caminho atualizado!
 
         _player = new PlayerEntity
@@ -40,6 +51,21 @@ public partial class ECSManager : Node2D
             Health = new HealthComponent { CurrentHealth = 50, MaxHealth = 300, Lives = 1, InvincibilityTimer = 0f },
             PatrolDirection = 1f // Estado inicial da patrulha
         };
+
+        // Conecta os nós de interface (verifique se os nomes batem com os que você colocou na árvore)
+        _livesLabel = GetNode<Label>("UI_Layer/GameUI/ColorRect/VBoxContainer/LivesLabel");
+        _powerLabel = GetNode<Label>("UI_Layer/GameUI/ColorRect/VBoxContainer/PowerLabel");
+        _windLabel = GetNode<Label>("UI_Layer/GameUI/ColorRect/VBoxContainer/WindLabel");
+        _bossHpLabel = GetNode<Label>("UI_Layer/GameUI/ColorRect/VBoxContainer/BossHpLabel");
+
+        // Captura o painel de fim de jogo e esconde por precaução
+        _endGamePanel = GetNode<Panel>("UI_Layer/EndGamePanel");
+        _endGameTitle = _endGamePanel.GetNode<Label>("TitleLabel");
+        _restartButton = _endGamePanel.GetNode<Button>("RestartButton");
+        _endGamePanel.Visible = false;
+
+        // Conecta o evento de clique do botão à nossa função de reinício
+        _restartButton.Pressed += OnRestartButtonPressed;
 
         _bossEmitter = new BulletEmitterComponent
         {
@@ -74,9 +100,21 @@ public partial class ECSManager : Node2D
             WindSystem.RandomizeWind(ref _globalWind);
         }
 
+        if (_player.Health.Lives <= 0)
+        {
+            TriggerEndGame(false); // Derrota
+        }
+        else if (_boss.Health.Lives <= 0 && _boss.Health.CurrentHealth <= 0)
+        {
+            TriggerEndGame(true); // Vitória
+        }
+
         // 4. RENDERIZAÇÃO
         RenderSystem.SyncNodes(_player, _boss);
         QueueRedraw(); 
+
+        // NOVO: Atualiza os textos da interface do usuário todo frame
+        UISystem.UpdateUI(_player, _boss, _globalWind, _livesLabel, _powerLabel, _windLabel, _bossHpLabel);
     }
 
     public override void _Draw()
@@ -91,5 +129,35 @@ public partial class ECSManager : Node2D
                 DrawTextureRect(_bulletTexture, new Rect2(drawPos, _bulletTexture.GetSize() * scale), false, tintColor);
             }
         }
+    }
+
+    private void TriggerEndGame(bool isVictory)
+    {
+        // Congela toda a SceneTree (interrompe o _PhysicsProcess instantaneamente)
+        GetTree().Paused = true;
+
+        // Define a mensagem e a cor com base no resultado
+        if (isVictory)
+        {
+            _endGameTitle.Text = "VICTORY!!!\nyou win!";
+            _endGameTitle.AddThemeColorOverride("font_color", Colors.Gold);
+        }
+        else
+        {
+            _endGameTitle.Text = "DEFEAT...\nyou lose!";
+            _endGameTitle.AddThemeColorOverride("font_color", Colors.Red);
+        }
+
+        // Mostra o painel na tela
+        _endGamePanel.Visible = true;
+    }
+
+    private void OnRestartButtonPressed()
+    {
+        // Remove o pause da SceneTree para que o jogo não nasça congelado
+        GetTree().Paused = false;
+        
+        // Recarrega a cena atual inteira do zero
+        GetTree().ReloadCurrentScene();
     }
 }
