@@ -65,11 +65,17 @@ public static class CombatSystem
         if (boss.Health.CurrentHealth <= 0 && boss.Health.Lives > 0)
         {
             boss.Health.Lives--;
-            GD.Print("Chefe perdeu uma fase! HP zerado.");
-            boss.Health.CurrentHealth = 500; 
+            GD.Print("Chefe perdeu uma fase! Vidas restantes: " + boss.Health.Lives);
+            
+            // CORREÇÃO: Só recupera a barra de vida se ainda tiver vidas sobrando!
+            if (boss.Health.Lives > 0) 
+            {
+                boss.Health.CurrentHealth = 50; 
+            }
+            
             bossPhaseChanged = true; // <-- Sinaliza a mudança de ataque
         }
         
-        return bossPhaseChanged; // <-- Retorna o estado para o ECSManager
+        return bossPhaseChanged;
         }
 }

@@ -31,7 +31,10 @@ public partial class ECSManager : Node2D
         _player = new PlayerEntity
         {
             Id = 1,
-            Transform = new Transform2DComponent { Position = new Vector2(300, 700) },
+            Transform = new Transform2DComponent { 
+                Position = new Vector2(300, 700),
+                Scale = new Vector2(0.4f, 0.4f) // <-- ADICIONE O SCALE AQUI!
+            },
             Movement = new VelocityComponent { Speed = 400f },
             Input = new PlayerInputComponent(),
             Weapon = new PlayerWeaponComponent { PowerLevel = 3, FireRate = 0.1f, BulletSpeed = 800f, TimeSinceLastFire = 0f },
@@ -44,11 +47,14 @@ public partial class ECSManager : Node2D
         _boss = new BossEntity
         {
             Id = 2,
-            Transform = new Transform2DComponent { Position = new Vector2(300, 100) },
+            Transform = new Transform2DComponent { 
+                Position = new Vector2(300, 100),
+                Scale = new Vector2(1f, 1f) // <-- ADICIONE O SCALE AQUI TAMBÉM!
+            },
             Movement = new VelocityComponent { Speed = 200f },
             Render = new RenderComponent { SpriteNode = GetNode<Sprite2D>("BossSprite") },
             Hitbox = new HitboxComponent { Radius = 40f },
-            Health = new HealthComponent { CurrentHealth = 50, MaxHealth = 50, Lives =6, InvincibilityTimer = 0f },
+            Health = new HealthComponent { CurrentHealth = 50, MaxHealth = 50, Lives = 6, InvincibilityTimer = 0f },
             PatrolDirection = 1f // Estado inicial da patrulha
         };
 
@@ -74,6 +80,9 @@ public partial class ECSManager : Node2D
         };
 
         WindSystem.RandomizeWind(ref _globalWind);
+        // Inicia os Padrões da Vida 6
+        PhaseManagerSystem.ChangePhase(_boss, _boss.Health.Lives, ref _bossEmitter);
+        WindSystem.RandomizeWind(ref _globalWind);
     }
 
     public override void _PhysicsProcess(double delta)
@@ -83,7 +92,7 @@ public partial class ECSManager : Node2D
         // 1. INPUTS E SPAWNERS
         MovementSystem.ProcessPlayerInput(_player);
         BulletSystem.UpdatePlayerWeapons(_player, _bulletPool, floatDelta);
-        BulletSystem.UpdateBossWeapons(_boss, ref _bossEmitter, _bulletPool, floatDelta);
+        BulletSystem.UpdateBossWeapons(_boss, _player, ref _bossEmitter, _bulletPool, floatDelta);
 
         // 2. MOVIMENTAÇÃO (Passando o CurrentWindVector)
         MovementSystem.MovePlayer(_player, _screenBounds, floatDelta, _globalWind.CurrentWindVector);
@@ -94,9 +103,15 @@ public partial class ECSManager : Node2D
         CombatSystem.ProcessCollisions(_bulletPool, _player, _boss);
         
         bool bossPhaseChanged = CombatSystem.ProcessHealth(_player, _boss, floatDelta);
-        if (bossPhaseChanged)
-        {
-            // Se a chefe perdeu uma vida, o vento e a mecânica mudam drasticamente!
+        if (bossPhaseChanged) {
+            
+            // NOVO: Limpa todas as balas inimigas da tela instantaneamente!
+            BulletSystem.ClearBossBullets(_bulletPool);
+            
+            // Altera padrão de tiro e movimento da Boitatá!
+            PhaseManagerSystem.ChangePhase(_boss, _boss.Health.Lives, ref _bossEmitter);
+            
+            // Altera a força da natureza!
             WindSystem.RandomizeWind(ref _globalWind);
         }
 
@@ -104,7 +119,8 @@ public partial class ECSManager : Node2D
         {
             TriggerEndGame(false); // Derrota
         }
-        else if (_boss.Health.Lives <= 0 && _boss.Health.CurrentHealth <= 0)
+        // CORREÇÃO: Removemos o "&& _boss.Health.CurrentHealth <= 0"
+        else if (_boss.Health.Lives <= 0)
         {
             TriggerEndGame(true); // Vitória
         }

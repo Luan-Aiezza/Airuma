@@ -48,23 +48,38 @@ public static class BulletSystem
         }
     }
 
-    public static void UpdateBossWeapons(BossEntity boss, ref BulletEmitterComponent emitter, BulletData[] pool, float delta)
-    {
+    public static void UpdateBossWeapons(BossEntity boss, PlayerEntity player, ref BulletEmitterComponent emitter, BulletData[] pool, float delta) {
+        
+        // NOVO: Se está naqueles 2 segundos de respiro/transição, não atira!
+        if (boss.MovementType == BossMovementType.Transition) {
+            return; 
+        }
+
         emitter.TimeSinceLastFire += delta;
-        if (emitter.TimeSinceLastFire >= emitter.FireRate)
-        {
+
+        if (emitter.TimeSinceLastFire >= emitter.FireRate) {
             emitter.TimeSinceLastFire = 0f;
-            emitter.BaseAngle += 10f; 
 
-            int bulletsToSpawn = emitter.BulletsPerVolley;
-            float angleStep = emitter.SpreadAngle / bulletsToSpawn;
+            // Adiciona o giro contínuo para espirais
+            emitter.BaseAngle += emitter.SpinRate;
 
-            for (int i = 0; i < bulletsToSpawn; i++)
-            {
-                float angleRadians = Mathf.DegToRad(emitter.BaseAngle + (i * angleStep));
-                Vector2 direction = new Vector2(Mathf.Cos(angleRadians), Mathf.Sin(angleRadians));
-                Vector2 velocity = direction * emitter.BulletSpeed;
-                SpawnBullet(pool, boss.Transform.Position, velocity, 1);
+            // Se o ataque for mirado, a BaseAngle ignora o giro e aponta direto pro jogador
+            if (emitter.IsAimed && player != null) {
+                Vector2 dirToPlayer = player.Transform.Position - boss.Transform.Position;
+                emitter.BaseAngle = Mathf.RadToDeg(Mathf.Atan2(dirToPlayer.Y, dirToPlayer.X));
+                // Centraliza o cone
+                emitter.BaseAngle -= emitter.SpreadAngle / 2f; 
+            }
+
+            int bullets = emitter.BulletsPerVolley;
+            float angleStep = bullets > 1 ? emitter.SpreadAngle / bullets : 0;
+
+            for (int i = 0; i < bullets; i++) {
+                float angleDeg = emitter.BaseAngle + (i * angleStep);
+                float angleRad = Mathf.DegToRad(angleDeg);
+                Vector2 dir = new Vector2(Mathf.Cos(angleRad), Mathf.Sin(angleRad));
+                Vector2 vel = dir * emitter.BulletSpeed;
+                SpawnBullet(pool, boss.Transform.Position, vel, 1);
             }
         }
     }
@@ -84,6 +99,21 @@ public static class BulletSystem
                 {
                     pool[i].IsActive = false;
                 }
+            }
+        }
+    }
+
+    public static void ClearBossBullets(BulletData[] pool)
+    {
+        for (int i = 0; i < pool.Length; i++)
+        {
+            // Faction 1 = Balas do Chefe. Se estiver ativa, nós desativamos!
+            if (pool[i].IsActive && pool[i].Faction == 1)
+            {
+                pool[i].IsActive = false;
+                
+                // FUTURO: Aqui nós vamos mandar o "Spawner de Itens" criar 
+                // um item de pontuação na exata coordenada desta bala (pool[i].Position)
             }
         }
     }
