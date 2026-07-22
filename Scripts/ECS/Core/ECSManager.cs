@@ -10,10 +10,22 @@ public partial class ECSManager : Node2D
     private BulletData[] _bulletPool = new BulletData[1000];
     private Texture2D _bulletTexture;
     private BulletEmitterComponent _bossEmitter;
+    private WindState _globalWind;
+
+    // Variáveis da Interface de Usuário
+    private Label _livesLabel;
+    private Label _powerLabel;
+    private Label _windLabel;
+    private Label _bossHpLabel;
+
+    // Variáveis da UI de Fim de Jogo
+    private Panel _endGamePanel;
+    private Label _endGameTitle;
+    private Button _restartButton;
 
     public override void _Ready()
     {
-        _screenBounds = new Rect2(0, 0, 600, 800);
+        _screenBounds = new Rect2(0, 0, 600, 775);
         _bulletTexture = GD.Load<Texture2D>("res://Assets/icon.svg"); // Caminho atualizado!
 
         _player = new PlayerEntity
@@ -25,7 +37,8 @@ public partial class ECSManager : Node2D
             Weapon = new PlayerWeaponComponent { PowerLevel = 3, FireRate = 0.1f, BulletSpeed = 800f, TimeSinceLastFire = 0f },
             Render = new RenderComponent { SpriteNode = GetNode<Sprite2D>("PlayerSprite") },
             Hitbox = new HitboxComponent { Radius = 4f },
-            Health = new HealthComponent { CurrentHealth = 1, MaxHealth = 1, Lives = 3, InvincibilityTimer = 0f }
+            Health = new HealthComponent { CurrentHealth = 1, MaxHealth = 1, Lives = 3, InvincibilityTimer = 0f },
+            WindModifier = new WindModifierComponent { Value = 1.0f }
         };
 
         _boss = new BossEntity
@@ -35,15 +48,32 @@ public partial class ECSManager : Node2D
             Movement = new VelocityComponent { Speed = 200f },
             Render = new RenderComponent { SpriteNode = GetNode<Sprite2D>("BossSprite") },
             Hitbox = new HitboxComponent { Radius = 40f },
-            Health = new HealthComponent { CurrentHealth = 50, MaxHealth = 300, Lives = 1, InvincibilityTimer = 0f },
+            Health = new HealthComponent { CurrentHealth = 50, MaxHealth = 50, Lives =6, InvincibilityTimer = 0f },
             PatrolDirection = 1f // Estado inicial da patrulha
         };
+
+        // Conecta os nós de interface (verifique se os nomes batem com os que você colocou na árvore)
+        _livesLabel = GetNode<Label>("UI_Layer/GameUI/ColorRect/VBoxContainer/LivesLabel");
+        _powerLabel = GetNode<Label>("UI_Layer/GameUI/ColorRect/VBoxContainer/PowerLabel");
+        _windLabel = GetNode<Label>("UI_Layer/GameUI/ColorRect/VBoxContainer/WindLabel");
+        _bossHpLabel = GetNode<Label>("UI_Layer/GameUI/ColorRect/VBoxContainer/BossHpLabel");
+
+        // Captura o painel de fim de jogo e esconde por precaução
+        _endGamePanel = GetNode<Panel>("UI_Layer/EndGamePanel");
+        _endGameTitle = _endGamePanel.GetNode<Label>("TitleLabel");
+        _restartButton = _endGamePanel.GetNode<Button>("RestartButton");
+        _endGamePanel.Visible = false;
+
+        // Conecta o evento de clique do botão à nossa função de reinício
+        _restartButton.Pressed += OnRestartButtonPressed;
 
         _bossEmitter = new BulletEmitterComponent
         {
             FireRate = 1.0f, TimeSinceLastFire = 0f,
             BulletsPerVolley = 36, SpreadAngle = 360f, BaseAngle = 0f, BulletSpeed = 150f
         };
+
+        WindSystem.RandomizeWind(ref _globalWind);
     }
 
     public override void _PhysicsProcess(double delta)
@@ -55,18 +85,36 @@ public partial class ECSManager : Node2D
         BulletSystem.UpdatePlayerWeapons(_player, _bulletPool, floatDelta);
         BulletSystem.UpdateBossWeapons(_boss, ref _bossEmitter, _bulletPool, floatDelta);
 
-        // 2. MOVIMENTAÇÃO
-        MovementSystem.MovePlayer(_player, _screenBounds, floatDelta);
+        // 2. MOVIMENTAÇÃO (Passando o CurrentWindVector)
+        MovementSystem.MovePlayer(_player, _screenBounds, floatDelta, _globalWind.CurrentWindVector);
         MovementSystem.MoveBoss(_boss, _screenBounds, floatDelta);
-        BulletSystem.MoveBullets(_bulletPool, _screenBounds, floatDelta);
+        BulletSystem.MoveBullets(_bulletPool, _screenBounds, floatDelta, _globalWind.CurrentWindVector);
         
-        // 3. COLISÕES E VIDA
+        // 3. COLISÕES E VIDA (Capturando a mudança de fase)
         CombatSystem.ProcessCollisions(_bulletPool, _player, _boss);
-        CombatSystem.ProcessHealth(_player, _boss, floatDelta);
+        
+        bool bossPhaseChanged = CombatSystem.ProcessHealth(_player, _boss, floatDelta);
+        if (bossPhaseChanged)
+        {
+            // Se a chefe perdeu uma vida, o vento e a mecânica mudam drasticamente!
+            WindSystem.RandomizeWind(ref _globalWind);
+        }
+
+        if (_player.Health.Lives <= 0)
+        {
+            TriggerEndGame(false); // Derrota
+        }
+        else if (_boss.Health.Lives <= 0 && _boss.Health.CurrentHealth <= 0)
+        {
+            TriggerEndGame(true); // Vitória
+        }
 
         // 4. RENDERIZAÇÃO
         RenderSystem.SyncNodes(_player, _boss);
         QueueRedraw(); 
+
+        // NOVO: Atualiza os textos da interface do usuário todo frame
+        UISystem.UpdateUI(_player, _boss, _globalWind, _livesLabel, _powerLabel, _windLabel, _bossHpLabel);
     }
 
     public override void _Draw()
@@ -81,5 +129,35 @@ public partial class ECSManager : Node2D
                 DrawTextureRect(_bulletTexture, new Rect2(drawPos, _bulletTexture.GetSize() * scale), false, tintColor);
             }
         }
+    }
+
+    private void TriggerEndGame(bool isVictory)
+    {
+        // Congela toda a SceneTree (interrompe o _PhysicsProcess instantaneamente)
+        GetTree().Paused = true;
+
+        // Define a mensagem e a cor com base no resultado
+        if (isVictory)
+        {
+            _endGameTitle.Text = "VICTORY!!!\nyou win!";
+            _endGameTitle.AddThemeColorOverride("font_color", Colors.Gold);
+        }
+        else
+        {
+            _endGameTitle.Text = "DEFEAT...\nyou lose!";
+            _endGameTitle.AddThemeColorOverride("font_color", Colors.Red);
+        }
+
+        // Mostra o painel na tela
+        _endGamePanel.Visible = true;
+    }
+
+    private void OnRestartButtonPressed()
+    {
+        // Remove o pause da SceneTree para que o jogo não nasça congelado
+        GetTree().Paused = false;
+        
+        // Recarrega a cena atual inteira do zero
+        GetTree().ReloadCurrentScene();
     }
 }

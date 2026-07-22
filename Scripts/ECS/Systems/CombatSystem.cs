@@ -29,8 +29,9 @@ public static class CombatSystem
         }
     }
 
-    public static void ProcessHealth(PlayerEntity player, BossEntity boss, float delta)
+    public static bool ProcessHealth(PlayerEntity player, BossEntity boss, float delta)
     {
+        bool bossPhaseChanged = false; // Flag para rastrear a mudança
         // Jogador
         if (player.Health.InvincibilityTimer > 0)
         {
@@ -66,6 +67,9 @@ public static class CombatSystem
             boss.Health.Lives--;
             GD.Print("Chefe perdeu uma fase! HP zerado.");
             boss.Health.CurrentHealth = 500; 
+            bossPhaseChanged = true; // <-- Sinaliza a mudança de ataque
         }
-    }
+        
+        return bossPhaseChanged; // <-- Retorna o estado para o ECSManager
+        }
 }

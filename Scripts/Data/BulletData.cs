@@ -9,4 +9,5 @@ public struct BulletData
     public int Faction;        // 0: Jogador, 1: Inimigo
     public float HitboxRadius;
     public int Damage;
+    public float WindModifier; // <-- Nova linha
 }
