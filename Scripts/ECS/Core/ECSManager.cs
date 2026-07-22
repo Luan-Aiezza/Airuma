@@ -48,7 +48,7 @@ public partial class ECSManager : Node2D
             Movement = new VelocityComponent { Speed = 200f },
             Render = new RenderComponent { SpriteNode = GetNode<Sprite2D>("BossSprite") },
             Hitbox = new HitboxComponent { Radius = 40f },
-            Health = new HealthComponent { CurrentHealth = 50, MaxHealth = 300, Lives = 1, InvincibilityTimer = 0f },
+            Health = new HealthComponent { CurrentHealth = 50, MaxHealth = 50, Lives =6, InvincibilityTimer = 0f },
             PatrolDirection = 1f // Estado inicial da patrulha
         };
 
