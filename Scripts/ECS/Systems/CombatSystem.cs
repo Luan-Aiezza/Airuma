@@ -70,7 +70,7 @@ public static class CombatSystem
             // CORREÇÃO: Só recupera a barra de vida se ainda tiver vidas sobrando!
             if (boss.Health.Lives > 0) 
             {
-                boss.Health.CurrentHealth = 50; 
+                boss.Health.CurrentHealth = 100; 
             }
             
             bossPhaseChanged = true; // <-- Sinaliza a mudança de ataque
