@@ -4,20 +4,23 @@ using System;
 public static class MovementSystem
 {
     private static readonly Random _random = new Random();
-    public static void ProcessPlayerInput(PlayerEntity player)
-    {
-        Vector2 direction = Vector2.Zero;
-        if (Input.IsActionPressed("ui_right")) direction.X += 1;
-        if (Input.IsActionPressed("ui_left")) direction.X -= 1;
-        if (Input.IsActionPressed("ui_down")) direction.Y += 1;
-        if (Input.IsActionPressed("ui_up")) direction.Y -= 1;
+    public static void ProcessPlayerInput(PlayerEntity player) {
+        Vector2 inputDir = Vector2.Zero;
+        if (Input.IsKeyPressed(Key.Left)) inputDir.X -= 1;
+        if (Input.IsKeyPressed(Key.Right)) inputDir.X += 1;
+        if (Input.IsKeyPressed(Key.Up)) inputDir.Y -= 1;
+        if (Input.IsKeyPressed(Key.Down)) inputDir.Y += 1;
 
-        player.Input.InputDirection = direction.Normalized();
+        player.Input.Direction = inputDir.Normalized();
+        
+        // CONTROLES DE DANMAKU CLÁSSICOS
+        player.Input.IsShooting = Input.IsKeyPressed(Key.Z); // Tiro no Z
+        player.Input.IsBombing = Input.IsKeyPressed(Key.X);  // Bomba no X
     }
 
     public static void MovePlayer(PlayerEntity player, Rect2 bounds, float delta, Vector2 windVector)
     {
-        player.Movement.Velocity = player.Input.InputDirection * player.Movement.Speed;
+        player.Movement.Velocity = player.Input.Direction * player.Movement.Speed;
         
         // Calcula a velocidade total = Movimento do Jogador + (Vento * Modificador)
         Vector2 totalVelocity = player.Movement.Velocity + (windVector * player.WindModifier.Value);

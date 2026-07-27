@@ -10,7 +10,8 @@ public static class CombatSystem
         {
             if (!pool[i].IsActive) continue;
 
-            if (pool[i].Faction == 1 && player.Health.InvincibilityTimer <= 0)
+            // Se for uma bala inimiga, o jogador não estiver invencível E NÃO ESTIVER COM A BOMBA ATIVA
+            if (pool[i].Faction == 1 && player.Health.InvincibilityTimer <= 0 && !player.Bomb.IsActive)
             {
                 if (pool[i].Position.DistanceTo(player.Transform.Position) < (pool[i].HitboxRadius + player.Hitbox.Radius))
                 {

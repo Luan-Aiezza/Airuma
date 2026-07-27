@@ -34,3 +34,11 @@ public struct BulletEmitterComponent {
     public float SpinRate; // Faz o ângulo girar a cada tiro (Espirais)
     public bool IsAimed;   // Força o tiro a mirar no jogador
 }
+
+public struct BombComponent {
+    public int BombsLeft;
+    public bool IsActive;
+    public float Timer;
+    public float Duration;
+    public float Radius; // Tamanho da aura de luz
+}

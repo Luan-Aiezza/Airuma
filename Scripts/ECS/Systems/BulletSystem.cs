@@ -25,7 +25,7 @@ public static class BulletSystem
     public static void UpdatePlayerWeapons(PlayerEntity player, BulletData[] pool, float delta)
     {
         player.Weapon.TimeSinceLastFire += delta;
-        if (Input.IsActionPressed("ui_select") && player.Weapon.TimeSinceLastFire >= player.Weapon.FireRate)
+        if (player.Input.IsShooting && player.Weapon.TimeSinceLastFire >= player.Weapon.FireRate)
         {
             player.Weapon.TimeSinceLastFire = 0f;
             int level = player.Weapon.PowerLevel;

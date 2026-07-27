@@ -17,6 +17,7 @@ public partial class ECSManager : Node2D
     private Label _powerLabel;
     private Label _windLabel;
     private Label _bossHpLabel;
+    private Label _bombsLabel; // NOVO
 
     // Variáveis da UI de Fim de Jogo
     private Panel _endGamePanel;
@@ -41,6 +42,13 @@ public partial class ECSManager : Node2D
             Render = new RenderComponent { SpriteNode = GetNode<Sprite2D>("PlayerSprite") },
             Hitbox = new HitboxComponent { Radius = 4f },
             Health = new HealthComponent { CurrentHealth = 1, MaxHealth = 1, Lives = 3, InvincibilityTimer = 0f },
+            Bomb = new BombComponent { 
+                BombsLeft = 3, 
+                IsActive = false, 
+                Timer = 0f, 
+                Duration = 5.0f, // 5 segundos de luz
+                Radius = 250f    // Uma aura grande de proteção (250 pixels)
+            },
             WindModifier = new WindModifierComponent { Value = 1.0f }
         };
 
@@ -63,6 +71,7 @@ public partial class ECSManager : Node2D
         _powerLabel = GetNode<Label>("UI_Layer/GameUI/ColorRect/VBoxContainer/PowerLabel");
         _windLabel = GetNode<Label>("UI_Layer/GameUI/ColorRect/VBoxContainer/WindLabel");
         _bossHpLabel = GetNode<Label>("UI_Layer/GameUI/ColorRect/VBoxContainer/BossHpLabel");
+        _bombsLabel = GetNode<Label>("UI_Layer/GameUI/ColorRect/VBoxContainer/BombsLabel");
 
         // Captura o painel de fim de jogo e esconde por precaução
         _endGamePanel = GetNode<Panel>("UI_Layer/EndGamePanel");
@@ -98,8 +107,11 @@ public partial class ECSManager : Node2D
         MovementSystem.MovePlayer(_player, _screenBounds, floatDelta, _globalWind.CurrentWindVector);
         MovementSystem.MoveBoss(_boss, _screenBounds, floatDelta);
         BulletSystem.MoveBullets(_bulletPool, _screenBounds, floatDelta, _globalWind.CurrentWindVector);
+
+        // 3. PROCESSA A BOMBA DEPOIS DE MOVER
+        BombSystem.ProcessBombs(_player, _bulletPool, floatDelta);
         
-        // 3. COLISÕES E VIDA (Capturando a mudança de fase)
+        // 4. COLISÕES E VIDA (Capturando a mudança de fase)
         CombatSystem.ProcessCollisions(_bulletPool, _player, _boss);
         
         bool bossPhaseChanged = CombatSystem.ProcessHealth(_player, _boss, floatDelta);
@@ -125,12 +137,12 @@ public partial class ECSManager : Node2D
             TriggerEndGame(true); // Vitória
         }
 
-        // 4. RENDERIZAÇÃO
+        // 5. RENDERIZAÇÃO
         RenderSystem.SyncNodes(_player, _boss);
         QueueRedraw(); 
 
-        // NOVO: Atualiza os textos da interface do usuário todo frame
-        UISystem.UpdateUI(_player, _boss, _globalWind, _livesLabel, _powerLabel, _windLabel, _bossHpLabel);
+        // 6. Atualiza os textos da interface do usuário todo frame
+        UISystem.UpdateUI(_player, _boss, _globalWind, _livesLabel, _powerLabel, _windLabel, _bossHpLabel, _bombsLabel);
     }
 
     public override void _Draw()
@@ -144,6 +156,13 @@ public partial class ECSManager : Node2D
                 Color tintColor = _bulletPool[i].Faction == 0 ? Colors.Aqua : Colors.OrangeRed;
                 DrawTextureRect(_bulletTexture, new Rect2(drawPos, _bulletTexture.GetSize() * scale), false, tintColor);
             }
+        }
+        ///TROCAR POR ASSETS DEPOIS
+        if (_player.Bomb.IsActive)
+        {
+            // Desenha um círculo amarelo neon com um pouco de transparência ao redor do Airumã
+            Color auraColor = new Color(1.0f, 1.0f, 0.5f, 0.4f); 
+            DrawCircle(_player.Transform.Position, _player.Bomb.Radius, auraColor);
         }
     }
 
