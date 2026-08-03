@@ -6,11 +6,24 @@ public static class CombatSystem
 {
     public static void ProcessCollisions(BulletData[] pool, PlayerEntity player, BossEntity boss)
     {
+        if (player != null && boss != null && player.Health.InvincibilityTimer <= 0f && !player.Bomb.IsActive) {
+            
+            // Calcula a distância entre o centro do jogador e o centro do boss
+            float distance = player.Transform.Position.DistanceTo(boss.Transform.Position);
+            
+            // Se a distância for menor que a soma dos dois raios, houve colisão física!
+            if (distance < (player.Hitbox.Radius + boss.Hitbox.Radius)) {
+                player.Health.CurrentHealth -= 1;
+                player.Health.InvincibilityTimer = 2.0f; // Dá 2 segundos de respiro para ele não morrer em 1 frame
+            }
+        }
+        
         for (int i = 0; i < pool.Length; i++)
         {
             if (!pool[i].IsActive) continue;
 
-            if (pool[i].Faction == 1 && player.Health.InvincibilityTimer <= 0)
+            // Se for uma bala inimiga, o jogador não estiver invencível E NÃO ESTIVER COM A BOMBA ATIVA
+            if (pool[i].Faction == 1 && player.Health.InvincibilityTimer <= 0 && !player.Bomb.IsActive)
             {
                 if (pool[i].Position.DistanceTo(player.Transform.Position) < (pool[i].HitboxRadius + player.Hitbox.Radius))
                 {
@@ -65,11 +78,17 @@ public static class CombatSystem
         if (boss.Health.CurrentHealth <= 0 && boss.Health.Lives > 0)
         {
             boss.Health.Lives--;
-            GD.Print("Chefe perdeu uma fase! HP zerado.");
-            boss.Health.CurrentHealth = 500; 
+            GD.Print("Chefe perdeu uma fase! Vidas restantes: " + boss.Health.Lives);
+            
+            // CORREÇÃO: Só recupera a barra de vida se ainda tiver vidas sobrando!
+            if (boss.Health.Lives > 0) 
+            {
+                boss.Health.CurrentHealth = 100; 
+            }
+            
             bossPhaseChanged = true; // <-- Sinaliza a mudança de ataque
         }
         
-        return bossPhaseChanged; // <-- Retorna o estado para o ECSManager
+        return bossPhaseChanged;
         }
 }

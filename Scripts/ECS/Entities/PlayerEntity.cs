@@ -12,4 +12,5 @@ public class PlayerEntity
     public HealthComponent Health;
     public RenderComponent Render;
     public WindModifierComponent WindModifier; // <-- Nova linha
+    public BombComponent Bomb;
 }

@@ -10,6 +10,7 @@ public static class UISystem
         Label livesLabel, 
         Label powerLabel, 
         Label windLabel, 
+        Label bombsLabel,
         Label bossHpLabel)
     {
         // 1. Atualiza Informações do Jogador
@@ -17,6 +18,10 @@ public static class UISystem
         {
             livesLabel.Text = $"Lives of the Hero: {player.Health.Lives}";
             powerLabel.Text = $"Fire Power: Level {player.Weapon.PowerLevel}";
+        }
+
+        if (bombsLabel != null) {
+            bombsLabel.Text = "Bombs: " + player.Bomb.BombsLeft;
         }
 
         // 2. Atualiza Informações do Boss
