@@ -23,16 +23,23 @@ public struct PlayerWeaponComponent
 }
 
 public struct BulletEmitterComponent {
+    public bool IsActive; 
     public float FireRate;
     public float TimeSinceLastFire;
     public int BulletsPerVolley;
     public float SpreadAngle;
     public float BaseAngle;
     public float BulletSpeed;
+    public float SpinRate;
+    public bool IsAimed;
     
-    // NOVOS PARÂMETROS DANMAKU
-    public float SpinRate; // Faz o ângulo girar a cada tiro (Espirais)
-    public bool IsAimed;   // Força o tiro a mirar no jogador
+    public float Acceleration;
+    public float CurveRate;
+    public float BulletScale;
+    public Vector2 SpawnOffset; 
+    
+    // ---> A VARIÁVEL QUE ESTAVA FALTANDO: <---
+    public int BulletBehavior; 
 }
 
 public struct BombComponent {

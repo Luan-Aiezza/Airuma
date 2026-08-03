@@ -2,24 +2,26 @@ using Godot;
 using System;
 
 public static class PhaseManagerSystem {
-    public static void ChangePhase(BossEntity boss, int currentLives, ref BulletEmitterComponent emitter) {
-		// CORREÇÃO: Se a vida for 0 ou menor, o Boss foi derrotado!
+    public static void ChangePhase(BossEntity boss, int currentLives) {
+        
+        // CORREÇÃO: Se a vida for 0 ou menor, o Boss foi derrotado!
         if (currentLives <= 0) {
-            // Congela a boss, joga ela pra fora da tela e para os tiros.
-            // (Futuramente, aqui chamaremos o sistema de Explosão e a Tela de Vitória)
             boss.MovementType = BossMovementType.Stationary;
             boss.Transform.Position = new Vector2(-9999, -9999); 
-            emitter.FireRate = 9999f; 
-            return; // O 'return' impede que o restante do código abaixo seja lido!
+            boss.EmitterMain.IsActive = false; 
+            boss.EmitterSub.IsActive = false;
+            return; 
         }
 
-        // Reseta atributos padrões
+        // 1. Reseta atributos visuais e físicos padrões
         boss.Transform.Scale = new Vector2(1, 1);
         boss.Hitbox.Radius = 40f;
-        emitter.IsAimed = false;
-        emitter.SpinRate = 0f;
         
-        // CONFIGURAÇÃO GLOBAL DA TRANSIÇÃO (2 segundos de respiro)
+        // 2. Desliga os emissores para "limpar" o ataque anterior
+        boss.EmitterMain = new BulletEmitterComponent { IsActive = false };
+        boss.EmitterSub = new BulletEmitterComponent { IsActive = false };
+        
+        // 3. CONFIGURAÇÃO GLOBAL DA TRANSIÇÃO (2 segundos de respiro)
         boss.MovementType = BossMovementType.Transition;
         boss.TransitionTimer = 2.0f; 
 
@@ -27,64 +29,93 @@ public static class PhaseManagerSystem {
             case 6: // FASE 1: O Anel Clássico (Vai pro topo patrulhar)
                 boss.NextMovementType = BossMovementType.Patrol;
                 boss.TargetPosition = new Vector2(300, 100); 
-                emitter.FireRate = 1.0f;
-                emitter.BulletsPerVolley = 36;
-                emitter.SpreadAngle = 360f;
-                emitter.BulletSpeed = 150f;
-                emitter.SpinRate = 5f;
+                
+                boss.EmitterMain = new BulletEmitterComponent {
+                    IsActive = true, FireRate = 1.0f, BulletsPerVolley = 36,
+                    SpreadAngle = 360f, BulletSpeed = 150f, SpinRate = 5f,
+                    BulletScale = 1.0f
+                };
                 break;
 
-            case 5: // FASE 1: Shotgun Mirada (Vai pro centro da tela e para)
+            case 5: // FASE 2: Shotgun Mirada (Vai pro centro da tela e para)
                 boss.NextMovementType = BossMovementType.Stationary;
                 boss.TargetPosition = new Vector2(300, 150); 
-                emitter.FireRate = 0.8f;
-                emitter.BulletsPerVolley = 5; 
-                emitter.SpreadAngle = 60f; 
-                emitter.BulletSpeed = 250f;
-                emitter.IsAimed = true; 
+                
+                boss.EmitterMain = new BulletEmitterComponent {
+                    IsActive = true, FireRate = 0.8f, BulletsPerVolley = 20,
+                    SpreadAngle = 120f, BulletSpeed = 250f, IsAimed = true,
+                    BulletScale = 1.2f
+                };
                 break;
 
-            case 4: // FASE 1: Espiral Dupla Rápida (Fica no centro)
+            case 4: // FASE 3: REDEMOINHO DUPLO (Spinners Laterais)
                 boss.NextMovementType = BossMovementType.Stationary;
                 boss.TargetPosition = new Vector2(300, 150);
-                emitter.FireRate = 0.1f; 
-                emitter.BulletsPerVolley = 2; 
-                emitter.SpreadAngle = 180f; 
-                emitter.BulletSpeed = 200f;
-                emitter.SpinRate = 15f; 
+                
+                // Emissor Esquerdo - Gira Horário (+12f)
+                boss.EmitterMain = new BulletEmitterComponent {
+                    IsActive = true, FireRate = 0.08f, BulletsPerVolley = 2, 
+                    SpreadAngle = 180f, BaseAngle = 0f, BulletSpeed = 180f, 
+                    SpawnOffset = new Vector2(-150, 0), SpinRate = 12f,
+                    BulletScale = 0.8f
+                };
+                
+                // Emissor Direito - Gira Anti-Horário (-12f) para cruzar visualmente!
+                boss.EmitterSub = new BulletEmitterComponent {
+                    IsActive = true, FireRate = 0.08f, BulletsPerVolley = 2, 
+                    SpreadAngle = 180f, BaseAngle = 0f, BulletSpeed = 180f, 
+                    SpawnOffset = new Vector2(150, 0), SpinRate = 12f,
+                    BulletScale = 0.8f
+                };
                 break;
 
-            case 3: // FASE 1: Flor de Lótus (Volta pro topo patrulhar)
+            case 3: // FASE 4: Flor de Lótus Teleguiada (Aceleração Negativa, Curva e Homing)
                 boss.NextMovementType = BossMovementType.Patrol;
                 boss.TargetPosition = new Vector2(300, 100);
-                emitter.FireRate = 0.5f;
-                emitter.BulletsPerVolley = 12;
-                emitter.SpreadAngle = 360f;
-                emitter.BulletSpeed = 180f;
-                emitter.SpinRate = 10f;
+                
+                boss.EmitterMain = new BulletEmitterComponent {
+                    IsActive = true, FireRate = 1.5f, BulletsPerVolley = 20, 
+                    SpreadAngle = 360f, BulletSpeed = 300f, 
+                    Acceleration = -250f, CurveRate = 45f, 
+                    BulletScale = 1.2f, SpinRate = 10f,
+                    BulletBehavior = 1 // Ativa o Stop and Aim Teleguiado
+                };
                 break;
 
-            case 2: // FASE 2: TRANSFORMAÇÃO! Cobra Gigante (Meio da tela)
+            case 2: // FASE 5: TRANSFORMAÇÃO! Cobra Gigante (Mix de Tamanhos)
                 boss.NextMovementType = BossMovementType.Stationary;
                 boss.TargetPosition = new Vector2(300, 150);
                 boss.Transform.Scale = new Vector2(3f, 3f); 
                 boss.Hitbox.Radius = 120f; 
-                emitter.FireRate = 0.2f;
-                emitter.BulletsPerVolley = 20;
-                emitter.SpreadAngle = 360f;
-                emitter.BulletSpeed = 100f;
-                emitter.SpinRate = 7f;
+                
+                // Bolas GIGANTES que perseguem
+                boss.EmitterMain = new BulletEmitterComponent {
+                    IsActive = true, FireRate = 1.5f, BulletsPerVolley = 5, 
+                    SpreadAngle = 60f, BulletSpeed = 350f, 
+                    BulletScale = 4.0f, IsAimed = true 
+                };
+
+                // Teia infinita de balinhas minúsculas giratórias
+                boss.EmitterSub = new BulletEmitterComponent {
+                    IsActive = true, FireRate = 0.05f, BulletsPerVolley = 2, 
+                    SpreadAngle = 180f, BulletSpeed = 150f, 
+                    SpinRate = 35f, BulletScale = 0.5f 
+                };
                 break;
 
-            case 1: // FASE 2 FINAL: Screen-Wrap Dash
+            case 1: // FASE 6 FINAL: Screen-Wrap Dash + RASTRO DE BALAS
                 boss.NextMovementType = BossMovementType.Dash;
                 boss.DashTimer = 0f; 
                 boss.Transform.Scale = new Vector2(3f, 3f);
                 boss.Hitbox.Radius = 100f;
-                emitter.FireRate = 9999f; // Desliga tiros
                 
-                // Exceção: Como faz sentido ela sumir e aparecer pro ataque final, 
-                // teletransportamos ela direto pro topo e pulamos o deslize visual (mas mantemos o atraso de 2s)
+                // NOVO: Libera anéis de balinhas pequenas durante o avanço!
+                boss.EmitterMain = new BulletEmitterComponent {
+                    IsActive = true, FireRate = 0.12f, BulletsPerVolley = 8,
+                    SpreadAngle = 360f, BulletSpeed = 110f, SpinRate = 15f,
+                    BulletScale = 0.5f // Balas minúsculas liberadas pelo corpo gigante
+                };
+                
                 boss.TargetPosition = new Vector2(300, -50); 
                 boss.Transform.Position = boss.TargetPosition; 
                 break;

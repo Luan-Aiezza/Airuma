@@ -9,7 +9,6 @@ public partial class ECSManager : Node2D
     
     private BulletData[] _bulletPool = new BulletData[1000];
     private Texture2D _bulletTexture;
-    private BulletEmitterComponent _bossEmitter;
     private WindState _globalWind;
 
     // Variáveis da Interface de Usuário
@@ -82,15 +81,8 @@ public partial class ECSManager : Node2D
         // Conecta o evento de clique do botão à nossa função de reinício
         _restartButton.Pressed += OnRestartButtonPressed;
 
-        _bossEmitter = new BulletEmitterComponent
-        {
-            FireRate = 1.0f, TimeSinceLastFire = 0f,
-            BulletsPerVolley = 36, SpreadAngle = 360f, BaseAngle = 0f, BulletSpeed = 150f
-        };
-
         WindSystem.RandomizeWind(ref _globalWind);
-        // Inicia os Padrões da Vida 6
-        PhaseManagerSystem.ChangePhase(_boss, _boss.Health.Lives, ref _bossEmitter);
+        PhaseManagerSystem.ChangePhase(_boss, _boss.Health.Lives);
         WindSystem.RandomizeWind(ref _globalWind);
     }
 
@@ -101,12 +93,12 @@ public partial class ECSManager : Node2D
         // 1. INPUTS E SPAWNERS
         MovementSystem.ProcessPlayerInput(_player);
         BulletSystem.UpdatePlayerWeapons(_player, _bulletPool, floatDelta);
-        BulletSystem.UpdateBossWeapons(_boss, _player, ref _bossEmitter, _bulletPool, floatDelta);
+        BulletSystem.UpdateBossWeapons(_boss, _player, _bulletPool, floatDelta);
 
         // 2. MOVIMENTAÇÃO (Passando o CurrentWindVector)
         MovementSystem.MovePlayer(_player, _screenBounds, floatDelta, _globalWind.CurrentWindVector);
         MovementSystem.MoveBoss(_boss, _screenBounds, floatDelta);
-        BulletSystem.MoveBullets(_bulletPool, _screenBounds, floatDelta, _globalWind.CurrentWindVector);
+        BulletSystem.MoveBullets(_bulletPool, _screenBounds, floatDelta, _globalWind.CurrentWindVector, _player);
 
         // 3. PROCESSA A BOMBA DEPOIS DE MOVER
         BombSystem.ProcessBombs(_player, _bulletPool, floatDelta);
@@ -120,8 +112,9 @@ public partial class ECSManager : Node2D
             // NOVO: Limpa todas as balas inimigas da tela instantaneamente!
             BulletSystem.ClearBossBullets(_bulletPool);
             
+            // CORREÇÃO: Removemos o 'ref _bossEmitter' daqui também!
             // Altera padrão de tiro e movimento da Boitatá!
-            PhaseManagerSystem.ChangePhase(_boss, _boss.Health.Lives, ref _bossEmitter);
+            PhaseManagerSystem.ChangePhase(_boss, _boss.Health.Lives);
             
             // Altera a força da natureza!
             WindSystem.RandomizeWind(ref _globalWind);
@@ -152,9 +145,9 @@ public partial class ECSManager : Node2D
         {
             if (_bulletPool[i].IsActive)
             {
-                Vector2 drawPos = _bulletPool[i].Position - (_bulletTexture.GetSize() * scale / 2);
+                Vector2 drawPos = _bulletPool[i].Position - (_bulletTexture.GetSize() * scale * _bulletPool[i].Scale / 2);
                 Color tintColor = _bulletPool[i].Faction == 0 ? Colors.Aqua : Colors.OrangeRed;
-                DrawTextureRect(_bulletTexture, new Rect2(drawPos, _bulletTexture.GetSize() * scale), false, tintColor);
+                DrawTextureRect(_bulletTexture, new Rect2(drawPos, _bulletTexture.GetSize() * scale * _bulletPool[i].Scale), false, tintColor);
             }
         }
         ///TROCAR POR ASSETS DEPOIS
@@ -164,6 +157,7 @@ public partial class ECSManager : Node2D
             Color auraColor = new Color(1.0f, 1.0f, 0.5f, 0.4f); 
             DrawCircle(_player.Transform.Position, _player.Bomb.Radius, auraColor);
         }
+        
     }
 
     private void TriggerEndGame(bool isVictory)

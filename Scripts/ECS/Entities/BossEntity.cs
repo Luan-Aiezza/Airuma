@@ -20,4 +20,8 @@ public class BossEntity {
     public BossMovementType NextMovementType = BossMovementType.Patrol; 
     public Vector2 TargetPosition; 
     public float TransitionTimer = 0f;
+
+    // Substitua o antigo por estes dois:
+    public BulletEmitterComponent EmitterMain;
+    public BulletEmitterComponent EmitterSub;
 }
