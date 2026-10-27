@@ -545,6 +545,32 @@ public static class MenuArt
         }
     }
 
+    public const int FlameWidth = 13, FlameHeight = 10;
+
+    /// <summary>
+    /// The flame of the lantern: a teardrop, wider at the foot, that sways between the two frames. It is drawn in a space 13 x 10
+    /// (<see cref="FlameWidth"/> x <see cref="FlameHeight"/>) whose top-left corner is at (left, top); only the flame's own pixels are painted.
+    /// </summary>
+    public static void DrawFlame(PixelCanvas c, int frame, int left, int top)
+    {
+        var warm = PixelColor.Hex(0xFF9A1F);
+        int lift = frame == 0 ? 0 : 1, sway = frame == 0 ? 0 : 1;
+        int tip = 1 - lift, foot = FlameHeight - 1;
+        for (int y = tip; y <= foot; y++)
+        {
+            float v = (y - tip) / (float)(foot - tip);                  // 0 at the tip ... 1 at the foot
+            float half = 1 + 4.2f * MathF.Sin(MathF.Min(1, v * 1.15f) * MathF.PI / 2) * (v < 0.9f ? 1 : 0.8f);
+            float centre = 6 + sway * (1 - v) * 1.2f;
+            for (int x = 0; x < FlameWidth; x++)
+            {
+                float d = MathF.Abs(x + 0.5f - centre - 0.5f) / half;
+                if (d >= 1) continue;
+                var color = d > 0.75f ? warm : (d > 0.45f || v < 0.3f ? PixelColor.Hex(0xFFD66B) : (d > 0.2f ? PixelColor.Hex(0xFFF1B0) : PixelColor.Hex(0xFFFFE8)));
+                if (c.Contains(left + x, top + y)) c[left + x, top + y] = color;
+            }
+        }
+    }
+
     public const int LanternWidth = 21, LanternHeight = 32;
 
     /// <summary>
@@ -556,7 +582,6 @@ public static class MenuArt
         var c = new PixelCanvas(LanternWidth, LanternHeight);
         var stone = SidePillarArt.Stone; var leaf = SidePillarArt.Leaf; var flower = SidePillarArt.Flower;
         var ink = SidePillarArt.Out;
-        var warm = PixelColor.Hex(0xFF9A1F);
 
         void Block(int x0, int x1, int y0, int y1)
         {
@@ -592,20 +617,7 @@ public static class MenuArt
                 float d = MathF.Sqrt(dx * dx + dy * dy);
                 c[x, y] = d < 0.45f ? PixelColor.Hex(0x7A3A14) : PixelColor.Hex(0x4A2410);
             }
-        // The flame: a teardrop, wider at the foot, that sways between the frames.
-        int lift = frame == 0 ? 0 : 1, sway = frame == 0 ? 0 : 1;
-        for (int y = 17 - lift; y <= 25; y++)
-        {
-            float v = (y - (17 - lift)) / (25f - (17 - lift));          // 0 at the tip ... 1 at the foot
-            float half = 1 + 4.2f * MathF.Sin(MathF.Min(1, v * 1.15f) * MathF.PI / 2) * (v < 0.9f ? 1 : 0.8f);
-            float centre = 10 + sway * (1 - v) * 1.2f;
-            for (int x = 4; x <= 16; x++)
-            {
-                float d = MathF.Abs(x + 0.5f - centre - 0.5f) / half;
-                if (d >= 1) continue;
-                c[x, y] = d > 0.75f ? warm : (d > 0.45f || v < 0.3f ? PixelColor.Hex(0xFFD66B) : (d > 0.2f ? PixelColor.Hex(0xFFF1B0) : PixelColor.Hex(0xFFFFE8)));
-            }
-        }
+        DrawFlame(c, frame, 4, 16);
         // The inner sides of the posts catch the flame's light.
         for (int y = 16; y <= 25; y++) { c[3, y] = PixelColor.Hex(0xB8743A); c[17, y] = PixelColor.Hex(0x9A5A2E); }
         // The foot: two steps, with a chakana cut in the first.

@@ -94,7 +94,7 @@ public partial class Main : Node2D
             }
             if (a.StartsWith("--export-icon="))
             {
-                IconArt.MakeImage(16).SavePng(a.Substring("--export-icon=".Length));
+                IconArt.MakeImage().SavePng(a.Substring("--export-icon=".Length));
                 GetTree().Quit();
                 return;
             }

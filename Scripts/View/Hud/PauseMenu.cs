@@ -85,7 +85,7 @@ public partial class PauseMenu : Node2D
         }
     }
 
-    public void Show()
+    public new void Show()
     {
         _selected = 0;
         if (IsInsideTree()) Refresh();

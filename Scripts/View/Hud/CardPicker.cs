@@ -131,7 +131,7 @@ public partial class CardPicker : Node2D
     }
 
     /// <summary>Fades the picker out.</summary>
-    public void Hide()
+    public new void Hide()
     {
         if (!Visible || _closing) return;
         _closing = true;

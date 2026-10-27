@@ -356,7 +356,7 @@ public static class HudArt
 
     // MARK: Airu, the lantern fairy
 
-    /// <summary>Framed portrait of Airu (18x18). Two frames: her wings flutter.</summary>
+    /// <summary>Framed portrait of Airu (18x18): the flame of the lantern, in two frames, so that it flickers.</summary>
     public static PixelCanvas FairyPortrait(int frame)
     {
         const int size = 18;
@@ -371,40 +371,9 @@ public static class HudArt
                 c[x, y] = night.Mixed(glow, i * 1.2f > Bayer.Threshold(x, y) ? 0.9f : 0.1f);
             }
         }
+        // Airu is the flame inside the lantern: the same flame as in the menu, flickering between its two frames.
         void Put(int x, int y, PixelColor color) { if (c.Contains(x, y)) c[x, y] = color; }
-        var wing = PixelColor.Hex(0xBFE9FF); var wingEdge = PixelColor.Hex(0x7CB8E8);
-        int lift = frame == 0 ? 0 : -1;
-        foreach (int cx in new[] { 5, 13 })
-        {
-            for (int dy = -3; dy <= 3; dy++)
-            {
-                for (int dx = -2; dx <= 2; dx++)
-                {
-                    if (!((dx * dx) * 2 + dy * dy <= 10)) continue;
-                    int x = cx + dx, y = 9 + lift + dy;
-                    Put(x, y, Math.Abs(dx) == 2 || Math.Abs(dy) == 3 ? wingEdge : wing);
-                }
-            }
-        }
-        // Dress, a warm cone like the lantern's glow.
-        for (int y = 9; y <= 13; y++)
-        {
-            int half = 1 + (y - 9) / 2 + (y == 13 ? 1 : 0);
-            for (int x = 9 - half; x <= 8 + half; x++) Put(x, y, (x == 8 || x == 9) ? PixelColor.Hex(0xFFE28C) : PixelColor.Hex(0xFFB23D));
-        }
-        Put(8, 14, PixelColor.Hex(0xF2D2A6)); Put(9, 14, PixelColor.Hex(0xF2D2A6));
-        // Head: silver-lilac hair, large dark eyes.
-        var skin = PixelColor.Hex(0xF2D2A6); var hair = PixelColor.Hex(0xD9D2FF);
-        for (int y = 3; y <= 8; y++)
-        {
-            for (int x = 6; x <= 11; x++)
-            {
-                float d = MathF.Sqrt((x + 0.5f - 9) * (x + 0.5f - 9) + (y + 0.5f - 6) * (y + 0.5f - 6));
-                if (d <= 3.1f) Put(x, y, (y <= 4 || x == 6 || x == 11) ? hair : skin);
-            }
-        }
-        Put(8, 6, PixelColor.Hex(0x2A2A5A)); Put(10, 6, PixelColor.Hex(0x2A2A5A));
-        Put(9, 8, PixelColor.Hex(0xE0645A));
+        MenuArt.DrawFlame(c, frame, (size - MenuArt.FlameWidth) / 2, 4);
         // Sparkles.
         var sparkle = PixelColor.Hex(0xFFFFD8);
         foreach (var (x, y) in (frame == 0 ? new[] { (3, 3), (15, 5), (2, 13) } : new[] { (14, 3), (3, 6), (15, 13) })) Put(x, y, sparkle);
