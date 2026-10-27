@@ -10,20 +10,24 @@ config_version=5
 
 [application]
 
-config/name="Danmaku"
-run/main_scene="uid://bdaij8c1vhred"
-config/features=PackedStringArray("4.6", "C#", "Forward Plus")
-config/icon="res://Assets/icon.svg"
+config/name="Airumã"
+run/main_scene="res://Scenes/main.tscn"
+config/features=PackedStringArray("4.7", "C#", "Forward Plus")
+config/icon="res://Assets/icon.png"
 
 [display]
 
-window/size/viewport_width=950
+window/size/viewport_width=1110
 window/size/viewport_height=775
+window/size/resizable=false
+window/size/window_width_override=1378
+window/size/window_height_override=775
 window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
 
 [dotnet]
 
-project/assembly_name="Daimaku"
+project/assembly_name="Airuma"
 
 [physics]
 
@@ -31,5 +35,7 @@ project/assembly_name="Daimaku"
 
 [rendering]
 
+textures/canvas_textures/default_texture_filter=0
 rendering_device/driver.windows="d3d12"
 textures/vram_compression/import_etc2_astc=true
+environment/defaults/default_clear_color=Color(0, 0, 0, 1)

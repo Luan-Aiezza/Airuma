@@ -1,59 +1,105 @@
-# Airumã danmaku
+# Airumã
 
-A *danmaku* (bullet hell) game inspired by Touhou and South American mythologies and cultures. Dodge dense bullet patterns, shoot back and survive a six-phase boss fight while the wind pushes every bullet around the screen. Built with **Godot 4** and **C#**.
+A *danmaku* (bullet hell) for the desktop (Windows and macOS), inspired by Touhou and the myths and cultures of South America. You
+are Atli, a boy lost on a river at night, and Airu, the fairy of his lantern. Gather the light of the forest spirits, choose cards,
+dodge the bullets of the first boss, a woman of fire who turns into a giant serpent, while the wind pushes everything around. Built with
+**Godot 4.7** and **C#**.
 
-> The project is in early development. The bullet art is still a placeholder icon, and there is one boss fight so far.
+Everything you see and hear is made in code: the pixel art, the shaders, the music and the sound effects. There are no image or audio
+files in the project (apart from the game's icon).
 
-## Features
-
-- **Player:** move with the arrow keys, shoot with **Z**, and activate a **bomb** with **X**, an aura of light around the player that destroys boss bullets touching it for a few seconds. The player has 3 lives, a weapon power level and a limited number of bombs.
-- **Six-phase boss:** each of the boss's 6 lives is a different attack pattern, with a transition between phases:
-  1. A classic ring of bullets
-  2. An aimed shotgun
-  3. Double side spinners
-  4. A homing lotus flower, with negative acceleration and curving bullets
-  5. A giant snake with mixed bullet sizes
-  6. A screen-wrap dash that leaves a trail of bullets
-- **Advanced bullet patterns:** per-bullet acceleration, curve rate, scale and behaviors such as stop-and-aim.
-- **Wind system:** a random wind (north, south, east or west) with no, weak, medium or strong force pushes bullets, and affects the player's bullets more than the boss's.
-- **HUD and end screen:** lives, power, bombs, wind and boss health, plus a restart button.
-- **Exports:** presets for macOS, Windows and Web.
-
-## Architecture
-
-The game uses an **ECS (entity–component–system)** design in C#. Bullets live in a fixed pool of 1,000 structs, which keeps updates cache-friendly and avoids allocations during play.
-
-| Folder | Contents |
-| --- | --- |
-| `Scripts/ECS/Core` | `ECSManager`, the main node that owns the entities, the bullet pool and the game loop |
-| `Scripts/ECS/Entities` | `PlayerEntity` and `BossEntity` |
-| `Scripts/ECS/Components` | Core components (transform, velocity, hitbox, health, render) and combat components (weapons, bombs, bullet emitters) |
-| `Scripts/ECS/Systems` | Movement, bullets, combat, bombs, boss phases, wind, rendering and UI systems |
-| `Scripts/Data` | `BulletData`, the struct stored in the pool |
-| `Scenes` | The main scene |
-
-## Tech stack
-
-![Godot](https://img.shields.io/badge/Godot-4.6-478CBF?style=for-the-badge&logo=godotengine&logoColor=white) ![C#](https://img.shields.io/badge/c%23-%23239120.svg?style=for-the-badge&logo=csharp&logoColor=white) ![.NET](https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
-
-## Running the project
-
-Requirements: the **.NET** edition of Godot 4.6 and the .NET SDK.
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Luan-Aiezza/Airuma.git
-   ```
-2. Open `project.godot` in Godot (.NET).
-3. Press **F5** to build and run the main scene.
-
-### Controls
+## Playing
 
 | Key | Action |
 | --- | --- |
 | Arrow keys | Move |
-| Z | Shoot |
-| X | Bomb |
+| Z | Shoot (and confirm in menus and talks) |
+| X | Bomb (and go back, or skip a talk) |
+| Esc | Pause |
+| F11, Alt+Enter, Cmd+Ctrl+F | Full screen |
+
+- **Start** begins a run on Easy, Normal or Hard (the difficulty changes the number of bullets and the strength of the wind).
+- **Boss Practice** rehearses the fight with the boss. The other bosses are locked until they are made.
+- Light dropped by the spirits raises the weapon's level; a card is chosen at the start of the stage and before the boss; a spare
+  lantern (a bomb) and a spare boat (a life) fall from the sky when the score reaches certain heights.
+
+## How the project is organised
+
+The simulation follows the **ECS** pattern (entities, components, systems) and knows nothing about pictures or sound. The rest of the game
+is *data* that the simulation is given, or *views* that show what the simulation says.
+
+```
+Scripts/
+  Ecs/                the simulation (no Godot nodes)
+    Components/       plain data: transform, health, hitbox, weapon, bomb, bullet emitter, bullet, light, wave progress, score...
+    Entities/         PlayerEntity, BossEntity, EnemyEntity: bags of components
+    Systems/          the rules, as static functions: movement, bullets, combat, bomb, enemies, waves, boss attacks,
+                      lights, power, score and prizes, cards, wind
+    Cards/            the cards' effects, the run's stack of cards, the offers
+    Events/           WorldEvent: what the simulation tells the views
+    World.cs          owns the entities and runs the systems in order, once per step (World.Testing.cs: hooks for the tests)
+  Content/            what changes from stage to stage: the data the simulation runs
+    Stages/           StageDefinition, the stage list, and the waves of stage 1
+    Bosses/           BossDefinition / BossPhase, and Iryssh, the boss of stage 1
+    Spirits/          the table of the forest spirits (health, hitbox, lights, points)
+    Cards/            titles, rarities and limits of the cards
+    Text/             every text of the game (UIText) and the talks (Dialogue)
+  View/               Godot nodes that show the simulation
+    Game/             GameScene (split in partial files: sequences, rendering, events, input), input
+    Hud/              the side panel, dialogue box, card picker, pause menu, title card
+    Menu/             the title menu and its backdrop
+    Backdrop/         the river (with its water shader), the scrolling banks, the pillars at the sides of the screen
+    Effects/          bomb, bursts, wake, wind
+    Boss/             the serpent's body and flames
+  Art/                pixel art drawn pixel by pixel in code (sprites, tiles, HUD, fonts)
+  Audio/              the synthesiser, the songs, the sound effects and their players
+  App/                Main (menu <-> game), the layout of the screen, the high scores
+  Tests/              SelfTest: the logic tests (no window needed)
+Shaders/              water, menu water, and the serpent's flames
+```
+
+### Adding to the game
+
+- **A stage:** write a `StageDefinition` (title, music, waves, boss) in `Content/Stages` and list it in `Stages`. `World` takes it as an
+  argument; nothing in `Ecs/` has to change.
+- **A boss:** a `BossDefinition` is a list of `BossPhase`s: each one has the attack's name, the shape and hitbox, how it moves, and its
+  bullet emitters (plus an extra emitter for Hard). `Content/Bosses/IrysshBoss.cs` is the model.
+- **A spirit:** add a value to `SpiritKind` and a row to `SpiritCatalog`; the paths and shooting patterns of a wave are in
+  `Content/Stages/Stage1Waves.cs` (`EnemyPath`, `FirePattern`).
+- **A card:** add a value to `Card`, its texts to `UIText`, its rarity and limit to `CardInfo`, and its effect to `CardEffects`.
+
+## Running
+
+Requirements: the **.NET edition of Godot 4.7** and the .NET 10 SDK. `nuget.config` points to the packages bundled with the Godot editor
+(for offline builds); change it if your editor lives elsewhere.
+
+1. Open `project.godot` in Godot (.NET) and press **F5**, or run `Godot --path .`.
+2. The window is 1378x775 (the game is 1110x775 and the pillars of ancient stone fill the sides); on wider screens in full screen the
+   pillars and the jungle wall grow to fill the space.
+
+Flags after `--`:
+
+| Flag | What it does |
+| --- | --- |
+| `--game` | Skip the menu and start a run (`--difficulty=easy\|normal\|hard`) |
+| `--practice=N` | Start boss practice at attack N (1 = the whole fight) |
+| `--autoplay` | A test pilot plays |
+| `--shot=file.png` | Save a picture of the screen after a moment and quit |
+| `--export-music=dir`, `--export-sfx=dir` | Write the songs and the sound effects as WAV files |
+| `--export-boss=dir`, `--export-pillar=dir`, `--export-icon=file` | Write art for a look |
+
+## Tests
+
+```bash
+Godot --headless --path . res://Scenes/selftest.tscn   # the exit code is the number of failures
+```
+
+The tests (`Scripts/Tests`) run the simulation without a window: movement and bullets, the spirits and their waves, the bomb, the cards,
+the score and prizes, the difficulties, the stage flow (including a stage made on the spot), the audio and the texts.
+
+## Exporting
+
+The presets for macOS and Windows are in `export_presets.cfg`; they need the export templates installed (Editor > Manage Export Templates).
 
 ## Author
 
