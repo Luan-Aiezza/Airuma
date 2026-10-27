@@ -15,7 +15,7 @@ public class BossEntity
         Transform = new Transform2DComponent(new Vector2(300, 140), new Vector2(1, 1)),
         Movement = new VelocityComponent { Speed = 200 },
         Hitbox = new HitboxComponent(definition.PhaseFor(definition.Lives).HitboxRadius),
-        Health = new HealthComponent(100, 100, definition.Lives, 0),
+        Health = new HealthComponent(definition.PhaseFor(definition.Lives).MaxHealth, definition.PhaseFor(definition.Lives).MaxHealth, definition.Lives, 0),
         PatrolDirection = 1,
     };
 

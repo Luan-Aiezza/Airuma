@@ -32,6 +32,8 @@ public static class PhaseManagerSystem
 
         var phase = boss.Definition.PhaseFor(currentLives);
         boss.Hitbox.Radius = phase.HitboxRadius;
+        boss.Health.MaxHealth = phase.MaxHealth;
+        boss.Health.CurrentHealth = phase.MaxHealth;
         boss.EmitterMain = phase.Main;
         boss.EmitterSub = phase.Sub;
 

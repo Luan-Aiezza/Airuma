@@ -11,11 +11,14 @@ public static class IrysshBoss
     // Hitboxes: a third of the width of the sprite (96 and 224 points).
     private const float WomanHitbox = 32, SerpentHitbox = 75;
 
+    // Health of each attack: the serpent, her true form, is bigger and stronger (500 against 300).
+    private const int WomanHealth = 300, SerpentHealth = 500;
+
     private static BossPhase Woman(string attack, BossMovementType movement, Vector2 target, BulletEmitterComponent main, BulletEmitterComponent sub = default,
                                    BulletEmitterComponent hardExtra = default) =>
         new BossPhase
         {
-            AttackName = attack, Form = BossForm.Human, Name = Name, Theme = MusicPlayer.Theme.Boss, MusicTitle = UIText.BossMusic, HitboxRadius = WomanHitbox,
+            AttackName = attack, Form = BossForm.Human, Name = Name, Theme = MusicPlayer.Theme.Boss, MusicTitle = UIText.BossMusic, HitboxRadius = WomanHitbox, MaxHealth = WomanHealth,
             Movement = movement, Target = target, Main = main, Sub = sub, HardExtra = hardExtra,
         };
 
@@ -23,7 +26,7 @@ public static class IrysshBoss
                                      BulletEmitterComponent hardExtra = default, bool startsAtTarget = false, bool firstOfTheForm = false) =>
         new BossPhase
         {
-            AttackName = attack, Form = BossForm.Serpent, Name = UIText.SerpentName, Theme = MusicPlayer.Theme.BossTwo, MusicTitle = UIText.BossTwoMusic, HitboxRadius = SerpentHitbox,
+            AttackName = attack, Form = BossForm.Serpent, Name = UIText.SerpentName, Theme = MusicPlayer.Theme.BossTwo, MusicTitle = UIText.BossTwoMusic, HitboxRadius = SerpentHitbox, MaxHealth = SerpentHealth,
             Movement = movement, Target = target, StartsAtTarget = startsAtTarget, Main = main, Sub = sub, HardExtra = hardExtra,
             TransformationDialogue = firstOfTheForm ? Dialogues.Transformation : null,
         };

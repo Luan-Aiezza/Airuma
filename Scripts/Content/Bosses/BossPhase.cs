@@ -15,6 +15,8 @@ public sealed class BossPhase
     public string Name;
     public MusicPlayer.Theme Theme;
     public string MusicTitle;
+    /// <summary>The health of the boss for this attack: each attack begins with the bar full. The second form of a boss is the stronger one.</summary>
+    public int MaxHealth;
     /// <summary>The radius of the hitbox: about a third of the width of the sprite, as the hitbox is about two thirds of it.</summary>
     public float HitboxRadius;
 

@@ -8,6 +8,7 @@ public static partial class SelfTest
 {
     private static void RegisterStageFlow(Action<string, Action> T)
     {
+        T("TheSerpentHasMoreHealthThanTheWoman", TheSerpentHasMoreHealthThanTheWoman);
         T("AStageIsOnlyDataTheWorldRuns", AStageIsOnlyDataTheWorldRuns);
         T("TheFirstStageIsMadeOfItsWavesAndItsBoss", TheFirstStageIsMadeOfItsWavesAndItsBoss);
         T("ARunStartsWithFairiesAndTheBossWaits", ARunStartsWithFairiesAndTheBossWaits);
@@ -28,7 +29,7 @@ public static partial class SelfTest
         Less(world.Boss.Transform.Position.Y, -200, "the boss is off-screen");
         StepN(world, 60 * 10);
         False(world.Bullets.Any(b => b.IsActive && b.Faction == Faction.Boss && b.Style == BulletStyle.Fireball), "no boss bullets");
-        Eq(world.Boss.Health.CurrentHealth, 100);
+        Eq(world.Boss.Health.CurrentHealth, 300);
     }
 
     private static void BossPracticeSkipsTheFairies()
@@ -193,5 +194,21 @@ public static partial class SelfTest
         True(stage.Boss.PhaseFor(2).TransformationDialogue != null && stage.Boss.PhaseFor(3).TransformationDialogue == null, "she speaks only when she changes shape");
         Eq(new World(withCards: false).StartingBossLives, 6);
         Eq(new World(practicePhase: 5).StartingBossLives, 2);
+    }
+
+    private static void TheSerpentHasMoreHealthThanTheWoman()
+    {
+        var def = IrysshBoss.Definition;
+        for (int lives = 6; lives >= 3; lives--) Eq(def.PhaseFor(lives).MaxHealth, 300, "the woman");
+        for (int lives = 2; lives >= 1; lives--) Eq(def.PhaseFor(lives).MaxHealth, 500, "the serpent, her true form");
+        var world = new World(practicePhase: 1);
+        world.CalmWindForTesting();
+        Eq(world.Boss.Health.MaxHealth, 300);
+        world.Boss.Health.Lives = 3;
+        world.Boss.Health.CurrentHealth = 0;
+        world.Step(Dt, Idle());
+        Eq(world.Boss.Health.Lives, 2);
+        Eq(world.Boss.Health.MaxHealth, 500, "the bar is refilled for the serpent");
+        Eq(world.Boss.Health.CurrentHealth, 500);
     }
 }
