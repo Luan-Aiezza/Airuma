@@ -15,7 +15,7 @@ public static class Stages
     public static readonly StageDefinition Two = new StageDefinition(
         nameof(UIText.Stage2Title), nameof(UIText.StageMusic), MusicPlayer.Theme.Stage, Stage2Waves.Waves, BayloBoss.Definition)
     {
-        Scenery = Scenery.Festival, Hud = HudTheme.Festival,
+        Scenery = Scenery.Festival, Hud = HudTheme.Festival, Spirits = SpiritStyle.Party,
         Intro = () => Dialogues.StageTwoIntro,
         BossEncounter = () => Dialogues.StageTwoMeeting, Ending = () => Dialogues.StageTwoEnding,
     };

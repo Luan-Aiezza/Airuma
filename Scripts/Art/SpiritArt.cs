@@ -49,14 +49,29 @@ public static class SpiritArt
 
     private static readonly (int, int)[] Neighbours = { (1, 0), (-1, 0), (0, 1), (0, -1) };
 
-    public static PixelCanvas MakeCanvas(SpiritKind kind, int frame)
-    {
-        var p = PaletteFor(kind);
-        var body = new PixelCanvas(Width - 2, Height - 2); // 14x18
-        void Put(int x, int y, P color) { if (body.Contains(x, y)) body[x, y] = color; }
-        // symmetric around the line between columns 6 and 7
-        void Sym(int d, int y, P color) { Put(7 + d, y, color); Put(6 - d, y, color); }
+    /// <summary>What is drawn on the spirit's body: the brush, its palette, and the frame (the face, what it wears, what grows on it).</summary>
+    public delegate void Decorator(SpiritBrush brush, Palette palette, int frame);
 
+    /// <summary>Plots on the body of a spirit (14 x 18 art pixels); `Sym` plots a pixel at distance d from the axis and its mirror image.</summary>
+    public sealed class SpiritBrush
+    {
+        public readonly PixelCanvas Body;
+        public SpiritBrush(PixelCanvas body) { Body = body; }
+        public void Put(int x, int y, P color) { if (Body.Contains(x, y)) Body[x, y] = color; }
+        public void Sym(int d, int y, P color) { Put(7 + d, y, color); Put(6 - d, y, color); }
+    }
+
+    /// <summary>A forest spirit of the kind, drawn with the forest decorations.</summary>
+    public static PixelCanvas MakeCanvas(SpiritKind kind, int frame) => Build(PaletteFor(kind), frame, ForestDecor(kind), null);
+
+    /// <summary>
+    /// The shape every spirit has: a round head and a tail of mist that sways, lit from the upper left, with a one-pixel outline and little motes of
+    /// light that drift round it. What the spirit wears and its face are drawn by `decorate`; the motes are of `moteColours` (the palette's sprout if null).
+    /// </summary>
+    public static PixelCanvas Build(Palette p, int frame, Decorator decorate, P[] moteColours)
+    {
+        var body = new PixelCanvas(Width - 2, Height - 2); // 14x18
+        var brush = new SpiritBrush(body);
         // The body: a round head and a tail of mist that sways and fades.
         float[] head = { 2.2f, 3.6f, 4.6f, 5.2f, 5.6f, 5.6f, 5.3f, 4.7f, 3.9f };  // rows 4..12
         float[] tail = { 3.0f, 2.2f, 1.5f, 0.9f, 0.5f };                           // rows 13..17
@@ -82,6 +97,49 @@ public static class SpiritArt
                 body[x, y] = col;
             }
         }
+
+        decorate(brush, p, frame);
+
+        // Motes of light drifting round the spirit.
+        (int, int)[][] motes = {
+            new[] { (1, 6), (12, 13), (11, 4) },
+            new[] { (0, 10), (13, 6), (2, 15) },
+            new[] { (2, 3), (12, 10), (1, 14) },
+        };
+        var moteSet = new System.Collections.Generic.HashSet<P>(moteColours ?? new[] { p.Sprout });
+        int moteIndex = 0;
+        foreach (var (mx, my) in motes[frame % 3]) { if (body.Contains(mx, my)) body[mx, my] = (moteColours ?? new[] { p.Sprout })[moteIndex++ % (moteColours ?? new[] { p.Sprout }).Length]; }
+
+        // One-pixel outline (a dark one for the solid parts).
+        var outC = new PixelCanvas(Width, Height);
+        for (int y = 0; y < body.Height; y++)
+        {
+            for (int x = 0; x < body.Width; x++)
+            {
+                if (body[x, y].A != 0) continue;
+                foreach (var (ox, oy) in Neighbours)
+                {
+                    if (body.Contains(x + ox, y + oy) && body[x + ox, y + oy].A > 0 && !moteSet.Contains(body[x + ox, y + oy])) { outC[x + 1, y + 1] = Outline; break; }
+                }
+            }
+            for (int x = 0; x < body.Width; x++)
+            {
+                if (body[x, y].A == 0) continue;
+                foreach (var (dx, dy) in Neighbours)
+                    if (!body.Contains(x + dx, y + dy)) outC[x + 1 + dx, y + 1 + dy] = Outline;
+            }
+        }
+        for (int y = 0; y < body.Height; y++)
+            for (int x = 0; x < body.Width; x++)
+                if (body[x, y].A > 0) outC[x + 1, y + 1] = body[x, y];
+        return outC;
+    }
+
+    /// <summary>The face, the moss and what grows on top, for the forest spirits: a sprout (swarm), a pair of leaves (gunners), antlers of twigs (heavy).</summary>
+    public static Decorator ForestDecor(SpiritKind kind) => (brush, p, frame) =>
+    {
+        void Put(int x, int y, P color) => brush.Put(x, y, color);
+        void Sym(int d, int y, P color) => brush.Sym(d, y, color);
         // Hollow face: two dark oval eyes with a glint and a small round mouth.
         for (int y = 7; y <= 9; y++) { Sym(2, y, Eye); Sym(3, y, y == 8 ? Eye : Eye); }
         Sym(2, 7, Eye); Sym(3, 7, Eye.Mixed(p.Body, 0.35f));
@@ -117,36 +175,5 @@ public static class SpiritArt
                 break;
         }
 
-        // Motes of light drifting round the spirit.
-        (int, int)[][] motes = {
-            new[] { (1, 6), (12, 13), (11, 4) },
-            new[] { (0, 10), (13, 6), (2, 15) },
-            new[] { (2, 3), (12, 10), (1, 14) },
-        };
-        foreach (var (mx, my) in motes[frame % 3]) Put(mx, my, p.Sprout);
-
-        // One-pixel outline (a dark one for the solid parts).
-        var outC = new PixelCanvas(Width, Height);
-        for (int y = 0; y < body.Height; y++)
-        {
-            for (int x = 0; x < body.Width; x++)
-            {
-                if (body[x, y].A != 0) continue;
-                foreach (var (ox, oy) in Neighbours)
-                {
-                    if (body.Contains(x + ox, y + oy) && body[x + ox, y + oy].A > 0 && body[x + ox, y + oy] != p.Sprout) { outC[x + 1, y + 1] = Outline; break; }
-                }
-            }
-            for (int x = 0; x < body.Width; x++)
-            {
-                if (body[x, y].A == 0) continue;
-                foreach (var (dx, dy) in Neighbours)
-                    if (!body.Contains(x + dx, y + dy)) outC[x + 1 + dx, y + 1 + dy] = Outline;
-            }
-        }
-        for (int y = 0; y < body.Height; y++)
-            for (int x = 0; x < body.Width; x++)
-                if (body[x, y].A > 0) outC[x + 1, y + 1] = body[x, y];
-        return outC;
-    }
+    };
 }

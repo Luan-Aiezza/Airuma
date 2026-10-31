@@ -25,8 +25,8 @@ public partial class GameScene : Node2D
             _bulletNodes.Add(node);
         }
 
-        foreach (var kind in Enum.GetValues<SpiritKind>()) _spiritFrames[kind] = SpiritArt.MakeFrames(kind);
-        var spiritSize = new Vector2(SpiritArt.Width * SpiritArt.Scale, SpiritArt.Height * SpiritArt.Scale);
+        foreach (var kind in Enum.GetValues<SpiritKind>()) _spiritFrames[kind] = Stage.Spirits.MakeFrames(kind);
+        var spiritSize = Stage.Spirits.SpriteSize;
         for (int i = 0; i < 48; i++)
         {
             var node = new Sprite2D { Texture = _spiritFrames[SpiritKind.Swarm][0], Visible = false, ZIndex = Z(1.5f), Material = NewTintMaterial(Colors.White, 0) }; // above the water, below the boat and the trees
@@ -287,7 +287,7 @@ public partial class GameScene : Node2D
 
             // The spirit hovers a little above the water; its reflection is as far under the surface as it is above it.
             const float hover = 16;
-            float height = SpiritArt.Height * SpiritArt.Scale;
+            float height = Stage.Spirits.SpriteSize.Y;
             mirror.Texture = node.Texture;
             bool reflect = CanReflect(node.Position);
             mirror.Visible = reflect;

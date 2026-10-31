@@ -15,6 +15,8 @@ public sealed class StageDefinition
     /// <summary>How the stage looks: the scenery of the river, and the HUD panel (each stage has its own, made after its boss).</summary>
     public Scenery Scenery = Scenery.Jungle;
     public System.Func<HudTheme> Hud = HudTheme.Original;
+    /// <summary>How the common enemies of the stage look.</summary>
+    public SpiritStyle Spirits = SpiritStyle.Forest;
 
     /// <summary>The talks of the stage, as functions (a talk is made when it is needed, in the language of the moment); any may be null.
     /// The opening, before the waves; the arrival of the boss; the boss appearing and speaking; and what is said after her defeat.</summary>

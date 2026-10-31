@@ -19,6 +19,7 @@ public static class DevTools
         else if (options.Value("--export-baylo") is string baylo) ExportBoss(baylo, BayloArt.MakeCanvas, BayloArt.Width, BayloArt.Height, 6);
         else if (options.Value("--export-iryssh") is string iryssh) ExportBoss(iryssh, IrysshWomanArt.MakeCanvas, IrysshWomanArt.Width, IrysshWomanArt.Height, 6);
         else if (options.Value("--export-retired") is string retired) ExportRetired(retired);
+        else if (options.Value("--export-spirits") is string spirits) ExportSpirits(spirits);
         else return false;
         return true;
     }
@@ -37,6 +38,22 @@ public static class DevTools
         var img = canvas.ToImage();
         img.Resize(img.GetWidth() * k, img.GetHeight() * k, Image.Interpolation.Nearest);
         sheet.BlendRect(img, new Rect2I(0, 0, img.GetWidth(), img.GetHeight()), new Vector2I(x, y));
+    }
+
+    /// <summary>The spirits of every stage: a row for each style, each kind's three frames side by side, 8 times larger.</summary>
+    private static void ExportSpirits(string file)
+    {
+        var styles = new[] { SpiritStyle.Forest, SpiritStyle.Party };
+        var kinds = Enum.GetValues<SpiritKind>();
+        const int k = 8, gap = 12;
+        int cell = 20 * k + gap, rowHeight = 26 * k + gap;
+        var sheet = Image.CreateEmpty(cell * 3 * kinds.Length + gap, rowHeight * styles.Length + gap, false, Image.Format.Rgba8);
+        sheet.Fill(new Color(0.05f, 0.06f, 0.16f));
+        for (int row = 0; row < styles.Length; row++)
+            for (int i = 0; i < kinds.Length; i++)
+                for (int f = 0; f < styles[row].FrameCount; f++)
+                    Blit(sheet, styles[row].MakeCanvas(kinds[i], f), gap + (i * 3 + f) * cell, gap + row * rowHeight, k);
+        sheet.SavePng(file);
     }
 
     /// <summary>The art kept from the transformations that are not used for now: the serpent (head, charging head, body) and the dolphin.</summary>

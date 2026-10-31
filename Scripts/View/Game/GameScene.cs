@@ -31,7 +31,7 @@ public partial class GameScene : Node2D
 
     public RiverBackground River { get; private set; }
     private readonly WakeEffect _wake = new();
-    private readonly BurstEffect _burst = new();
+    private BurstEffect _burst;
     private readonly List<Sprite2D> _enemyNodes = new();
     /// <summary>What the water shows of each spirit: a flipped, tinted copy under it.</summary>
     private readonly List<Sprite2D> _enemyMirrors = new();
@@ -92,6 +92,7 @@ public partial class GameScene : Node2D
         StagePractice = stagePractice;
         Stage = stage ?? Stages.One;
         _hud = new GameHud(Stage.Hud());
+        _burst = new BurstEffect(Stage.Spirits);
         PracticePhase = practicePhase;
         Difficulty = difficulty;
         World = new World(practicePhase, difficulty: difficulty, stage: Stage, carry: carry, stagePractice: stagePractice);

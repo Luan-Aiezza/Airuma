@@ -6,7 +6,7 @@ using Godot;
 /// The little explosion when a spirit is defeated: a ring spreads from where it was and sparks of its colour fly out.
 ///
 /// API
-///   new BurstEffect(int capacity = 14)
+///   new BurstEffect(SpiritStyle spirits = null, int capacity = 14)
 ///   Burst(Vector2 point, SpiritKind kind)   // point = screen px (Y down)
 ///   Update(float dt)   Reset()   int ActiveCount
 ///   const Duration = 0.55, SparksPerBurst = 8
@@ -33,13 +33,13 @@ public partial class BurstEffect : Node2D
 
     public int ActiveCount { get { int n = 0; foreach (var b in _bursts) if (b.Active) n++; return n; } }
 
-    public BurstEffect(int capacity = 14)
+    public BurstEffect(SpiritStyle spirits = null, int capacity = 14)
     {
         _bursts = new BurstData[capacity];
         _ringTextures = new Texture2D[BurstArt.RingFrames];
         for (int i = 0; i < _ringTextures.Length; i++) _ringTextures[i] = BurstArt.MakeRing(i).ToTexture();
         foreach (var kind in Enum.GetValues<SpiritKind>())
-            _sparkTextures[kind] = BurstArt.MakeSpark(SpiritArt.PaletteFor(kind).Light).ToTexture();
+            _sparkTextures[kind] = BurstArt.MakeSpark((spirits ?? SpiritStyle.Forest).SparkColour(kind)).ToTexture();
         for (int i = 0; i < capacity; i++)
         {
             // Textures are art pixels; each art pixel is BossArt.Scale screen px.
