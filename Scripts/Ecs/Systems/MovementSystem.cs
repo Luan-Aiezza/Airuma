@@ -6,11 +6,18 @@ public static class MovementSystem
 {
     /// <summary>The dash: seconds spent drifting down before lunging, the lunge's speed (times the boss's own), and the lanes it comes back in.</summary>
     private const float DashWaitSeconds = 1.5f, DashWaitY = 100, DashSpeedFactor = 5, DashStartY = -50;
-    private static readonly float[] DashLanes = { 100, 300, 500 };
+    private static readonly float[] DashLanes = { 100, 200, 300, 400, 500 };
+
+    /// <summary>The patrol: seconds the boss stays at a station, and the least a leg of the patrol goes (so that each is easy to follow).</summary>
+    public const float PatrolPauseSeconds = 1.3f, PatrolMinLeg = 200;
+
+    /// <summary>The boat moves at this share of its speed while focusing.</summary>
+    public const float FocusSpeedFactor = 0.4f;
 
     public static void MovePlayer(PlayerEntity player, Rect2 bounds, float delta, Vector2 wind)
     {
-        player.Movement.Velocity = player.Input.Direction * player.Movement.Speed;
+        float speed = player.Movement.Speed * (player.Input.IsFocused ? FocusSpeedFactor : 1);
+        player.Movement.Velocity = player.Input.Direction * speed;
 
         // Total velocity = player movement + (wind * modifier)
         Vector2 total = player.Movement.Velocity + wind * player.WindModifier.Value;
@@ -40,17 +47,8 @@ public static class MovementSystem
                 break;
 
             case BossMovementType.Patrol:
-            {
-                boss.Movement.Velocity = new Vector2(boss.PatrolDirection * boss.Movement.Speed, 0);
-                boss.Transform.Position += boss.Movement.Velocity * delta;
-                // The hitbox, not the centre, may reach the edge of the field.
-                float margin = boss.Hitbox.Radius;
-                if (boss.Transform.Position.X >= bounds.End.X - margin)
-                    boss.PatrolDirection = -1;
-                else if (boss.Transform.Position.X <= bounds.Position.X + margin)
-                    boss.PatrolDirection = 1;
+                PatrolStep(boss, bounds, delta);
                 break;
-            }
 
             case BossMovementType.Dash:
                 boss.DashTimer += delta;
@@ -71,10 +69,57 @@ public static class MovementSystem
                     if (boss.Transform.Position.Y >= bounds.End.Y + boss.Hitbox.Radius)
                     {
                         boss.DashTimer = 0;
-                        boss.Transform.Position = new Vector2(DashLanes[Random.Shared.Next(DashLanes.Length)], DashStartY);
+                        boss.LastDashX = NextDashLane(boss.LastDashX);
+                        boss.Transform.Position = new Vector2(boss.LastDashX, DashStartY);
                     }
                 }
                 break;
+        }
+    }
+
+    /// <summary>A lane at random, but not the one the last dash came from.</summary>
+    public static float NextDashLane(float last)
+    {
+        float lane;
+        do lane = DashLanes[Random.Shared.Next(DashLanes.Length)];
+        while (MathF.Abs(lane - last) < 1);
+        return lane;
+    }
+
+    /// <summary>
+    /// The boss glides to a station on one side of the field, stays there a while, then goes to one on the other side. Moving in
+    /// legs with a rest between them is much easier to follow than moving all the time.
+    /// </summary>
+    private static void PatrolStep(BossEntity boss, Rect2 bounds, float delta)
+    {
+        if (boss.PatrolWait > 0)
+        {
+            boss.PatrolWait -= delta;
+            return;
+        }
+        float margin = boss.Hitbox.Radius;
+        float left = bounds.Position.X + margin, right = bounds.End.X - margin;
+        float middle = (bounds.Position.X + bounds.End.X) / 2;
+        if (!boss.PatrolHasTarget)
+        {
+            // To the other side of the middle than the one it is on; a station at least a good leg away.
+            bool goRight = boss.Transform.Position.X < middle - 1 || (MathF.Abs(boss.Transform.Position.X - middle) <= 1 && boss.PatrolDirection > 0);
+            float lo = goRight ? middle + 60 : left + 20, hi = goRight ? right - 20 : middle - 60;
+            float x;
+            int tries = 0;
+            do x = lo + (hi - lo) * (float)Random.Shared.NextDouble();
+            while (MathF.Abs(x - boss.Transform.Position.X) < PatrolMinLeg && ++tries < 12);
+            boss.PatrolTargetX = Math.Clamp(x, left, right);
+            boss.PatrolDirection = goRight ? -1 : 1;           // the side it will go to next
+            boss.PatrolHasTarget = true;
+        }
+        var position = boss.Transform.Position;
+        position.X = Mathf.MoveToward(position.X, boss.PatrolTargetX, boss.Movement.Speed * delta);
+        boss.Transform.Position = position;
+        if (MathF.Abs(position.X - boss.PatrolTargetX) < 0.5f)
+        {
+            boss.PatrolHasTarget = false;
+            boss.PatrolWait = PatrolPauseSeconds;
         }
     }
 }

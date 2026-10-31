@@ -35,17 +35,18 @@ public static class IrysshBoss
 
     public static readonly BossDefinition Definition = new BossDefinition(Name, new[]
     {
-        // 1. A classic ring of fire, while she patrols the top. Hard adds a slower inner ring that turns the other way.
+        // 1. Simple, but alive: three arms of fire that spiral out of her as she goes from station to station, and, now and then, a slow ring
+        //    of orbs that comes between them.
         Woman("Fire: Ring of Embers", BossMovementType.Patrol, Centre,
             main: new BulletEmitterComponent
             {
-                IsActive = true, FireRate = 1.0f, BulletsPerVolley = 36,
-                SpreadAngle = 360, BulletSpeed = 150, SpinRate = 5, BulletScale = 1.0f, BulletStyle = BulletStyle.Fireball,
+                IsActive = true, FireRate = 0.14f, BulletsPerVolley = 3,
+                SpreadAngle = 360, BulletSpeed = 165, SpinRate = 8, BulletScale = 0.9f, BulletStyle = BulletStyle.Fireball,
             },
-            hardExtra: new BulletEmitterComponent
+            sub: new BulletEmitterComponent
             {
-                IsActive = true, FireRate = 1.0f, BulletsPerVolley = 16, SpreadAngle = 360, BulletSpeed = 95,
-                SpinRate = -4, BulletScale = 0.8f, BulletStyle = BulletStyle.Fireball,
+                IsActive = true, FireRate = 2.6f, BulletsPerVolley = 18, SpreadAngle = 360, BulletSpeed = 115,
+                SpinRate = 10, BulletScale = 1.2f, BulletStyle = BulletStyle.OrbRed,
             }),
 
         // 2. An aimed shotgun. Hard adds a fast dart straight at the boat between the volleys.

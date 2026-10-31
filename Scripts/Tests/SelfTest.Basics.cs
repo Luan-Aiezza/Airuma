@@ -27,6 +27,9 @@ public static partial class SelfTest
         T("BossHitboxIsTwoThirdsOfItsSprite", BossHitboxIsTwoThirdsOfItsSprite);
         T("BossPatrolKeepsItsHitboxInsideTheField", BossPatrolKeepsItsHitboxInsideTheField);
         T("DashLanesFitTheSerpent", DashLanesFitTheSerpent);
+        T("ThePatrolStopsAtEachStationAndStaysAWhile", ThePatrolStopsAtEachStationAndStaysAWhile);
+        T("FocusingSlowsTheBoatAndNarrowsAndStrengthensTheShot", FocusingSlowsTheBoatAndNarrowsAndStrengthensTheShot);
+        T("ThePlayersBoltsAreWideAndTheWispsStrong", ThePlayersBoltsAreWideAndTheWispsStrong);
         T("BossChangesFormAtPhaseFive", BossChangesFormAtPhaseFive);
         T("PracticeStartsAtTheChosenAttack", PracticeStartsAtTheChosenAttack);
         T("PracticeEndsInVictoryWhenThatAttackIsBeaten", PracticeEndsInVictoryWhenThatAttackIsBeaten);
@@ -112,7 +115,8 @@ public static partial class SelfTest
         world.SkipToBoss();
         Eq(world.Boss.MovementType, BossMovementType.Transition);
         True(world.Boss.EmitterMain.IsActive);
-        Eq(world.Boss.EmitterMain.BulletsPerVolley, 36);
+        Eq(world.Boss.EmitterMain.BulletsPerVolley, 3, "three arms of fire");
+        True(world.Boss.EmitterSub.IsActive, "and a ring between them");
 
         // No boss bullets while the 2s transition runs.
         StepN(world, 60);
@@ -260,11 +264,77 @@ public static partial class SelfTest
     private static void DashLanesFitTheSerpent()
     {
         float r = IrysshBoss.Definition.PhaseFor(1).HitboxRadius;
-        foreach (float lane in new float[] { 100, 300, 500 })
+        float last = 300;
+        for (int i = 0; i < 500; i++)
         {
+            float lane = MovementSystem.NextDashLane(last);
             GreaterEq(lane, r);
             LessEq(lane, World.PlayArea.End.X - r);
+            True(MathF.Abs(lane - last) > 1, "the dash never comes from the same lane twice running");
+            last = lane;
         }
+    }
+
+    private static void ThePatrolStopsAtEachStationAndStaysAWhile()
+    {
+        var boss = new BossEntity(IrysshBoss.Definition);
+        PhaseManagerSystem.ChangePhase(boss, 6);
+        boss.Movement.Speed = 200;
+        boss.MovementType = BossMovementType.Patrol;
+        boss.Transform.Position = V(300, 100);
+        int longestStill = 0, still = 0, moving = 0;
+        float last = boss.Transform.Position.X;
+        for (int i = 0; i < 60 * 20; i++)
+        {
+            MovementSystem.MoveBoss(boss, World.PlayArea, 1f / 60);
+            float x = boss.Transform.Position.X;
+            if (MathF.Abs(x - last) < 0.001f) { still++; longestStill = Math.Max(longestStill, still); }
+            else { still = 0; moving++; }
+            last = x;
+        }
+        GreaterEq(longestStill, (int)(MovementSystem.PatrolPauseSeconds * 60) - 2, "it stays at the station");
+        Greater(moving, 60, "and it does move between stations");
+    }
+
+    private static void FocusingSlowsTheBoatAndNarrowsAndStrengthensTheShot()
+    {
+        PlayerEntity Boat(bool focus, int level)
+        {
+            var p = PlayerEntity.Create();
+            p.Input = new PlayerInputComponent { Direction = V(1, 0), IsShooting = true, IsFocused = focus };
+            p.Weapon.PowerLevel = level;
+            p.Weapon.TimeSinceLastFire = 1;
+            p.Transform.Position = V(100, 600);
+            return p;
+        }
+        var normal = Boat(false, 3); var focused = Boat(true, 3);
+        MovementSystem.MovePlayer(normal, World.PlayArea, 1, Vector2.Zero);
+        MovementSystem.MovePlayer(focused, World.PlayArea, 1, Vector2.Zero);
+        Near(normal.Transform.Position.X - 100, 400, 0.01f);
+        Near(focused.Transform.Position.X - 100, 400 * MovementSystem.FocusSpeedFactor, 0.01f, "slower");
+
+        float Spread(PlayerEntity p, out float power)
+        {
+            var pool = Pool(20);
+            p.Transform.Position = V(300, 600);
+            BulletSystem.UpdatePlayerWeapons(p, pool, 0.1f);
+            var bolts = pool.Where(b => b.IsActive).ToList();
+            power = bolts[0].Power;
+            return bolts.Max(b => b.Position.X) - bolts.Min(b => b.Position.X);
+        }
+        float wide = Spread(Boat(false, 3), out float plainPower), narrow = Spread(Boat(true, 3), out float focusPower);
+        Less(narrow, wide, "the bolts crowd together");
+        Greater(focusPower, plainPower, "and each hits harder");
+    }
+
+    private static void ThePlayersBoltsAreWideAndTheWispsStrong()
+    {
+        var pool = Pool(10);
+        var p = PlayerEntity.Create();
+        p.Input.IsShooting = true; p.Weapon.TimeSinceLastFire = 1;
+        BulletSystem.UpdatePlayerWeapons(p, pool, 0.1f);
+        Greater(pool.First(b => b.IsActive).HitboxRadius, 7f, "bigger than the old 5, so they do not slip between the spirits");
+        Greater(BulletSystem.WispPower, 1f, "a wisp hits harder than a plain bolt");
     }
 
     private static void BossChangesFormAtPhaseFive()

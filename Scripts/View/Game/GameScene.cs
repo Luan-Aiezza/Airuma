@@ -78,6 +78,8 @@ public partial class GameScene : Node2D
     private HashSet<Key> _dialogueHeld = new();
     private readonly CardPicker _picker = new(new Vector2(Layout.PanelX, Layout.Height));
     private readonly Sprite2D _wardRing = new();
+    private readonly Sprite2D _focusRing = new(), _focusCore = new();
+    private float _focusAlpha;
     private readonly Texture2D[] _wardFrames = { CardArt.WardRing(0).ToTexture(), CardArt.WardRing(1).ToTexture() };
     private HashSet<Key> _heldKeys = new();
     /// <summary>Seconds left before the picker accepts input (so a key held in the heat of the fight does not take a card).</summary>

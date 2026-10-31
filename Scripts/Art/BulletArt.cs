@@ -20,7 +20,7 @@ public static class BulletArt
         BulletStyle.MagmaOrb => (26, 26),
         BulletStyle.FireSerpent => (5, 9),
         BulletStyle.Ember => (4, 4),
-        BulletStyle.LightBolt => (3, 8),
+        BulletStyle.LightBolt => (5, 10),
         BulletStyle.OrbGreen => (7, 7),
         BulletStyle.OrbRed => (7, 7),
         BulletStyle.RiceRed => (3, 7),
@@ -234,12 +234,19 @@ public static class BulletArt
     /// <summary>The player's shots: slim bolts of pale lantern light, cool-toned so they never read as enemy fire.</summary>
     private static void DrawLightBolt(PixelCanvas c, int frame)
     {
-        var core = PixelColor.Hex(0xE8FCFF); var edge = PixelColor.Hex(0x4FC3E8); var tail = PixelColor.Hex(0x2A7FA8);
-        for (int y = 0; y < 6; y++) { Put(c, 1, y, core); Put(c, 0, y, edge); Put(c, 2, y, edge); }
-        Put(c, 1, 0, frame == 0 ? core : edge);
-        Put(c, 0, 0, PixelColor.Clear); Put(c, 2, 0, PixelColor.Clear);
-        Put(c, 1, 6, edge); Put(c, 1, 7, tail);
-        if (frame == 1) { Put(c, 0, 6, tail); Put(c, 2, 6, tail); }
+        var core = PixelColor.Hex(0xE8FCFF); var mid = PixelColor.Hex(0x9BE3F6); var edge = PixelColor.Hex(0x4FC3E8); var tail = PixelColor.Hex(0x2A7FA8);
+        // A fat bolt with a pointed head: the core down the middle, paler towards the edges.
+        Put(c, 2, 0, frame == 0 ? core : mid);
+        for (int x = 1; x <= 3; x++) Put(c, x, 1, x == 2 ? core : mid);
+        for (int y = 2; y <= 7; y++)
+        {
+            Put(c, 0, y, edge); Put(c, 4, y, edge);
+            Put(c, 1, y, mid); Put(c, 3, y, mid);
+            Put(c, 2, y, core);
+        }
+        for (int x = 1; x <= 3; x++) Put(c, x, 8, x == 2 ? mid : edge);
+        Put(c, 2, 9, tail);
+        if (frame == 1) { Put(c, 1, 9, tail); Put(c, 3, 9, tail); Put(c, 0, 7, tail); Put(c, 4, 7, tail); }
     }
 
     /// <summary>A round "pearl" bullet: a coloured rim, a lighter body and a white heart. It pulses, glowing brighter every other frame.</summary>

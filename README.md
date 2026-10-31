@@ -14,6 +14,7 @@ files in the project (apart from the game's icon).
 | --- | --- |
 | Arrow keys | Move |
 | Z | Shoot (and confirm in menus and talks) |
+| Shift | Focus: the boat moves slowly, the shot narrows and hits harder, and the hitbox shows as a small dot |
 | X | Bomb (and go back, or skip a talk) |
 | Esc | Pause |
 | F11, Alt+Enter, Cmd+Ctrl+F | Full screen |

@@ -41,7 +41,9 @@ public static class PhaseManagerSystem
         boss.TransitionTimer = BreatherSeconds;
         boss.NextMovementType = phase.Movement;
         boss.TargetPosition = phase.Target;
-        if (phase.Movement == BossMovementType.Dash) boss.DashTimer = 0;
+        boss.PatrolHasTarget = false;
+        boss.PatrolWait = 0;
+        if (phase.Movement == BossMovementType.Dash) { boss.DashTimer = 0; boss.LastDashX = phase.Target.X; }
         if (phase.StartsAtTarget) boss.Transform.Position = phase.Target;
 
         ApplyDifficulty(boss, phase, difficulty);

@@ -181,4 +181,39 @@ public static class PlayerArt
 
     public static Texture2D[] MakeAuraFrames() =>
         new Texture2D[] { MakeAuraCanvas(28).ToTexture(), MakeAuraCanvas(25).ToTexture() };
+
+    // MARK: The hitbox, shown while focusing
+
+    /// <summary>Screen points per pixel of the focus marker.</summary>
+    public const float FocusScale = 2;
+
+    /// <summary>The heart of the boat, the part that can be hit: a small white disc with a red rim and a dark outline (9 x 9 pixels, the disc about as big as the hitbox).</summary>
+    public static PixelCanvas MakeFocusCore()
+    {
+        var c = new PixelCanvas(9, 9);
+        for (int y = 0; y < 9; y++)
+            for (int x = 0; x < 9; x++)
+            {
+                float d = MathF.Sqrt((x - 4f) * (x - 4f) + (y - 4f) * (y - 4f));
+                c[x, y] = d <= 1.7f ? P.Hex(0xFFFFFF) : (d <= 2.7f ? P.Hex(0xE8483C) : (d <= 3.7f ? P.Hex(0x2A0A10) : P.Clear));
+            }
+        return c;
+    }
+
+    /// <summary>A ring of dashes round the boat, which turns slowly (29 x 29 pixels).</summary>
+    public static PixelCanvas MakeFocusRing()
+    {
+        const int size = 29;
+        var c = new PixelCanvas(size, size);
+        for (int i = 0; i < 96; i++)
+        {
+            if (i % 8 >= 5) continue;                       // five of every eight steps, so the ring is made of dashes
+            float a = i * MathF.PI * 2 / 96;
+            int x = (int)MathF.Round(14 + MathF.Cos(a) * 13), y = (int)MathF.Round(14 + MathF.Sin(a) * 13);
+            c[x, y] = P.Hex(0xFFF3D6);
+            int xi = (int)MathF.Round(14 + MathF.Cos(a) * 12), yi = (int)MathF.Round(14 + MathF.Sin(a) * 12);
+            if (c[xi, yi].A == 0) c[xi, yi] = P.Hex(0xE8483C, 200);
+        }
+        return c;
+    }
 }

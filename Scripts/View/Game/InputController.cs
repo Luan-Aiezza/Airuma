@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Godot;
 
 /// <summary>
-/// Merges hardware keyboard (arrows or WASD, Z, X) and on-screen touch controls into one <see cref="PlayerInputComponent"/>.
+/// Merges hardware keyboard (arrows or WASD, Z, X, Shift) and on-screen touch controls into one <see cref="PlayerInputComponent"/>.
 /// Touches are identified by an int (the touch index; -1 for the mouse). All points are screen px (Y down).
 /// </summary>
 public class InputController
@@ -77,6 +77,7 @@ public class InputController
         if (Down(Key.Down) || Down(Key.S)) dir.Y += 1;
         input.IsShooting = Down(Key.Z);
         input.IsBombing = Down(Key.X);
+        input.IsFocused = Down(Key.Shift);
 
         if (_movementTouch != null)
         {

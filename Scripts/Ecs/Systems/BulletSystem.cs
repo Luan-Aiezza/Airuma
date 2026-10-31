@@ -63,15 +63,19 @@ public static class BulletSystem
     }
 
     /// <summary>Seconds between volleys of homing wisps.</summary>
-    public const float WispInterval = 0.45f;
+    public const float WispInterval = 0.4f;
     public const float WispSpeed = 420;
     /// <summary>How fast a wisp can turn, in degrees per second.</summary>
     public const float WispTurnRate = 260;
-    public const float WispPower = 0.8f;
+    public const float WispPower = 1.4f;
     /// <summary>Angle between neighbouring bolts of a fan, in degrees.</summary>
     public const float FanAngle = 7;
     /// <summary>Strength of each bolt of a fan, against the 1 of a bolt of the main stream. The fan does not grow with the weapon's level.</summary>
     public const float FanPower = 0.4f;
+    /// <summary>The scale of the player's bolts (their hitbox grows with it): wide enough not to slip between the spirits of a formation.</summary>
+    public const float BoltScale = 1.7f;
+    /// <summary>Focusing: the bolts crowd together (this far apart, instead of 15), each hits harder, and the fans close up to a narrow angle.</summary>
+    public const float FocusSpacing = 7, FocusPower = 1.4f, FocusFanAngle = 2.5f;
 
     public static void UpdatePlayerWeapons(PlayerEntity player, BulletData[] pool, float delta, CardEffects? effectsOrNull = null)
     {
@@ -95,7 +99,9 @@ public static class BulletSystem
         if (!(player.Input.IsShooting && player.Weapon.TimeSinceLastFire >= player.Weapon.FireRate)) return;
 
         player.Weapon.TimeSinceLastFire = 0;
-        const float spacing = 15;
+        bool focus = player.Input.IsFocused;
+        float spacing = focus ? FocusSpacing : 15;
+        float focusPower = focus ? FocusPower : 1;
 
         Vector2[] offsets;
         switch (player.Weapon.PowerLevel)
@@ -115,7 +121,8 @@ public static class BulletSystem
                   new Vector2(0, -player.Weapon.BulletSpeed),
                   Faction.Player,
                   BulletStyle.LightBolt,
-                  power: effects.DamageMultiplier,
+                  scale: BoltScale,
+                  power: effects.DamageMultiplier * focusPower,
                   pierce: effects.Pierce,
                   burstRadius: effects.BurstRadius,
                   burstScale: 1f / offsets.Length);
@@ -128,10 +135,11 @@ public static class BulletSystem
             {
                 Spawn(pool,
                       player.Transform.Position,
-                      new Vector2(0, -player.Weapon.BulletSpeed).Rotated(Mathx.Radians(side * k * FanAngle)),
+                      new Vector2(0, -player.Weapon.BulletSpeed).Rotated(Mathx.Radians(side * k * (focus ? FocusFanAngle : FanAngle))),
                       Faction.Player,
                       BulletStyle.LightBolt,
-                      power: FanPower * effects.DamageMultiplier,
+                      scale: BoltScale,
+                      power: FanPower * effects.DamageMultiplier * focusPower,
                       pierce: effects.Pierce,
                       burstRadius: effects.BurstRadius,
                       burstScale: 1f);

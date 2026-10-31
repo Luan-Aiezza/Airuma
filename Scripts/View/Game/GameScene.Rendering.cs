@@ -98,6 +98,16 @@ public partial class GameScene : Node2D
         _wardRing.Modulate = new Color(1, 1, 1, 0.85f);
         _wardRing.Visible = false;
         _playerNode.AddChild(_wardRing);
+        // The hitbox, shown while focusing: a turning ring of dashes and the small heart that can be hit.
+        foreach (var (sprite, canvas, z) in new[] { (_focusRing, PlayerArt.MakeFocusRing(), 2.4f), (_focusCore, PlayerArt.MakeFocusCore(), 2.5f) })
+        {
+            sprite.Texture = canvas.ToTexture();
+            sprite.Scale = new Vector2(PlayerArt.FocusScale, PlayerArt.FocusScale);
+            sprite.ZIndex = Z(z);            // above the bullets, so that the heart is never hidden
+            sprite.Modulate = new Color(1, 1, 1, 0);
+            sprite.Visible = false;
+            _playerNode.AddChild(sprite);
+        }
     }
 
     /// <summary>Flipped copies of the boat and the boss, with their lights, drawn into the water's reflection. Each is
@@ -280,6 +290,11 @@ public partial class GameScene : Node2D
         _playerNode.Scale = player.Transform.Scale;
         _playerNode.Visible = player.IsVisible;
         _wardRing.Visible = player.Shield > 0;
+        _focusAlpha = Mathf.MoveToward(_focusAlpha, _sampledInput.IsFocused && player.IsVisible ? 1 : 0, _bombDelta * 8);
+        _focusRing.Visible = _focusCore.Visible = _focusAlpha > 0;
+        _focusRing.Modulate = _focusCore.Modulate = new Color(1, 1, 1, _focusAlpha);
+        _focusRing.Rotation += _bombDelta * 1.6f;
+        _focusRing.Scale = new Vector2(PlayerArt.FocusScale, PlayerArt.FocusScale) * (1.25f - 0.25f * _focusAlpha);   // it closes in as it appears
         if (player.Shield > 0)
         {
             _wardRing.Texture = _wardFrames[(int)(_animationClock * 6) % 2];

@@ -23,7 +23,13 @@ public class BossEntity
     public VelocityComponent Movement = new VelocityComponent();
     public HitboxComponent Hitbox = new HitboxComponent();
     public HealthComponent Health = new HealthComponent();
+    /// <summary>The patrol goes from station to station, and stays a while at each: where it is going, and how long it still waits.</summary>
     public float PatrolDirection = 1;
+    public float PatrolTargetX;
+    public bool PatrolHasTarget;
+    public float PatrolWait;
+    /// <summary>Where the dash last came from, so that it never comes from the same lane twice running.</summary>
+    public float LastDashX = 300;
 
     /// <summary>The shape of the attack it is on.</summary>
     public BossForm Form => Definition.PhaseFor(Health.Lives).Form;
