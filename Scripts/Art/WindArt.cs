@@ -1,3 +1,4 @@
+using System;
 using Godot;
 
 /// <summary>Pixel art for the wind's visual feedback: small leaves that tumble along. The scene turns them in quarter turns.</summary>
@@ -41,6 +42,37 @@ public static class WindArt
         {
             result[tone] = new Texture2D[LeafFrames];
             for (int f = 0; f < LeafFrames; f++) result[tone][f] = MakeLeaf(tone, f).ToTexture();
+        }
+        return result;
+    }
+
+    // MARK: Lanterns (the wind of the river of the parties)
+
+    public const int LanternFrames = 2;
+
+    /// <summary>A little cylindrical paper lantern with a halo, seen from the side. Frame 1 is the flame flickering a little brighter.</summary>
+    public static PixelCanvas MakeLantern(int tone, int frame)
+    {
+        var c = new PixelCanvas(11, 13);
+        var glow = new[] { PixelColor.Hex(0xFF5A3A), PixelColor.Hex(0xFFA03A), PixelColor.Hex(0xFFD870), PixelColor.Hex(0xFF70A8), PixelColor.Hex(0x50E0D0) }[tone % FestivalArt.LanternTones];
+        for (int y = 0; y < c.Height; y++)
+            for (int x = 0; x < c.Width; x++)
+            {
+                float d = MathF.Sqrt(MathF.Pow((x - 5) / 5.5f, 2) + MathF.Pow((y - 6) / 6.5f, 2));
+                if (d < 1 && (x + y) % 2 == 0) c[x, y] = glow.WithAlpha((byte)(frame == 0 ? 55 : 90));
+            }
+        FestivalArt.DrawLantern(c, 5, 2, 7, 9, tone, cord: false, tassel: true);
+        return c;
+    }
+
+    /// <summary>[tone][frame]</summary>
+    public static Texture2D[][] MakeLanternTextures()
+    {
+        var result = new Texture2D[FestivalArt.LanternTones][];
+        for (int tone = 0; tone < result.Length; tone++)
+        {
+            result[tone] = new Texture2D[LanternFrames];
+            for (int f = 0; f < LanternFrames; f++) result[tone][f] = MakeLantern(tone, f).ToTexture();
         }
         return result;
     }

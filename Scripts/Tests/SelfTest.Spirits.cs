@@ -18,7 +18,7 @@ public static partial class SelfTest
         T("AHeavyShootsRingsFansAndSpirals", AHeavyShootsRingsFansAndSpirals);
         T("PatternsTakeTurns", PatternsTakeTurns);
         T("FairiesOnlyShootInsideTheScreen", FairiesOnlyShootInsideTheScreen);
-        T("ThereAreNineWavesThatStartEasyAndEndWithAllThreeColours", ThereAreNineWavesThatStartEasyAndEndWithAllThreeColours);
+        T("StageOneHasOnlyTheBlueSpirits", StageOneHasOnlyTheBlueSpirits);
     }
 
     private static void RunEnemy(EnemyEntity e, float seconds) { for (int i = 0; i < (int)(seconds * 60); i++) EnemySystem.Move(e, 1f / 60); }
@@ -159,14 +159,11 @@ public static partial class SelfTest
 
     // The script
 
-    private static void ThereAreNineWavesThatStartEasyAndEndWithAllThreeColours()
+    private static void StageOneHasOnlyTheBlueSpirits()
     {
         var waves = Stage1Waves.Waves;
-        Eq(waves.Count, 9);
-        True(waves[0].Spawns.All(s => s.Kind == SpiritKind.Swarm), "wave 1 is only the easy blue ones");
-        True(waves[1].Spawns.All(s => s.Kind == SpiritKind.Swarm));
-        True(waves[2].Spawns.Any(s => s.Kind == SpiritKind.Gunner), "green gunners arrive in wave 3");
-        Eq(waves.FindIndex(w => w.Spawns.Any(s => s.Kind == SpiritKind.Heavy)), 4, "the first red fairy is wave 5");
-        True(waves[8].Spawns.Select(s => s.Kind).Distinct().Count() == 3, "the finale has all three");
+        Eq(waves.Count, 5);
+        True(waves.All(w => w.Spawns.All(s => s.Kind == SpiritKind.Swarm)), "the first stage is only the easy blue ones");
+        True(waves.All(w => w.Spawns.All(s => s.Patterns.Count == 0)), "and they do not shoot");
     }
 }

@@ -12,6 +12,8 @@ public struct BulletEmitterComponent
     public float BulletSpeed;
     public float SpinRate;
     public bool IsAimed;
+    /// <summary>Every other bullet of a volley curves the opposite way (for the dancing bullets: neighbours sway against each other).</summary>
+    public bool AlternateCurve;
 
     public float Acceleration;
     public float CurveRate;

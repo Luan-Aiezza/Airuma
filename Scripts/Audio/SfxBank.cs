@@ -16,7 +16,7 @@ public static class SfxBank
         DefeatSwarm, DefeatGunner, DefeatHeavy, BossBroken,
         OrbGreen, OrbRed, RiceRed, Fireball, FlameDart, Spark, VenomOrb, LotusPetal, MagmaOrb, FireSerpent, Ember,
         Bomb, Pickup, LevelUp, MenuMove, MenuSelect, MenuBack, DialogueNext,
-        HitGunner, HitHeavy, HitBoss,
+        HitGunner, HitHeavy, HitBoss, Twirl, Splash, Jet, Rage, RagePulse,
     }
 
     /// <summary>Volume in dB, and the least time in seconds between two plays (so volleys do not pile up into noise).</summary>
@@ -30,7 +30,7 @@ public static class SfxBank
         Sound.LotusPetal => (-14f, 0.15f), Sound.MagmaOrb => (-9f, 0.2f), Sound.FireSerpent => (-25f, 0.05f), Sound.Ember => (-24f, 0.05f),
         Sound.Bomb => (-5f, 0.5f), Sound.Pickup => (-19f, 0.035f), Sound.LevelUp => (-8f, 0.3f),
         Sound.MenuMove => (-15f, 0.03f), Sound.MenuSelect => (-11f, 0.1f), Sound.MenuBack => (-13f, 0.1f), Sound.DialogueNext => (-16f, 0.05f),
-        Sound.HitGunner => (-18f, 0.05f), Sound.HitHeavy => (-16f, 0.05f), Sound.HitBoss => (-14f, 0.06f),
+        Sound.HitGunner => (-18f, 0.05f), Sound.HitHeavy => (-16f, 0.05f), Sound.HitBoss => (-14f, 0.06f), Sound.Twirl => (-12f, 0.3f), Sound.Splash => (-9f, 0.15f), Sound.Jet => (-8f, 0.5f), Sound.Rage => (-3f, 1.0f), Sound.RagePulse => (-17f, 0.5f),
         _ => (-12f, 0.05f),
     };
 
@@ -325,6 +325,59 @@ public static class SfxBank
                 var tone = Sweep(t => 420 * Math.Exp(-t * 22) + 160);
                 var thud = LowNoise(20, t => 0.3 * Math.Exp(-t * 30) + 0.02);
                 return Render(0.1, t => tone(t) * Env(t, 0.001, 38) * 0.9 + thud(t) * Math.Exp(-t * 40) * 1.2);
+            }
+            case Sound.Twirl: // a spin: a whoosh that swells and fades as he comes round, with three bright little bells on top
+            {
+                var air = LowNoise(21, t => 0.05 + 0.3 * Math.Sin(Math.PI * Math.Min(1, t / 0.55)));
+                var rush = HighNoise(22, 0.5);
+                var whirl = Sweep(t => 420 + 700 * Math.Sin(Math.PI * Math.Min(1, t / 0.55)));
+                double[] notes = { 1568, 2093, 2637 };
+                return Render(0.55, t =>
+                {
+                    double swell = Math.Sin(Math.PI * Math.Min(1, t / 0.55));
+                    double s = (air(t) * 1.1 + rush(t) * 0.12) * swell + whirl(t) * swell * swell * 0.1;
+                    for (int i = 0; i < notes.Length; i++)
+                    {
+                        double t0 = 0.04 + i * 0.13;
+                        if (t > t0) s += Math.Sin(2 * Math.PI * notes[i] * (t - t0)) * Math.Exp(-(t - t0) * 16) * 0.16;
+                    }
+                    return s;
+                });
+            }
+            case Sound.Splash: // something big going into, or coming out of, the water
+            {
+                var hi = HighNoise(31, 0.6);
+                var thump = Sweep(t => 150 * Math.Exp(-t * 6) + 55);
+                var wash = LowNoise(32, t => 0.35 * Math.Exp(-t * 5) + 0.04);
+                return Render(0.5, t => hi(t) * Math.Exp(-t * 14) * 0.5 + wash(t) * Math.Exp(-t * 6) * 0.9 + thump(t) * Env(t, 0.002, 9) * 0.7);
+            }
+            case Sound.Jet: // a great rush of water: it swells quickly, roars, and thins out
+            {
+                var rush = LowNoise(33, t => 0.22 + 0.1 * Math.Sin(t * 9));
+                var hiss = HighNoise(34, 0.7);
+                return Render(0.9, t =>
+                {
+                    double swell = Math.Min(1, t / 0.08) * Math.Exp(-Math.Max(0, t - 0.5) * 5);
+                    return (rush(t) * 1.3 + hiss(t) * 0.25) * swell;
+                });
+            }
+            case Sound.Rage: // the rage begins: a growl that climbs, a roar of noise, and a crack of fire at the top
+            {
+                var growl = Sweep(t => 55 + 150 * t * t, ph => Math.Tanh(Math.Sin(ph) * 3));
+                var roar = LowNoise(41, t => 0.05 + 0.25 * t);
+                var crackle = HighNoise(42, 0.8);
+                return Render(1.0, t =>
+                {
+                    double swell = Math.Min(1, t / 0.5) * Math.Exp(-Math.Max(0, t - 0.7) * 8);
+                    double crack = t > 0.68 ? crackle(t) * Math.Exp(-(t - 0.68) * 18) * 0.9 : 0;
+                    return growl(t) * swell * 0.55 + roar(t) * swell * 0.9 + crack;
+                });
+            }
+            case Sound.RagePulse: // a deep beat with a little crackle, once in a while while the boss is enraged
+            {
+                var thump = Sweep(t => 95 * Math.Exp(-t * 8) + 42);
+                var crackle = HighNoise(43, 0.7);
+                return Render(0.35, t => thump(t) * Env(t, 0.003, 10) * 0.9 + crackle(t) * Math.Exp(-t * 30) * 0.3);
             }
             case Sound.HitBoss: // the boss is hurt: a ringing, fiery impact
             {

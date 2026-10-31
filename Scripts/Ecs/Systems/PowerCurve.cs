@@ -13,9 +13,15 @@ public static class PowerCurve
 {
     public const int MaxLevel = 3;
 
-    /// <summary>How many lights each spirit of the stage leaves behind, in the order of the script.</summary>
-    public static List<int> DropsInStage =>
-        Stages.One.Waves.SelectMany(w => w.Spawns.Select(s => s.Kind.Drops())).ToList();
+    /// <summary>How many lights each spirit of a stage leaves behind, in the order of the script.</summary>
+    public static List<int> DropsIn(StageDefinition stage) =>
+        stage.Waves.SelectMany(w => w.Spawns.Select(s => s.Kind.Drops())).ToList();
+
+    /// <summary>
+    /// The levels are measured against the first stage, and kept the same in every stage: the boat's energy goes with it from stage to stage, so
+    /// a level has to mean the same thing everywhere. (Later stages have more spirits, so they feed the lantern faster.)
+    /// </summary>
+    public static List<int> DropsInStage => DropsIn(Stages.One);
 
     /// <summary>The share of the stage's spirits whose light is enough for level 3, and the share of that for level 2.</summary>
     public const double Level3Share = 0.45, Level2Share = 0.35;

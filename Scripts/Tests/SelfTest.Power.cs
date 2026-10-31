@@ -160,7 +160,7 @@ public static partial class SelfTest
 
     private static void SurplusLightIsWorthPoints()
     {
-        var world = new World(practicePhase: 1); // full power already
+        var world = new World(practicePhase: 1, noLifeLoss: false); // full power already
         LightSystem.Spawn(world.Lights, world.Player.Transform.Position, 3, 0);
         int before = world.Score;
         world.Step(Dt, Idle());
@@ -178,7 +178,7 @@ public static partial class SelfTest
 
     private static void DyingLosesPartOfTheEnergyAndDropsItWhereTheBoatWasLost()
     {
-        var world = new World(practicePhase: 1);
+        var world = new World(practicePhase: 1, noLifeLoss: false);
         float before = world.Player.Energy;
         Die(world, V(220, 480));
         Eq(world.Player.Health.Lives, 2);
@@ -201,7 +201,7 @@ public static partial class SelfTest
 
     private static void TheLostLevelCanBeWonBackByGatheringTheFallenLight()
     {
-        var world = new World(practicePhase: 1);
+        var world = new World(practicePhase: 1, noLifeLoss: false);
         world.CalmWindForTesting();
         Die(world, V(300, 560));
         Less(world.Player.Energy, PowerCurve.Level3);
@@ -226,7 +226,7 @@ public static partial class SelfTest
 
     private static void LightLeftToFallAwayIsLostForGood()
     {
-        var world = new World(practicePhase: 1);
+        var world = new World(practicePhase: 1, noLifeLoss: false);
         Die(world, V(300, 300));
         float after = world.Player.Energy;
         for (int i = 0; i < 60 * 12; i++)
@@ -249,7 +249,7 @@ public static partial class SelfTest
 
     private static void TheLastDeathEndsTheGameWithoutDroppingAnything()
     {
-        var world = new World(practicePhase: 1);
+        var world = new World(practicePhase: 1, noLifeLoss: false);
         world.Player.Health.Lives = 1;
         Die(world, V(300, 400));
         Eq(world.Result, (GameResult?)GameResult.Defeat);

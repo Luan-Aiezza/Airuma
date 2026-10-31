@@ -13,7 +13,7 @@ public static partial class SelfTest
         T("TheFirstStageIsMadeOfItsWavesAndItsBoss", TheFirstStageIsMadeOfItsWavesAndItsBoss);
         T("ARunStartsWithFairiesAndTheBossWaits", ARunStartsWithFairiesAndTheBossWaits);
         T("BossPracticeSkipsTheFairies", BossPracticeSkipsTheFairies);
-        T("AllNineWavesComeBeforeTheBoss", AllNineWavesComeBeforeTheBoss);
+        T("AllTheWavesComeBeforeTheBoss", AllTheWavesComeBeforeTheBoss);
         T("TheBossEntersAndStartsItsFirstAttack", TheBossEntersAndStartsItsFirstAttack);
         T("TheWavesWaitUntilTheFairiesAreDealtWith", TheWavesWaitUntilTheFairiesAreDealtWith);
         T("DefeatingAFairyScoresAndReportsIt", DefeatingAFairyScoresAndReportsIt);
@@ -38,7 +38,7 @@ public static partial class SelfTest
         Eq(new World(practicePhase: 6).Part, StagePart.Boss);
     }
 
-    private static void AllNineWavesComeBeforeTheBoss()
+    private static void AllTheWavesComeBeforeTheBoss()
     {
         var world = new World(withCards: false);
         var waveStarts = new List<int>();
@@ -56,17 +56,17 @@ public static partial class SelfTest
             }
             t += 1f / 60;
         }
-        True(waveStarts.SequenceEqual(Enumerable.Range(0, 9)), "every wave, in order");
+        True(waveStarts.SequenceEqual(Enumerable.Range(0, Stages.One.Waves.Count)), "every wave, in order");
         Eq(world.Part, StagePart.Boss);
         True(bossEntered);
-        Greater(t, 9 * WaveSystem.PauseBetweenWaves, "the waves take time");
+        Greater(t, Stages.One.Waves.Count * WaveSystem.PauseBetweenWaves, "the waves take time");
     }
 
     private static void TheBossEntersAndStartsItsFirstAttack()
     {
         var world = new World(withCards: false);
         PlayStage(world);
-        Eq(world.Boss.Health.Lives, 6);
+        Eq(world.Boss.Health.Lives, Stages.One.Boss.Lives);
         Eq(world.Boss.MovementType, BossMovementType.Transition);
         True(world.Boss.EmitterMain.IsActive);
         Less(world.Boss.Transform.Position.Y, 140);
@@ -162,7 +162,7 @@ public static partial class SelfTest
         });
         BossPhase Attack(string name, float x) => new BossPhase
         {
-            AttackName = name, Form = BossForm.Human, Name = "Tester", HitboxRadius = 20, Movement = BossMovementType.Stationary, Target = V(x, 150),
+            AttackNameKey = name, NameKey = "Tester", HitboxRadius = 20, Movement = BossMovementType.Stationary, Target = V(x, 150),
             Main = new BulletEmitterComponent { IsActive = true, FireRate = 0.5f, BulletsPerVolley = 4, SpreadAngle = 360, BulletSpeed = 100 },
         };
         var boss = new BossDefinition("Tester", new[] { Attack("Test: One", 200), Attack("Test: Two", 400) });
@@ -187,19 +187,21 @@ public static partial class SelfTest
     private static void TheFirstStageIsMadeOfItsWavesAndItsBoss()
     {
         var stage = Stages.One;
-        Eq(stage.Waves.Count, 9);
-        Eq(stage.Boss.Lives, 6);
-        Eq(stage.Boss.PhaseFor(6).Form, BossForm.Human);
-        Eq(stage.Boss.PhaseFor(2).Form, BossForm.Serpent);
-        True(stage.Boss.PhaseFor(2).TransformationDialogue != null && stage.Boss.PhaseFor(3).TransformationDialogue == null, "she speaks only when she changes shape");
-        Eq(new World(withCards: false).StartingBossLives, 6);
-        Eq(new World(practicePhase: 5).StartingBossLives, 2);
+        Eq(stage.Waves.Count, 5);
+        Eq(stage.Boss.Lives, 4, "four attacks");
+        True(!stage.Boss.PhaseFor(4).Enraged && !stage.Boss.PhaseFor(3).Enraged, "the first two attacks are calm");
+        True(stage.Boss.PhaseFor(2).Enraged && stage.Boss.PhaseFor(1).Enraged, "the last two are enraged");
+        True(stage.Boss.PhaseFor(2).Theme != stage.Boss.PhaseFor(3).Theme, "the music changes when she is enraged");
+        Eq(stage.Boss.AttackName(4), Loc.Get("AttackRingOfEmbers"), "the first attack");
+        Eq(stage.Boss.AttackName(3), Loc.Get("AttackBlazingBloom"), "the homing lotus");
+        Eq(new World(withCards: false).StartingBossLives, 4);
+        Eq(new World(practicePhase: 3).StartingBossLives, 2);
     }
 
     private static void TheSerpentHasMoreHealthThanTheWoman()
     {
         var def = IrysshBoss.Definition;
-        for (int lives = 6; lives >= 3; lives--) Eq(def.PhaseFor(lives).MaxHealth, 300, "the woman");
+        for (int lives = 4; lives >= 3; lives--) Eq(def.PhaseFor(lives).MaxHealth, 300, "the woman");
         for (int lives = 2; lives >= 1; lives--) Eq(def.PhaseFor(lives).MaxHealth, 500, "the serpent, her true form");
         var world = new World(practicePhase: 1);
         world.CalmWindForTesting();

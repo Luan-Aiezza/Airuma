@@ -44,7 +44,7 @@ public static partial class SelfTest
 
     private static void TheBossFiresFewerBulletsOnEasyAndMoreOnHard()
     {
-        foreach (int lives in new[] { 6, 5, 4, 3, 2, 1 })
+        foreach (int lives in new[] { 4, 3, 2, 1 })
         {
             int Total(Difficulty d)
             {
@@ -59,7 +59,7 @@ public static partial class SelfTest
 
     private static void DifficultyChangesNothingButTheBullets()
     {
-        foreach (int lives in new[] { 6, 5, 4, 3, 2, 1 })
+        foreach (int lives in new[] { 4, 3, 2, 1 })
         {
             BossEntity Make(Difficulty d)
             {
@@ -120,7 +120,8 @@ public static partial class SelfTest
         Eq(world.Run.History.Count, 1);
         world.Reset();
         Eq(world.Run.History.Count, 0, "lost with the run");
-        True(HudTheme.ForStage(1).Name != HudTheme.ForStage(99).Name, "stage 1 has a look of its own");
+        True(Stages.One.Hud().Name != HudTheme.Original().Name, "stage 1 has a look of its own");
+        True(Stages.Two.Hud().Name != Stages.One.Hud().Name, "and so does stage 2");
     }
 
     private static void ShotsThatDoNotKillAreReportedForTheirSound()

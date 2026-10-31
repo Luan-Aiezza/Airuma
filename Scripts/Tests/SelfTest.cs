@@ -42,6 +42,8 @@ public static partial class SelfTest
         RegisterPower(T);
         RegisterBomb(T);
         RegisterCards(T);
+        RegisterStage2(T);
+        RegisterArchitecture(T);
 
         int failed = 0;
         foreach (var (name, body) in tests)

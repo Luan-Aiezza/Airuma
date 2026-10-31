@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
+using static ViewKit;
 
 /// <summary>The scripted parts of a run: the stage opening, the talks before and after the boss, and the boss changing shape.</summary>
 public partial class GameScene : Node2D
@@ -19,12 +21,9 @@ public partial class GameScene : Node2D
     private const float RiseStart = 0.5f, RiseEnd = 2.3f, RiseTotal = 2.9f, OffscreenY = 900;
     private const float TalkDelayAfterRise = 0.6f, TalkDelayAfterTrees = 1.8f, DescendTime = 2.4f, EndingDelay = 1.5f;
 
-    private enum BossSequence { None, Opening, TalkOne, Descend, TalkTwo, MorphPause, MorphTalk, MorphReveal }
+    private enum BossSequence { None, Opening, TalkOne, Descend, TalkTwo }
     private BossSequence _bossSequence;
     /// <summary>While she gathers herself and speaks, the boss is still the woman, though the world has already counted her second form.</summary>
-    private bool _morphHoldWoman;
-    private Vector2 _bossShake;
-    private const float MorphPauseTime = 1.4f, MorphRevealTime = 2.0f;
     private float _sequenceClock;
     private enum EndSequence { None, Waiting, Talking, Done }
     private EndSequence _endSequence;
@@ -62,7 +61,7 @@ public partial class GameScene : Node2D
         if (_dialoguePending)
         {
             _dialogueDelay -= dt;
-            if (_dialogueDelay <= 0) { _dialoguePending = false; _dialogue.Start(Dialogues.StageOneIntro); }
+            if (_dialogueDelay <= 0) { _dialoguePending = false; StartTalk(Stage.Intro); }
             return true;
         }
 
@@ -70,7 +69,7 @@ public partial class GameScene : Node2D
         {
             case BossSequence.Opening:
                 _sequenceClock += dt;
-                if (_sequenceClock >= TalkDelayAfterTrees) { _dialogue.Start(Dialogues.BeforeBossOne); _bossSequence = BossSequence.TalkOne; }
+                if (_sequenceClock >= TalkDelayAfterTrees) { _bossSequence = BossSequence.TalkOne; StartTalk(Stage.BossArrival); }
                 return true;
             case BossSequence.TalkOne:
                 if (!_dialogue.IsOnScreen) { _bossSequence = BossSequence.Descend; _sequenceClock = 0; }
@@ -81,7 +80,7 @@ public partial class GameScene : Node2D
                 float u = Mathf.Clamp(_sequenceClock / DescendTime, 0, 1);
                 float ease = 1 - (1 - u) * (1 - u) * (1 - u);
                 World.Boss.Transform.Position = new Vector2(300, Mathf.Lerp(-170, Layout.BossY, ease));
-                if (_sequenceClock >= DescendTime + 0.5f) { _dialogue.Start(Dialogues.BeforeBossTwo); _bossSequence = BossSequence.TalkTwo; }
+                if (_sequenceClock >= DescendTime + 0.5f) { _bossSequence = BossSequence.TalkTwo; StartTalk(Stage.BossEncounter); }
                 return true;
             }
             case BossSequence.TalkTwo:
@@ -97,47 +96,11 @@ public partial class GameScene : Node2D
                 return true;
         }
 
-        switch (_bossSequence)
-        {
-            case BossSequence.MorphPause:
-                // She has had enough: the music dies away and she trembles.
-                _sequenceClock += dt;
-                _bossShake = ShakeOffset(2 + 4 * Mathf.Clamp(_sequenceClock / MorphPauseTime, 0, 1));
-                if (_sequenceClock >= MorphPauseTime) { _dialogue.Start(CurrentPhase.TransformationDialogue); _bossSequence = BossSequence.MorphTalk; }
-                return true;
-            case BossSequence.MorphTalk:
-                _bossShake = ShakeOffset(5);
-                if (!_dialogue.IsOnScreen)
-                {
-                    // The woman bursts into the serpent.
-                    _bossSequence = BossSequence.MorphReveal;
-                    _sequenceClock = 0;
-                    _morphHoldWoman = false;
-                    World.Boss.Transform.Position = new Vector2(300, Layout.BossY);
-                    SfxPlayer.Instance?.Play(SfxBank.Sound.Bomb);
-                    SfxPlayer.Instance?.Play(SfxBank.Sound.BossBroken);
-                }
-                return true;
-            case BossSequence.MorphReveal:
-                _sequenceClock += dt;
-                _bossShake = ShakeOffset(6 * (1 - Mathf.Clamp(_sequenceClock / MorphRevealTime, 0, 1)));
-                if (_sequenceClock >= MorphRevealTime)
-                {
-                    // Her new name and her new music, and the fight begins a moment later.
-                    _bossSequence = BossSequence.None;
-                    _bossShake = Vector2.Zero;
-                    World.Boss.TransitionTimer = 1.0f;
-                    World.Boss.TransitionSpeed = 0;
-                    AnnounceBossPhase(1.6f);
-                }
-                return true;
-        }
-
         switch (_endSequence)
         {
             case EndSequence.Waiting:
                 _sequenceClock += dt;
-                if (_sequenceClock >= EndingDelay) { _dialogue.Start(Dialogues.AfterBoss); _endSequence = EndSequence.Talking; }
+                if (_sequenceClock >= EndingDelay) { _endSequence = EndSequence.Talking; StartTalk(Stage.Ending); }
                 return true;
             case EndSequence.Talking:
                 if (!_dialogue.IsOnScreen) _endSequence = EndSequence.Done;
@@ -146,18 +109,19 @@ public partial class GameScene : Node2D
         return false;
     }
 
-    private Vector2 ShakeOffset(float amount) =>
-        new Vector2(_rng.RandfRange(-amount, amount), _rng.RandfRange(-amount, amount) * 0.5f);
-
-    /// <summary>The woman breaks into her second form: a new fight. The attack is cleared, the music stops, she speaks, and only then does she change.</summary>
-    private void BeginMorph()
+    /// <summary>Starts a talk of the stage, if it has one; false when it has none.</summary>
+    private bool StartTalk(Func<IReadOnlyList<DialogueLine>> talk)
     {
-        _bossSequence = BossSequence.MorphPause;
-        _sequenceClock = 0;
-        _morphHoldWoman = true;
-        _pendingAttackName = null;
-        _hud.HideAttackName();
-        MusicPlayer.Instance?.Stop(1.0f);
+        if (talk == null) return false;
+        _dialogue.Start(talk());
+        return true;
+    }
+
+    /// <summary>The boss's first enraged attack: it flashes, rings spread from it, other music and its title begin, and the attack's name follows.</summary>
+    private void BeginEnrage()
+    {
+        _boss.Flash();
+        AnnounceBossPhase(1.6f);
     }
 
     /// <summary>The boss is coming (a normal run): the banks slide out, the horizon and the moon appear, and, after a moment, the talk.</summary>
@@ -190,6 +154,12 @@ public partial class GameScene : Node2D
         {
             MusicPlayer.Instance?.Play(phase.Theme);
             _title.Show(phase.Name, phase.MusicTitle, fire: true, hold: 3.0f, difficulty: Difficulty);
+            if (phase.Enraged)
+            {
+                _boss.BurstRage();
+                SfxPlayer.Instance?.Play(SfxBank.Sound.Rage);
+                SfxPlayer.Instance?.Play(SfxBank.Sound.BossBroken);
+            }
         }
         if (attackNameDelay <= 0) return;
         _pendingAttackName = phase.AttackName;

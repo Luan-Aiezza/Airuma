@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
+using static ViewKit;
 
 /// <summary>What the simulation reports, and the scene's reactions: sounds, speech, the end of the run.</summary>
 public partial class GameScene : Node2D
@@ -52,10 +53,10 @@ public partial class GameScene : Node2D
         }
         if (boss.Health.Lives < _lastBossLives && boss.Health.Lives > 0)
         {
-            // A new shape (with something to say about it) is a new fight; otherwise just a new attack.
-            bool changedShape = boss.Definition.PhaseFor(_lastBossLives).Form != boss.Form;
-            _hud.Say(changedShape ? UIText.SaySerpent : UIText.SayEnraged);
-            if (changedShape && CurrentPhase.TransformationDialogue != null && World.Part == StagePart.Boss) BeginMorph();
+            // The first enraged attack is a bigger moment (other music, rings, a flash); any other is just a new attack.
+            bool becomesEnraged = CurrentPhase.Enraged && !boss.Definition.PhaseFor(_lastBossLives).Enraged && World.Part == StagePart.Boss;
+            _hud.Say(becomesEnraged ? UIText.SayRage : UIText.SayEnraged);
+            if (becomesEnraged) BeginEnrage();
             else _hud.ShowAttackName(CurrentPhase.AttackName ?? "");
         }
         _lastLives = player.Health.Lives;
@@ -65,8 +66,8 @@ public partial class GameScene : Node2D
 
     private void Finish(GameResult result)
     {
-        // Practice runs are not recorded.
-        bool newRecord = PracticePhase == null && HighScore.Submit(World.Score, result == GameResult.Victory, Difficulty);
+        // Practice runs (of a boss or of a stage) are not recorded.
+        bool newRecord = PracticePhase == null && !StagePractice && HighScore.Submit(World.Score, result == GameResult.Victory, Difficulty);
         _hud.HideAttackName();
         MusicPlayer.Instance?.Stop(2.0f);
         _hud.ShowEnd(result, World.Score, newRecord);

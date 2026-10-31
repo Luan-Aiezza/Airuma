@@ -7,10 +7,13 @@ using System.Collections.Generic;
 /// </summary>
 public sealed class BossDefinition
 {
-    public readonly string Name;
+    private readonly string _nameKey;
+    public string Name => Loc.Get(_nameKey);
     public readonly IReadOnlyList<BossPhase> Phases;
+    /// <summary>How the boss looks (the art, the glow, the colours of its rage).</summary>
+    public BossStyle Style = BossStyles.Iryssh;
 
-    public BossDefinition(string name, IReadOnlyList<BossPhase> phases) { Name = name; Phases = phases; }
+    public BossDefinition(string nameKey, IReadOnlyList<BossPhase> phases) { _nameKey = nameKey; Phases = phases; }
 
     /// <summary>One life for each attack.</summary>
     public int Lives => Phases.Count;

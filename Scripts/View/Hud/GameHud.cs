@@ -19,7 +19,6 @@ public partial class GameHud : Node2D
     /// <summary>The panel was drawn for a river 600 wide; everything on it shifts by the extra width.</summary>
     private const float PanelShift = Layout.PanelX - 598;
     public const int MaxLives = 3, MaxBombs = 3, MaxPower = 3;
-    public const int TotalPhases = 6;
 
     /// <summary>Characters per line in the dialogue box.</summary>
     public const int DialogueWidth = 14;
@@ -284,7 +283,7 @@ public partial class GameHud : Node2D
     {
         _bossGroup.ZIndex = Z(2);
         AddChild(_bossGroup);
-        Label(_bossName, Stages.One.Boss.Name, 24, 36, _bossGroup, Space.Field);
+        Label(_bossName, "", 24, 36, _bossGroup, Space.Field);
         Label(_bossNameTop, "", 24, 28, _bossGroup, Space.Field);
         Label(_bossNameBottom, "", 24, 46, _bossGroup, Space.Field);
         MakeSprite(HudArt.BossBarFrame(106).ToTexture(), AtField(160, 28), 0, null, null, _bossGroup);

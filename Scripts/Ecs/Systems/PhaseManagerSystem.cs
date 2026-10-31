@@ -41,9 +41,11 @@ public static class PhaseManagerSystem
         boss.TransitionTimer = BreatherSeconds;
         boss.NextMovementType = phase.Movement;
         boss.TargetPosition = phase.Target;
-        boss.PatrolHasTarget = false;
-        boss.PatrolWait = 0;
-        if (phase.Movement == BossMovementType.Dash) { boss.DashTimer = 0; boss.LastDashX = phase.Target.X; }
+        boss.Patrol.Reset();
+        boss.Roam.Reset();
+        boss.Dive.Reset();
+        boss.Sweep.Reset(difficulty);
+        boss.Dash.Reset(phase.Target.X);
         if (phase.StartsAtTarget) boss.Transform.Position = phase.Target;
 
         ApplyDifficulty(boss, phase, difficulty);
@@ -52,6 +54,13 @@ public static class PhaseManagerSystem
     /// <summary>Easy: fewer bullets in every volley. Hard: more bullets, and a second, slower attack woven into some of the patterns.</summary>
     private static void ApplyDifficulty(BossEntity boss, BossPhase phase, Difficulty difficulty)
     {
+        if (phase.EmbersOneStepDown)
+        {
+            // The embers come one step down the difficulties: none on easy, easy's on normal, normal's on hard.
+            if (difficulty == Difficulty.Easy) { boss.EmitterMain.IsActive = false; boss.EmitterSub.IsActive = false; return; }
+            difficulty = difficulty == Difficulty.Hard ? Difficulty.Normal : Difficulty.Easy;
+            if (difficulty == Difficulty.Normal) return;
+        }
         if (difficulty == Difficulty.Normal) return;
         if (boss.EmitterMain.IsActive) boss.EmitterMain.BulletsPerVolley = difficulty.Scale(boss.EmitterMain.BulletsPerVolley);
         if (boss.EmitterSub.IsActive) boss.EmitterSub.BulletsPerVolley = difficulty.Scale(boss.EmitterSub.BulletsPerVolley);

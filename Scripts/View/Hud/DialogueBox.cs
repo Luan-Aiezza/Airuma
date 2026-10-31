@@ -85,6 +85,16 @@ public partial class DialogueBox : Node2D
         AddChild(_hint);
     }
 
+    /// <summary>The name shown when the boss speaks (the stage's boss).</summary>
+    public string BossName = "";
+
+    private string NameOf(DialogueSpeaker speaker) => speaker switch
+    {
+        DialogueSpeaker.Atli => UIText.BoyName,
+        DialogueSpeaker.Airu => UIText.FairyName,
+        _ => BossName,
+    };
+
     public void Start(IReadOnlyList<DialogueLine> script)
     {
         _script = script;
@@ -103,7 +113,7 @@ public partial class DialogueBox : Node2D
         var line = _script[index];
         bool left = line.Speaker == DialogueSpeaker.Atli;
 
-        string name = Dialogues.NameOf(line.Speaker);
+        string name = NameOf(line.Speaker);
         _name.SetText(name);
         float plaqueW = 34 * Art;
         // Atli's name at the left, Airu's at the right, the boss's in the middle.

@@ -1,13 +1,15 @@
 using System;
 using System.Linq;
 using Godot;
+using static ViewKit;
 
 /// <summary>Building the nodes of the scene, and putting the simulation on them every frame.</summary>
 public partial class GameScene : Node2D
 {
     private void BuildWorldNodes()
     {
-        River = new RiverBackground(new Vector2(Layout.RiverWidth, Layout.Height));
+        River = new RiverBackground(new Vector2(Layout.RiverWidth, Layout.Height), Stage.Scenery);
+        _windEffect.Style = Stage.Scenery.LanternWind ? WindEffect.Kind.Lanterns : WindEffect.Kind.Leaves;
         AddChild(River);
         BuildMirrors();
 
@@ -58,39 +60,17 @@ public partial class GameScene : Node2D
         _bombEffect.ZIndex = Z(1.7f); // the light is under the boat (so it stays in sight) and over the spirits
         AddChild(_bombEffect);
 
-        _bossFrames[BossLook.Woman] = BossArt.MakeFrames(BossForm.Human);
-        _bossFrames[BossLook.Serpent] = BossArt.MakeFrames(BossForm.Serpent);
-        _bossFrames[BossLook.Charging] = BossArt.MakeFrames(BossForm.Serpent, true);
-        _flameFrames[BossLook.Serpent] = BossArt.MakeFlameFrames(false);
-        _flameFrames[BossLook.Charging] = BossArt.MakeFlameFrames(true);
-        foreach (var form in new[] { BossForm.Human, BossForm.Serpent }) _bossGlowFrames[form] = BossArt.MakeGlowFrames(form);
-
         _windEffect.ZIndex = Z(3.5f); // over the trees, under the bullets
         AddChild(_windEffect);
-
-        _serpentBody.ZIndex = Z(1.8f); // under the head, over the water, under the trees
-        AddChild(_serpentBody);
-
-        // Boss: a container at the boss's position; the sprite is anchored on it, the glow sits under the sprite.
-        _bossGlow.Material = AddMaterial();
-        _bossGlow.ZIndex = Z(-0.2f);
-        _bossNode.AddChild(_bossGlow);
-        _bossSprite.Centered = false;
-        _bossSprite.Scale = new Vector2(BossArt.Scale, BossArt.Scale);
-        _bossSprite.Material = NewTintMaterial(Colors.White, 0);
-        _bossNode.AddChild(_bossSprite);
-        _bossSprite.AddChild(_bossFlame);
-        _bossFlame.Tune(44, 1.3f, 10); // the head is a pyre
 
         _playerFrames = PlayerArt.MakeFrames();
         _playerSprite.Texture = _playerFrames[0];
         FitTo(_playerSprite, PlayerArt.SpriteSize);
         _playerNode.AddChild(_playerSprite);
-        foreach (var node in new[] { _playerNode, _bossNode })
-        {
-            node.ZIndex = Z(2); // sprites draw above bullets, as in the original
-            AddChild(node);
-        }
+        _playerNode.ZIndex = Z(2); // sprites draw above bullets, as in the original
+        AddChild(_playerNode);
+        _boss = new BossView(Stage.Boss.Style, River.MirrorLayer);
+        AddChild(_boss);
         BuildPlayerLight();
         _wardRing.Texture = _wardFrames[0];
         _wardRing.Scale = new Vector2(3, 3);
@@ -110,15 +90,15 @@ public partial class GameScene : Node2D
         }
     }
 
-    /// <summary>Flipped copies of the boat and the boss, with their lights, drawn into the water's reflection. Each is
-    /// mirrored about a line under the actor (the stern; the waterline of the woman; below the serpent's head).</summary>
+    /// <summary>A flipped copy of the boat, with its light, drawn into the water's reflection, mirrored about a line under the stern.
+    /// (The boss's reflection is made by its own view.)</summary>
     private void BuildMirrors()
     {
-        var pairs = new[] { (_boatMirror, _boatMirrorSprite, _boatMirrorAura), (_bossMirror, _bossMirrorSprite, _bossMirrorGlow) };
+        var pairs = new[] { (_boatMirror, _boatMirrorSprite, _boatMirrorAura) };
         foreach (var (container, sprite, light) in pairs)
         {
             container.Scale = new Vector2(1, -1);
-            container.ZIndex = container == _boatMirror ? Z(0.2f) : 0; // explicit: equal z would flicker
+            container.ZIndex = Z(0.2f);
             sprite.ZIndex = 0;
             sprite.Material = NewTintMaterial(MirrorTint, 0.3f);
             sprite.Modulate = new Color(1, 1, 1, 0.6f);
@@ -134,19 +114,6 @@ public partial class GameScene : Node2D
         _boatMirrorAura.Position = PlayerArt.LanternOffset;
     }
 
-    /// <summary>Whether a mirrored actor may be part of the reflection (the defeated boss is parked at -9999).</summary>
-    private static bool CanReflect(Vector2 point)
-    {
-        const float slack = 400;
-        return point.X > -slack && point.X < Layout.RiverWidth + slack && point.Y > -slack && point.Y < Layout.Height + slack;
-    }
-
-    private static void Attach(Node2D mirror, Node parent, bool wanted)
-    {
-        if (wanted) { if (mirror.GetParent() == null) parent.AddChild(mirror); }
-        else if (mirror.GetParent() != null) mirror.GetParent().RemoveChild(mirror);
-    }
-
     private void SyncMirrors()
     {
         var boat = _playerNode.Position;
@@ -157,18 +124,6 @@ public partial class GameScene : Node2D
         _boatMirrorAura.Texture = _playerAura.Texture;
         FitTo(_boatMirrorAura, new Vector2(PlayerArt.AuraSize * PlayerArt.Scale, PlayerArt.AuraSize * PlayerArt.Scale));
 
-        // The woman is mirrored about the water line at her toes; the serpent casts no reflection.
-        float waterline = BossArt.Waterline(_bossForm ?? BossForm.Human);
-        Attach(_bossMirror, River.MirrorLayer,
-            World.Part == StagePart.Boss && _bossForm == BossForm.Human && World.Boss.Health.Lives > 0 && CanReflect(_bossNode.Position));
-        _bossMirror.Position = new Vector2(_bossNode.Position.X, _bossNode.Position.Y + 2 * waterline);
-        _bossMirrorSprite.Texture = _bossSprite.Texture;
-        _bossMirrorSprite.Centered = false;
-        _bossMirrorSprite.Scale = _bossSprite.Scale;
-        _bossMirrorSprite.Offset = _bossSprite.Offset;
-        _bossMirrorSprite.Modulate = new Color(1, 1, 1, 0.6f * _bossNode.Modulate.A);
-        _bossMirrorGlow.Texture = _bossGlow.Texture;
-        _bossMirrorGlow.Scale = _bossGlow.Scale;
     }
 
     /// <summary>The lantern's glow is a child of the boat, so it follows it and blinks with it. It is drawn additively
@@ -197,68 +152,8 @@ public partial class GameScene : Node2D
             _playerAura.Texture = _auraFrames[_auraFrame];
         }
         _playerSprite.Texture = _playerFrames[(int)(_clock / 0.35) % _playerFrames.Length];
-
-        if (_bossLook is BossLook look && _bossForm is BossForm form)
-        {
-            _bossAnim += dt;
-            var frames = _bossFrames[look];
-            int frameIndex = (int)(_bossAnim / 0.18f) % frames.Length;
-            _bossSprite.Texture = frames[frameIndex];
-            if (_flameFrames.TryGetValue(look, out var flames)) _bossFlame.Texture = flames[frameIndex];
-            var glow = _bossGlowFrames[form];
-            _glowTimer += dt;
-            while (_glowTimer >= _glowWait)
-            {
-                _glowTimer -= _glowWait;
-                _glowFrame = 1 - _glowFrame;
-                _glowWait = _glowFrame == 1 ? Wait(0.14f, 0.1f) : Wait(0.3f, 0.2f);
-                _bossGlow.Texture = glow[_glowFrame];
-            }
-        }
-
-        if (_bossFlash >= 0)
-        {
-            _bossFlash += dt;
-            float t = Math.Min(1, _bossFlash / 0.6f);
-            _bossNode.Modulate = new Color(1, 1, 1, 0.2f + 0.8f * t);
-            SetBlend(_bossSprite, 1 - t);
-            if (t >= 1) _bossFlash = -1;
-        }
     }
 
-    /// <summary>Switches the boss between the woman and the serpent: new art, size and glow, with a white flash
-    /// and fade-in when it changes mid-fight.</summary>
-    private void ApplyBossLook(BossLook look)
-    {
-        var form = look == BossLook.Woman ? BossForm.Human : BossForm.Serpent;
-        bool transforming = _bossForm != null && _bossForm != form;
-        _bossForm = form;
-        _bossLook = look;
-        _hud?.SetBossName(World.Boss.Definition.Phases.First(p => p.Form == form).Name);
-
-        var frames = _bossFrames[look];
-        _bossAnim = 0;
-        _bossSprite.Texture = frames[0];
-        _bossSprite.Scale = new Vector2(BossArt.ScaleFor(form), BossArt.ScaleFor(form));
-        _bossSprite.Offset = -frames[0].GetSize() * BossArt.Anchor(form);
-        _bossFlame.Visible = _flameFrames.ContainsKey(look);
-        if (_bossFlame.Visible) { _bossFlame.Texture = _flameFrames[look][0]; _bossFlame.Align(_bossSprite.Offset); }
-
-        var glowFrames = _bossGlowFrames[form];
-        float glowSide = (form == BossForm.Human ? BossArt.HumanGlowSize : BossArt.SerpentGlowSize) * BossArt.ScaleFor(form);
-        _glowFrame = 0; _glowTimer = 0; _glowWait = Wait(0.3f, 0.2f);
-        _bossGlow.Texture = glowFrames[0];
-        FitTo(_bossGlow, new Vector2(glowSide, glowSide));
-        _bossGlow.Position = Vector2.Zero;
-        _bossGlow.Visible = form == BossForm.Human; // the serpent is lit by its own flames
-
-        if (transforming)
-        {
-            _bossFlash = 0;
-            _bossNode.Modulate = new Color(1, 1, 1, 0.2f);
-            SetBlend(_bossSprite, 1);
-        }
-    }
 
     private void BuildJoystick()
     {
@@ -282,6 +177,17 @@ public partial class GameScene : Node2D
 
     // MARK: Rendering
 
+    /// <summary>The boss's view is told what the boss is doing; the river takes the tint of its rage.</summary>
+    private void SyncBoss()
+    {
+        _boss.Update(new BossFrame
+        {
+            Dt = _bombDelta, Boss = World.Boss, Phase = CurrentPhase, Fighting = World.Part == StagePart.Boss, Over = World.Result != null,
+            Scripted = _bossSequence != BossSequence.None,
+        });
+        River.Modulate = Colors.White.Lerp(_boss.Style.SceneTint, _boss.RageAmount);
+    }
+
     private void SyncNodes()
     {
         var player = World.Player; var boss = World.Boss;
@@ -302,10 +208,7 @@ public partial class GameScene : Node2D
             _wardRing.Scale = new Vector2(s, s);
         }
 
-        _bossNode.Position = Point(boss.Transform.Position) + _bossShake;
-        var look = boss.Form == BossForm.Human || _morphHoldWoman ? BossLook.Woman : (CurrentPhase.Movement == BossMovementType.Dash ? BossLook.Charging : BossLook.Serpent);
-        if (_bossLook != look) ApplyBossLook(look);
-
+        SyncBoss();
         SyncMirrors();
 
         var bomb = player.Bomb;
@@ -361,7 +264,7 @@ public partial class GameScene : Node2D
             WindStrength = wind.Strength,
             BossHealth = World.Part == StagePart.Boss && _bossSequence == BossSequence.None && boss.Health.Lives > 0
                 ? (float)Math.Max(0, boss.Health.CurrentHealth) / boss.Health.MaxHealth : (float?)null,
-            PhasesCleared = GameHud.TotalPhases - Math.Max(0, boss.Health.Lives),
+            PhasesCleared = boss.Definition.Lives - Math.Max(0, boss.Health.Lives),
             PowerProgress = PowerCurve.Progress(player.Energy),
             Cards = World.Run.History,
         }, dt);

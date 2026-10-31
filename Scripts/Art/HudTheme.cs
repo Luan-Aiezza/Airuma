@@ -70,7 +70,50 @@ public sealed class HudTheme
         };
     }
 
-    public static HudTheme ForStage(int stage) => stage switch { 1 => FireSerpent(), _ => Original() };
+    /// <summary>Stage 2, the river of the parties: a plum panel strewn with confetti, a column of bunting along its edge, and a string of paper lanterns at the bottom.</summary>
+    public static HudTheme Festival()
+    {
+        P[] flags = { P.Hex(0xE23C34), P.Hex(0xFFD060), P.Hex(0x2FBFB0), P.Hex(0xE0508A) };
+        P[] confetti = { P.Hex(0x7A2A5E), P.Hex(0x8A6A2A), P.Hex(0x1F6E72), P.Hex(0x8E2A3A) };
+        return new HudTheme
+        {
+            Name = "festival",
+            Background = (x, y) =>
+            {
+                int hash = (x * 73 + y * 151 + (x / 5) * 31) % 97;
+                if (hash == 0) return confetti[(x + y) % confetti.Length];
+                return ((x + y) % 6 == 0 || (x - y + 600) % 12 == 0) ? P.Hex(0x2A1840) : P.Hex(0x1E1030);
+            },
+            // Bunting: little flags hanging in a column, in turns of red, gold, teal and pink, each with a lit top.
+            Band = (x, y) =>
+            {
+                int v = y % 10, index = (y / 10) % flags.Length;
+                float half = 3.9f - v * 0.42f;
+                if (v < 9 && MathF.Abs(x - 3.5f) <= half) return v == 0 ? flags[index].Mixed(P.Hex(0xFFFFFF), 0.35f) : (v > 6 ? flags[index].Scaled(0.75f) : flags[index]);
+                return P.Hex(0x140A1E);
+            },
+            Ink = P.Hex(0x0E0714), RimInner = P.Hex(0xE0508A), BeadLight = P.Hex(0xFFD870), BeadDark = P.Hex(0xE23C34),
+            PlaqueEdgeA = P.Hex(0xFFD060), PlaqueEdgeB = P.Hex(0x8E2A5E), PlaqueFill = P.Hex(0x120A1C),
+            RuleA = P.Hex(0xFFA03A), RuleB = P.Hex(0xE0508A),
+            FrameDot = P.Hex(0xFFE27A), FrameBase = P.Hex(0xE0508A), FrameLine = P.Hex(0x0E0714),
+            Ornament = LanternOrnament,
+        };
+    }
+
+    /// <summary>A string of paper lanterns across the bottom of the panel, in the colours of the festival.</summary>
+    public static PixelCanvas LanternOrnament()
+    {
+        var c = new PixelCanvas(OrnamentWidth, OrnamentHeight);
+        P cord = P.Hex(0x0E0714);
+        var xs = new[] { 9, 23, 37, 51, 65 };
+        for (int x = 0; x < OrnamentWidth; x++) c[x, 2 + (int)MathF.Round(2.2f * MathF.Sin(x * MathF.PI / 14f))] = cord;
+        for (int i = 0; i < xs.Length; i++)
+        {
+            int sag = 2 + (int)MathF.Round(2.2f * MathF.Sin(xs[i] * MathF.PI / 14f));
+            FestivalArt.DrawLantern(c, xs[i], sag + 3, 7, 9, i, cord: true, tassel: true);
+        }
+        return c;
+    }
 
     // MARK: The serpent coiled at the bottom of the panel
 

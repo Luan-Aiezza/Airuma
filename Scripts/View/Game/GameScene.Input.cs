@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Godot;
+using static ViewKit;
 
 /// <summary>Keys, touch and mouse, the test pilot, and the card picker and the dialogue they drive.</summary>
 public partial class GameScene : Node2D

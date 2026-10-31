@@ -15,6 +15,9 @@ public static class BulletSystem
         return pool;
     }
 
+    /// <summary>The beat of the dancing bullets: half a second, like a march or a samba at 120 beats a minute.</summary>
+    public const float DanceBeat = 0.5f;
+
     public static void Spawn(
         BulletData[] pool,
         Vector2 position,
@@ -54,12 +57,6 @@ public static class BulletSystem
             BurstRadius = burstRadius,
             BurstScale = burstScale,
         };
-    }
-
-    /// <summary>A bullet fired by a spirit (they use the same pool and hit the player like the boss's bullets).</summary>
-    public static void SpawnEnemyBullet(BulletData[] pool, Vector2 position, Vector2 velocity, BulletStyle style)
-    {
-        Spawn(pool, position, velocity, Faction.Boss, style, scale: 0.9f);
     }
 
     /// <summary>Seconds between volleys of homing wisps.</summary>
@@ -147,15 +144,31 @@ public static class BulletSystem
         }
     }
 
-    public static void UpdateBossWeapons(BossEntity boss, PlayerEntity player, BulletData[] pool, float delta)
+    public static void UpdateBossWeapons(BossEntity boss, PlayerEntity player, BulletData[] pool, float delta, Difficulty difficulty = Difficulty.Normal)
     {
         // No shooting during the breather between phases.
         if (boss.MovementType == BossMovementType.Transition) return;
+
+        // Out of the water the dolphin throws up a fan of spray; it fires nothing while it sinks, is under, or leaps.
+        if (boss.Dive.Emerged) { boss.Dive.Emerged = false; SpawnSplash(boss, pool, difficulty); }
+        if (boss.Dive.Submerged || (boss.MovementType == BossMovementType.Dive && boss.Dive.State != DiveState.Surface)) return;
 
         if (boss.EmitterMain.IsActive)
             ProcessEmitter(boss, player, ref boss.EmitterMain, pool, delta);
         if (boss.EmitterSub.IsActive)
             ProcessEmitter(boss, player, ref boss.EmitterSub, pool, delta);
+    }
+
+    /// <summary>The spray where the dolphin leaps out: a fan of bullets going up and out from the water.</summary>
+    private static void SpawnSplash(BossEntity boss, BulletData[] pool, Difficulty difficulty)
+    {
+        int count = difficulty.Scale(18, 6);
+        Vector2 at = boss.Transform.Position + new Vector2(0, -boss.Hitbox.Radius);
+        for (int i = 0; i < count; i++)
+        {
+            float angle = Mathx.Radians(200 + 140 * (count > 1 ? (float)i / (count - 1) : 0.5f));
+            Spawn(pool, at, new Vector2(MathF.Cos(angle), MathF.Sin(angle)) * 190, Faction.Boss, BulletStyle.Spark, scale: 0.9f);
+        }
     }
 
     private static void ProcessEmitter(BossEntity boss, PlayerEntity player, ref BulletEmitterComponent emitter, BulletData[] pool, float delta)
@@ -180,19 +193,19 @@ public static class BulletSystem
         Vector2 spawnPos = boss.Transform.Position + emitter.SpawnOffset;
 
         for (int i = 0; i < bullets; i++)
-        {
-            float angle = Mathx.Radians(emitter.BaseAngle + i * angleStep);
-            Vector2 velocity = new Vector2(MathF.Cos(angle), MathF.Sin(angle)) * emitter.BulletSpeed;
-            Spawn(pool,
-                  spawnPos,
-                  velocity,
-                  Faction.Boss,
-                  emitter.BulletStyle,
-                  scale: emitter.BulletScale,
-                  acceleration: emitter.Acceleration,
-                  curve: emitter.CurveRate,
-                  behavior: emitter.BulletBehavior);
-        }
+            FireBullet(pool, spawnPos, emitter.BaseAngle + i * angleStep, emitter.BulletSpeed, emitter.BulletStyle, emitter.BulletScale,
+                       emitter.Acceleration, emitter.AlternateCurve && i % 2 == 1 ? -emitter.CurveRate : emitter.CurveRate, emitter.BulletBehavior);
+    }
+
+    /// <summary>
+    /// A bullet of the enemy side (a boss's or a spirit's), going off at `angle` degrees. The one way bullets are fired: the emitters of the bosses
+    /// and the patterns of the spirits both end here.
+    /// </summary>
+    public static void FireBullet(BulletData[] pool, Vector2 origin, float angle, float speed, BulletStyle style, float scale = 1,
+                                  float acceleration = 0, float curve = 0, BulletBehavior behavior = BulletBehavior.Normal)
+    {
+        float a = Mathx.Radians(angle);
+        Spawn(pool, origin, new Vector2(MathF.Cos(a), MathF.Sin(a)) * speed, Faction.Boss, style, scale: scale, acceleration: acceleration, curve: curve, behavior: behavior);
     }
 
     public static void MoveBullets(BulletData[] pool, Rect2 screenBounds, float delta, Vector2 wind, PlayerEntity player, IList<Vector2> targets = null)
@@ -242,6 +255,14 @@ public static class BulletSystem
                 b.Velocity = Mathx.Norm(b.Velocity) * speed;
             }
 
+            if (b.Behavior == BulletBehavior.Dance)
+            {
+                // Sways to one side and the other on the beat: half a leg to start with, so that it sways evenly about its heading.
+                b.Timer += delta;
+                float wave = (int)MathF.Floor((b.Timer + DanceBeat / 2) / DanceBeat) % 2 == 0 ? 1 : -1;
+                b.Velocity = b.Velocity.Rotated(Mathx.Radians(b.CurveRate * wave * delta));
+            }
+
             if (b.Acceleration != 0)
             {
                 float speed = b.Velocity.Length();
@@ -252,7 +273,7 @@ public static class BulletSystem
                 b.Velocity = direction * speed;
             }
 
-            if (b.CurveRate != 0)
+            if (b.CurveRate != 0 && b.Behavior != BulletBehavior.Dance)
                 b.Velocity = b.Velocity.Rotated(Mathx.Radians(b.CurveRate * delta));
 
             b.Position += (b.Velocity + wind * b.WindModifier) * delta;

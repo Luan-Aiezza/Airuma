@@ -145,7 +145,7 @@ public static partial class SelfTest
 
     private static void ThePrizesGiveAboutTwoLanternsAndABoatInAGoodRun()
     {
-        const int goodRunScore = 485_000;
+        const int goodRunScore = 400_000;
         int bombs = 0, lives = 0;
         while (ScoreSystem.BombScore(bombs) <= goodRunScore) bombs++;
         while (ScoreSystem.LifeScore(lives) <= goodRunScore) lives++;

@@ -21,14 +21,18 @@ public static class CombatSystem
         if (player.Health.InvincibilityTimer <= 0 && !player.Bomb.IsActive)
         {
             // Body contact with the boss, or with a spirit.
-            bool touchesBoss = bossActive
+            bool touchesBoss = bossActive && !boss.Dive.Submerged
                 && player.Transform.Position.DistanceTo(boss.Transform.Position) < player.Hitbox.Radius + boss.Hitbox.Radius;
             bool touchesSpirit = false;
             if (enemies != null)
                 foreach (var e in enemies)
                     if (e.Health > 0 && player.Transform.Position.DistanceTo(e.Position) < player.Hitbox.Radius + e.Kind.HitboxRadius())
                     { touchesSpirit = true; break; }
-            if (touchesBoss || touchesSpirit)
+            // The jet of water that the boss fires down the field.
+            bool hitByBeam = bossActive && boss.Sweep.BeamOn
+                && MathF.Abs(player.Transform.Position.X - boss.Transform.Position.X) < SweepBrain.BeamHalfWidth + player.Hitbox.Radius
+                && player.Transform.Position.Y > boss.Transform.Position.Y;
+            if (touchesBoss || touchesSpirit || hitByBeam)
                 Hurt(player, 1, ContactGrace);
         }
 
@@ -44,7 +48,7 @@ public static class CombatSystem
                     b.IsActive = false;
                 }
             }
-            else if (bossActive && b.Faction == Faction.Player && boss.Health.CurrentHealth > 0 && b.LastHit != boss.Id)
+            else if (bossActive && !boss.Dive.Submerged && b.Faction == Faction.Player && boss.Health.CurrentHealth > 0 && b.LastHit != boss.Id)
             {
                 if (b.Position.DistanceTo(boss.Transform.Position) < b.HitboxRadius + boss.Hitbox.Radius)
                 {
@@ -159,7 +163,7 @@ public static class CombatSystem
             if (!(player.Transform.Position.DistanceTo(enemy.Position) <= player.Bomb.Radius)) continue;
             if (Damage(enemy, BombSystem.SpiritDamagePerSecond * damageMultiplier * delta)) defeated.Add((enemy.Kind, enemy.Position));
         }
-        if (bossActive && boss.Health.CurrentHealth > 0
+        if (bossActive && !boss.Dive.Submerged && boss.Health.CurrentHealth > 0
             && player.Transform.Position.DistanceTo(boss.Transform.Position) <= player.Bomb.Radius + boss.Hitbox.Radius)
         {
             boss.DamageCarry += BombSystem.BossDamagePerSecond * damageMultiplier * delta;

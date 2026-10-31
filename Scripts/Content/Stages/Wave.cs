@@ -20,6 +20,4 @@ public class Wave
 {
     public List<EnemySpec> Spawns;
     public Wave(List<EnemySpec> spawns) { Spawns = spawns; }
-    /// <summary>When the last enemy comes in.</summary>
-    public float LastSpawnTime => Spawns.Count == 0 ? 0 : Spawns.Max(s => s.Time);
 }

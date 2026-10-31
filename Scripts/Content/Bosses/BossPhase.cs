@@ -6,15 +6,18 @@ using Godot;
 /// </summary>
 public sealed class BossPhase
 {
-    /// <summary>Shown like the name of a Touhou spell card when the attack begins.</summary>
-    public string AttackName;
+    /// <summary>Shown like the name of a Touhou spell card when the attack begins. These three are keys of <see cref="Loc"/> (a text that is
+    /// not in a table is shown as it is).</summary>
+    public string AttackNameKey;
 
-    /// <summary>The shape the boss has in this attack (the art and the size of the hitbox depend on it).</summary>
-    public BossForm Form;
-    /// <summary>The boss's name while she has this shape, and the music, with its title, that plays for it.</summary>
-    public string Name;
+    /// <summary>The boss's name, and the music, with its title, that plays for this attack.</summary>
+    public string NameKey;
     public MusicPlayer.Theme Theme;
-    public string MusicTitle;
+    public string MusicTitleKey;
+
+    public string AttackName => Loc.Get(AttackNameKey);
+    public string Name => Loc.Get(NameKey);
+    public string MusicTitle => Loc.Get(MusicTitleKey);
     /// <summary>The health of the boss for this attack: each attack begins with the bar full. The second form of a boss is the stronger one.</summary>
     public int MaxHealth;
     /// <summary>The radius of the hitbox: about a third of the width of the sprite, as the hitbox is about two thirds of it.</summary>
@@ -32,6 +35,9 @@ public sealed class BossPhase
     /// <summary>On hard difficulty, a second pattern woven into an attack that has no <see cref="Sub"/>; unused if not active.</summary>
     public BulletEmitterComponent HardExtra;
 
-    /// <summary>When she takes this shape from another one: what she says before the change (null if she says nothing).</summary>
-    public System.Collections.Generic.IReadOnlyList<DialogueLine> TransformationDialogue;
+    /// <summary>The attack is a lunge that only drops embers in its wake: easy has none, normal has what easy would have, hard what normal would.</summary>
+    public bool EmbersOneStepDown;
+
+    /// <summary>The boss is enraged in this attack (the last ones of a boss): its music changes, it gets extra effects and the scenery turns redder.</summary>
+    public bool Enraged;
 }

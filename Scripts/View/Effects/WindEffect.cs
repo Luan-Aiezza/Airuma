@@ -38,7 +38,11 @@ public partial class WindEffect : Node2D
     private struct Pending { public float Delay; public int Level; }
 
     public readonly Vector2 Field;
+    /// <summary>What the wind carries: leaves in the jungle, paper lanterns at the festival.</summary>
+    public enum Kind { Leaves, Lanterns }
+    public Kind Style = Kind.Leaves;
     private readonly Texture2D[][] _leafTextures = WindArt.MakeLeafTextures();
+    private Texture2D[][] _lanternTextures;
     private readonly Leaf[] _leaves;
     private readonly Sprite2D[] _nodes;
     private readonly List<Pending> _pending = new List<Pending>();
@@ -175,7 +179,8 @@ public partial class WindEffect : Node2D
         leaf.SwayAmplitude = Rand(16, 36);
         leaf.SwayRate = Rand(2.2f, 4);
         leaf.Fall = Rand(18, 40);
-        leaf.Tone = _rng.Next(0, WindArt.LeafTones);
+        leaf.Tone = _rng.Next(0, Style == Kind.Lanterns ? FestivalArt.LanternTones : WindArt.LeafTones);
+        if (Style == Kind.Lanterns) leaf.Fall = Rand(-6, 8);   // paper lanterns float level
         leaf.TumbleRate = Rand(3, 6);
         leaf.Life = distance / leaf.Speed;
         _leaves[i] = leaf;
@@ -193,6 +198,19 @@ public partial class WindEffect : Node2D
         float x = leaf.Start.X + d.X * leaf.Speed * leaf.Age + perp.X * sway;
         float y = leaf.Start.Y + d.Y * leaf.Speed * leaf.Age + perp.Y * sway + leaf.Fall * leaf.Age;
         node.Position = new Vector2(MathF.Round(x / WindArt.Scale) * WindArt.Scale, MathF.Round(y / WindArt.Scale) * WindArt.Scale);
+
+        if (Style == Kind.Lanterns)
+        {
+            // A lantern does not tumble: it stays upright, rocks a little as it sways, and its flame flickers.
+            _lanternTextures ??= WindArt.MakeLanternTextures();
+            node.Texture = _lanternTextures[leaf.Tone][(int)(leaf.Age * 5 + leaf.Phase) % WindArt.LanternFrames];
+            node.Rotation = 0.18f * MathF.Sin(leaf.SwayRate * leaf.Age + leaf.Phase + 1);
+            node.Scale = new Vector2(WindArt.Scale, WindArt.Scale);
+            float lt = leaf.Age / leaf.Life;
+            node.Modulate = new Color(1, 1, 1, Math.Min(1, lt / 0.06f) * Math.Min(1, (1 - lt) / 0.12f));
+            node.Visible = true;
+            return;
+        }
 
         // Tumbling: the leaf turns edge-on and flips, advancing a quarter turn each time. Quarter turns keep the pixels crisp.
         float t = leaf.Age / leaf.Life;

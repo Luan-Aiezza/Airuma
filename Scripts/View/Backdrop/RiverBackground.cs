@@ -58,11 +58,49 @@ public partial class RiverBackground : Node2D
     private double _rippleClock;
     private double _time;
 
+    // The lanterns afloat on the water during the boss fight at the festival: four, each kept in its place, bobbing a little.
+    private readonly List<(Sprite2D sprite, Vector2 home)> _floaters = new List<(Sprite2D, Vector2)>();
+    private bool _floatersWanted;
+    private float _floatersShown;
+    private static readonly Vector2[] FloaterSpots = { new Vector2(190, 330), new Vector2(440, 250), new Vector2(300, 540), new Vector2(460, 650) };
+
+    private void BuildFloaters()
+    {
+        for (int i = 0; i < FloaterSpots.Length; i++)
+        {
+            var sprite = new Sprite2D { Texture = FestivalArt.MakeFloatingLantern(i * 2 + 1).ToTexture(), Scale = new Vector2(4, 4), ZIndex = -90, Visible = false, TextureFilter = TextureFilterEnum.Nearest };
+            AddChild(sprite);
+            _floaters.Add((sprite, FloaterSpots[i]));
+        }
+    }
+
+    private void UpdateFloaters(float dt)
+    {
+        if (_floaters.Count == 0) return;
+        _floatersShown = Mathf.MoveToward(_floatersShown, _floatersWanted ? 1 : 0, dt / 1.5f);
+        for (int i = 0; i < _floaters.Count; i++)
+        {
+            var (sprite, home) = _floaters[i];
+            sprite.Visible = _floatersShown > 0;
+            sprite.Position = home + new Vector2(2.5f * Mathf.Sin((float)_time * 0.9f + i * 1.7f), 2f * Mathf.Sin((float)_time * 1.3f + i));
+            sprite.Modulate = new Color(1, 1, 1, _floatersShown);
+        }
+    }
+
+    private readonly Scenery _look;
+    /// <summary>Where the water's glitter path starts: at the moon, or nowhere (far off the picture) when there is no moon.</summary>
+    private Vector2 MoonSpot => _look.OpensToSea ? MoonGridPosition : new Vector2(-1000, -1000);
+
     public RiverBackground() : this(new Vector2(Layout.RiverWidth, Layout.Height)) { }
 
-    public RiverBackground(Vector2 size)
+    public RiverBackground(Vector2 size, Scenery scenery = null)
     {
         Size = size;
+        _look = scenery ?? Scenery.Jungle;
+        // The banks slide out of the river when the boss comes: everything is cut at the edges of the river, so that what slides out
+        // does not show over the walls and pillars beside the game.
+        RenderingServer.CanvasItemSetClip(GetCanvasItem(), true);
+        RenderingServer.CanvasItemSetCustomRect(GetCanvasItem(), true, new Rect2(Vector2.Zero, size));
         const float pixel = 4;
         int rows = GridHeight;
         double speed = ScrollRowsPerSecond;
@@ -85,7 +123,7 @@ public partial class RiverBackground : Node2D
         };
         WaterViewport.AddChild(bounds);
 
-        var skyCanvas = SkyArt.MakeCanvas();
+        var skyCanvas = _look.MakeSky();
         var sky = new Sprite2D
         {
             Texture = skyCanvas.ToTexture(), Centered = false,
@@ -113,7 +151,7 @@ public partial class RiverBackground : Node2D
         var sides = new[] { BankArt.Side.Left, BankArt.Side.Right };
         for (int i = 0; i < 2; i++)
         {
-            var texture = BankArt.MakeCrowns(sides[i]).ToTexture();
+            var texture = _look.MakeReflection(sides[i]).ToTexture();
             float crownWidth = texture.GetWidth() * pixel;
             float x = i == 0 ? 20 : size.X - crownWidth - 20;
             var strip = new ScrollingStrip(new Texture2D[] { texture }, BankArt.Height, rows, pixel, speed * 0.8, new Vector2(x, 0))
@@ -128,7 +166,7 @@ public partial class RiverBackground : Node2D
 
         _water = new ShaderMaterial { Shader = GD.Load<Shader>("res://Shaders/water.gdshader") };
         _water.SetShaderParameter("bed", BedArt.MakeCanvas().ToTexture());
-        _water.SetShaderParameter("moon", MoonGridPosition);
+        _water.SetShaderParameter("moon", MoonSpot);
         _water.SetShaderParameter("grid", new Vector2(GridWidth, GridHeight));
         _water.SetShaderParameter("bed_size", new Vector2(BedArt.Width, BedArt.Height));
         _water.SetShaderParameter("scroll_rows", ScrollRowsPerSecond * 0.65f);
@@ -146,7 +184,7 @@ public partial class RiverBackground : Node2D
             float x = side == BankArt.Side.Left ? 0 : size.X - bankWidth;
             var origin = new Vector2(x, 0);
 
-            var rippleCanvases = BankArt.MakeRipples(side);
+            var rippleCanvases = _look.MakeRipples(side);
             var rippleTex = new Texture2D[rippleCanvases.Length];
             for (int k = 0; k < rippleTex.Length; k++) rippleTex[k] = rippleCanvases[k].ToTexture();
             var ripple = new ScrollingStrip(rippleTex, BankArt.Height, rows, pixel, speed, origin) { ZIndex = -47 };
@@ -154,14 +192,14 @@ public partial class RiverBackground : Node2D
             _ripples.Add(ripple);
             _banks.Add((ripple, x, side == BankArt.Side.Left ? -1 : 1));
 
-            var roots = new ScrollingStrip(new Texture2D[] { BankArt.MakeRoots(side).ToTexture() }, BankArt.Height, rows, pixel, speed, origin)
+            var roots = new ScrollingStrip(new Texture2D[] { _look.MakeGround(side).ToTexture() }, BankArt.Height, rows, pixel, speed, origin)
             { ZIndex = 30 }; // over the boat and the boss: they pass under the trees
             AddChild(roots);
             _strips.Add(roots);
             _banks.Add((roots, x, side == BankArt.Side.Left ? -1 : 1));
 
             // Branches hang closer to the camera, so they move a little faster.
-            var branches = new ScrollingStrip(new Texture2D[] { BankArt.MakeBranches(side).ToTexture() }, BankArt.Height, rows, pixel, speed * 1.35, origin)
+            var branches = new ScrollingStrip(new Texture2D[] { _look.MakeOverhead(side).ToTexture() }, BankArt.Height, rows, pixel, speed * 1.35, origin)
             { ZIndex = 32 };
             AddChild(branches);
             _strips.Add(branches);
@@ -183,6 +221,7 @@ public partial class RiverBackground : Node2D
             TextureFilter = TextureFilterEnum.Linear,
         };
         AddChild(_haze);
+        if (_look.FloatingLanterns) BuildFloaters();
         _horizonLine = new ColorRect { Color = new Color(0.72f, 0.88f, 0.95f, 0.55f), Size = new Vector2(size.X, 2), ZIndex = -93, Visible = false };
         AddChild(_horizonLine);
     }
@@ -190,6 +229,8 @@ public partial class RiverBackground : Node2D
     /// <summary>Opens the river into the sea: the banks slide out, and the horizon comes down from above the screen with the moon on it.</summary>
     public void BeginOpenWater(float seconds = 3f)
     {
+        // At the festival the banks still slide away, but there is no horizon: the river stays as it is, with a few lanterns afloat on the water.
+        if (_look.FloatingLanterns) _floatersWanted = true;
         _openTime = 0;
         _openDuration = seconds;
     }
@@ -197,6 +238,7 @@ public partial class RiverBackground : Node2D
     /// <summary>Back to the river at once.</summary>
     public void CloseWater()
     {
+        _floatersWanted = false;
         _openTime = -1;
         _open = 0;
         ApplyOpen();
@@ -208,12 +250,13 @@ public partial class RiverBackground : Node2D
         bool open = e > 0.001f;
         float span = BankArt.Width * 4 + 80;
         foreach (var (node, baseX, side) in _banks) node.Position = new Vector2(baseX + side * e * span, node.Position.Y);
-        _sky.Modulate = new Color(1, 1, 1, 1 - e);
+        _sky.Modulate = new Color(1, 1, 1, _look.OpensToSea ? 1 - e : 1);
         foreach (var c in _crownNodes) c.Modulate = new Color(1, 1, 1, 1 - e);
-        _horizonSky.Visible = _haze.Visible = _horizonLine.Visible = _horizonReflection.Visible = _deepReflection.Visible = open;
+        _horizonSky.Visible = _haze.Visible = _horizonLine.Visible = _horizonReflection.Visible = _deepReflection.Visible = open && _look.OpensToSea;
+        if (!_look.OpensToSea) return;
         if (!open)
         {
-            _water.SetShaderParameter("moon", MoonGridPosition);
+            _water.SetShaderParameter("moon", MoonSpot);
             return;
         }
         // The horizon comes down into place; the sky is above it and the reflection below.
@@ -235,6 +278,7 @@ public partial class RiverBackground : Node2D
 
     public void Update(float dt)
     {
+        UpdateFloaters(dt);
         if (_openTime >= 0)
         {
             _openTime += dt;

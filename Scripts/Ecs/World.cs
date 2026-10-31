@@ -27,6 +27,9 @@ public partial class World
     public int StartingBossLives => Definition.Boss.Lives - (PracticePhase ?? 1) + 1;
     /// <summary>Normal runs offer cards; boss practice never does.</summary>
     public readonly bool UsesCards;
+    /// <summary>In practice (of a boss or of a stage) the boat is hurt and flung back as usual, but never loses a life.</summary>
+    public readonly bool NoLifeLoss;
+    public const int MaxBombs = 3;
 
     // Entities and pools
     public PlayerEntity Player { get; private set; }
@@ -53,9 +56,13 @@ public partial class World
     /// <summary>A choice the player has to make; the world stands still until they do.</summary>
     public Draft Draft { get; private set; }
     private readonly SeededGenerator _cardRandom;
+    /// <summary>What the run brings from the stage before (null in the first stage); applied again whenever the stage restarts.</summary>
+    public readonly RunCarry Carry;
 
-    public World(int? practicePhase = null, bool withCards = true, ulong? seed = null, Difficulty difficulty = Difficulty.Normal, StageDefinition stage = null)
+    public World(int? practicePhase = null, bool withCards = true, ulong? seed = null, Difficulty difficulty = Difficulty.Normal, StageDefinition stage = null, RunCarry carry = null, bool stagePractice = false, bool? noLifeLoss = null)
     {
+        NoLifeLoss = noLifeLoss ?? (practicePhase.HasValue || stagePractice);
+        Carry = carry;
         Definition = stage ?? Stages.One;
         Difficulty = difficulty;
         PracticePhase = practicePhase.HasValue ? Math.Max(1, Math.Min(Definition.Boss.Lives, practicePhase.Value)) : (int?)null;
@@ -91,6 +98,7 @@ public partial class World
         Draft = null;
         Player.Energy = PowerCurve.StartingEnergy(PracticePhase.HasValue);
         Player.Weapon.PowerLevel = PowerCurve.Level(Player.Energy);
+        if (Carry != null) ApplyCarry(Carry);
         RandomizeWind();
         if (!PracticePhase.HasValue)
         {
@@ -107,6 +115,18 @@ public partial class World
         }
         RandomizeWind();
         if (UsesCards) Draft = CardSystem.MakeDraft(DraftMoment.StageStart, Run, Player.Bomb.BombsLeft, _cardRandom);
+    }
+
+    private void ApplyCarry(RunCarry carry)
+    {
+        foreach (var card in carry.Cards) Run.Add(card);
+        Effects = Run.Effects;
+        CardSystem.Apply(Player, Effects);
+        _score.Points = carry.Score;
+        Player.Health.Lives = Math.Max(1, Math.Min(MaxLives, carry.Lives));
+        Player.Bomb.BombsLeft = Math.Max(0, Math.Min(3, carry.Bombs));
+        Player.Energy = carry.Energy;
+        Player.Weapon.PowerLevel = PowerCurve.Level(Player.Energy);
     }
 
     private void RandomizeWind()
@@ -159,13 +179,13 @@ public partial class World
         // 1. Input and spawners
         Player.Input = input;
         BulletSystem.UpdatePlayerWeapons(Player, Bullets, delta, Effects);
-        if (bossActive) BulletSystem.UpdateBossWeapons(Boss, Player, Bullets, delta);
+        if (bossActive) BulletSystem.UpdateBossWeapons(Boss, Player, Bullets, delta, Difficulty);
         foreach (var enemy in Enemies) EnemySystem.Fire(enemy, Player.Transform.Position, Bullets, PlayArea, delta, Difficulty);
 
         // 2. Movement
         Vector2 windVector = Wind.CurrentWindVector * Difficulty.WindFactor();
         MovementSystem.MovePlayer(Player, PlayArea, delta, windVector);
-        if (bossActive) MovementSystem.MoveBoss(Boss, PlayArea, delta);
+        if (bossActive) MovementSystem.MoveBoss(Boss, PlayArea, delta, Player.Transform.Position);
         foreach (var enemy in Enemies) EnemySystem.Move(enemy, delta);
         GatherLights(delta);
         CardSystem.MendWard(Player, Effects, delta);
@@ -238,6 +258,15 @@ public partial class World
     {
         int livesBefore = Player.Health.Lives;
         Vector2 placeBefore = Player.Transform.Position;
+        if (NoLifeLoss && Player.Health.CurrentHealth <= 0 && Player.Health.Lives > 0)
+        {
+            // Practice: the hit is felt (the boat is put back, blinking, and the bombs come back) but costs no life.
+            Player.Health.CurrentHealth = Player.Health.MaxHealth;
+            Player.Health.InvincibilityTimer = 3.0f;
+            Player.Transform.Position = CombatSystem.PlayerSpawn;
+            Player.Bomb.BombsLeft = Math.Max(Player.Bomb.BombsLeft, MaxBombs);
+            _events.Add(WorldEvent.PlayerHit());
+        }
         if (CombatSystem.ProcessHealth(Player, Boss, delta, bossActive))
         {
             AddScore(ScoreSystem.PointsPerPhase);
@@ -249,6 +278,8 @@ public partial class World
         if (Player.Health.Lives < livesBefore)
         {
             PowerSystem.LoseEnergy(Player, Lights, placeBefore);
+            // Like in Touhou: after losing a life the bag of bombs is full again.
+            Player.Bomb.BombsLeft = Math.Max(Player.Bomb.BombsLeft, MaxBombs);
             _events.Add(WorldEvent.PlayerHit());
         }
     }

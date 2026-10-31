@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Godot;
+using static ViewKit;
 
 /// <summary>
 /// Renders the <see cref="World"/> and feeds it input. Game logic lives in World and the systems.
@@ -44,34 +45,21 @@ public partial class GameScene : Node2D
     private (Vector2 direction, float strength) _lastWind;
 
     // What the water reflects of the actors: flipped copies placed under them.
-    private readonly Node2D _boatMirror = new(), _bossMirror = new();
-    private readonly Sprite2D _boatMirrorSprite = new(), _boatMirrorAura = new(), _bossMirrorSprite = new(), _bossMirrorGlow = new();
+    private readonly Node2D _boatMirror = new();
+    private readonly Sprite2D _boatMirrorSprite = new(), _boatMirrorAura = new();
     private readonly Node2D _playerNode = new();
     private readonly Sprite2D _playerSprite = new();
     private Sprite2D _playerAura;
     private Texture2D[] _playerFrames, _auraFrames;
     private float _auraTimer; private int _auraFrame; private float _auraWait;
-    private readonly Node2D _bossNode = new();
-    private readonly Sprite2D _bossSprite = new();
-    private readonly Sprite2D _bossGlow = new();
-    private readonly SerpentFlame _bossFlame = new();
-    private readonly Dictionary<BossLook, Texture2D[]> _flameFrames = new();
-    private BossForm? _bossForm;
-
-    private enum BossLook { Woman, Serpent, Charging }
-    private readonly Dictionary<BossLook, Texture2D[]> _bossFrames = new();
-    private BossLook? _bossLook;
-    private float _bossAnim;
-    private float _glowTimer; private int _glowFrame; private float _glowWait;
-    private float _bossFlash = -1; // seconds into the transformation flash, or <0
-    private readonly SerpentBody _serpentBody = new();
-    private readonly Dictionary<BossForm, Texture2D[]> _bossGlowFrames = new();
+    /// <summary>The boss: its sprite, its reflection and everything that goes with how it moves and fights.</summary>
+    private BossView _boss;
     private readonly BombEffect _bombEffect = new();
     private readonly List<Sprite2D> _bulletNodes = new();
     private readonly Dictionary<BulletStyle, Texture2D[]> _bulletFrames = new();
     private readonly Dictionary<BulletStyle, Vector2> _bulletScale = new();
 
-    private readonly GameHud _hud = new(HudTheme.ForStage(1));   // each stage has its own HUD, after its boss
+    private readonly GameHud _hud;   // each stage has its own HUD, after its boss
     private readonly PauseMenu _pause = new();
     private readonly DialogueBox _dialogue = new();
     private readonly TitleCard _title = new();
@@ -90,51 +78,25 @@ public partial class GameScene : Node2D
     private bool _exited;
     private readonly RandomNumberGenerator _rng = new();
 
-    private static readonly Color MirrorTint = new Color(0.12f, 0.32f, 0.42f);
-
-    private const string TintShader = @"
-shader_type canvas_item;
-uniform vec3 target = vec3(1.0);
-uniform float amount = 0.0;
-void fragment() { COLOR.rgb = mix(COLOR.rgb, target, amount); }
-";
-    private static Shader _tintShader;
-
     public readonly Difficulty Difficulty;
 
-    public GameScene(int? practicePhase = null, Difficulty difficulty = Difficulty.Normal)
+    /// <summary>The stage being played.</summary>
+    public readonly StageDefinition Stage;
+    /// <summary>Practising a whole stage from its start: it does not go on to the next stage and is not recorded.</summary>
+    public readonly bool StagePractice;
+    /// <summary>Asked for when the stage is won in a normal run and another follows: the carry for it (the scene is replaced by Main).</summary>
+    public event Action<RunCarry> NextStage;
+
+    public GameScene(int? practicePhase = null, Difficulty difficulty = Difficulty.Normal, StageDefinition stage = null, RunCarry carry = null, bool stagePractice = false)
     {
+        StagePractice = stagePractice;
+        Stage = stage ?? Stages.One;
+        _hud = new GameHud(Stage.Hud());
         PracticePhase = practicePhase;
         Difficulty = difficulty;
-        World = new World(practicePhase, difficulty: difficulty);
+        World = new World(practicePhase, difficulty: difficulty, stage: Stage, carry: carry, stagePractice: stagePractice);
         _rng.Randomize();
     }
-
-    private static int Z(float z) => (int)Math.Round(z * 10);
-
-    /// <summary>A shader material that blends the sprite's colour towards `target` by `amount`.</summary>
-    private static ShaderMaterial NewTintMaterial(Color target, float amount)
-    {
-        _tintShader ??= new Shader { Code = TintShader };
-        var m = new ShaderMaterial { Shader = _tintShader };
-        m.SetShaderParameter("target", new Vector3(target.R, target.G, target.B));
-        m.SetShaderParameter("amount", amount);
-        return m;
-    }
-
-    private static void SetBlend(Sprite2D s, float amount) => ((ShaderMaterial)s.Material).SetShaderParameter("amount", amount);
-
-    private static CanvasItemMaterial AddMaterial() => new CanvasItemMaterial { BlendMode = CanvasItemMaterial.BlendModeEnum.Add };
-
-    /// <summary>Sizes a centred sprite to `size` screen px, whatever its texture.</summary>
-    private static void FitTo(Sprite2D s, Vector2 size)
-    {
-        if (s.Texture == null) return;
-        s.Scale = size / s.Texture.GetSize();
-    }
-
-    /// <summary>Screen position of a game point.</summary>
-    private static Vector2 Point(Vector2 p) => Layout.ScenePoint(p);
 
     // MARK: Setup
 
@@ -145,6 +107,8 @@ void fragment() { COLOR.rgb = mix(COLOR.rgb, target, amount); }
         _lifeFrames = LightArt.MakeLifeFrames();
         BuildWorldNodes();
         AddChild(_hud);
+        _hud.SetBossName(Stage.Boss.Name);
+        _dialogue.BossName = Stage.Boss.Name;
         AddChild(_picker);
         AddChild(_dialogue);
         AddChild(_title);
@@ -175,8 +139,7 @@ void fragment() { COLOR.rgb = mix(COLOR.rgb, target, amount); }
         River.CloseWater();
         _pendingAttackName = null;
         _bossSequence = BossSequence.None;
-        _morphHoldWoman = false;
-        _bossShake = Vector2.Zero;
+        _boss.Reset();
         _endSequence = EndSequence.None;
         _dialoguePending = false;
         // The boat waits below the screen.
@@ -218,7 +181,12 @@ void fragment() { COLOR.rgb = mix(COLOR.rgb, target, amount); }
 
         if (World.Result is GameResult result && !_hud.IsEndVisible)
         {
-            if (result == GameResult.Victory && PracticePhase == null && _endSequence != EndSequence.Done)
+            if (result == GameResult.Victory && PracticePhase == null && !StagePractice && _endSequence == EndSequence.Done && Stages.After(Stage) != null)
+            {
+                // The stage is won and the river goes on.
+                if (!_exited) { _exited = true; _input.EndAll(); NextStage?.Invoke(RunCarry.From(World)); }
+            }
+            else if (result == GameResult.Victory && PracticePhase == null && _endSequence != EndSequence.Done)
             {
                 // The boss is beaten: a last talk before the end screen.
                 if (_endSequence == EndSequence.None)
@@ -246,7 +214,6 @@ void fragment() { COLOR.rgb = mix(COLOR.rgb, target, amount); }
         _burst.Update(fdt);
         HandleWorldEvents();
         var boss = World.Boss;
-        _serpentBody.Update(fdt, _bossNode.Position, boss.MovementType == BossMovementType.Dash && World.Result == null, boss.DashTimer >= 1.5f);
         _windEffect.SetWind(World.Wind.Direction, World.Wind.Strength);
         _windEffect.Update(fdt);
         TrackEvents();
@@ -287,7 +254,6 @@ void fragment() { COLOR.rgb = mix(COLOR.rgb, target, amount); }
         _picker.Hide();
         _wake.Reset();
         _burst.Reset();
-        _serpentBody.Reset();
         _accumulator = 0;
         _input.EndAll();
         StartRun();

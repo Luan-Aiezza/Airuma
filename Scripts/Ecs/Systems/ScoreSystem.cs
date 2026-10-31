@@ -2,7 +2,7 @@ using System;
 
 /// <summary>
 /// The score, and the prizes it earns, as the extends of Touhou: a spare lantern (a bomb) at certain scores and a spare boat (a life)
-/// at others. They come in from the top of the picture, to be gathered. A whole run, spirits and boss, is worth about 480,000 points to
+/// at others. They come in from the top of the picture, to be gathered. A whole run, spirits and boss, is worth about 400,000 points to
 /// a player who does well, which makes about two lanterns and one boat.
 /// </summary>
 public static class ScoreSystem
@@ -15,8 +15,8 @@ public static class ScoreSystem
     /// <summary>What a spare lantern or a spare boat is worth when there is no room for it.</summary>
     public const int PointsPerSpareBomb = 2000, PointsPerSpareLife = 10_000;
 
-    public const int FirstBombScore = 120_000, SecondBombScore = 300_000, BombScoreStep = 250_000;
-    public const int FirstLifeScore = 280_000, LifeScoreStep = 380_000;
+    public const int FirstBombScore = 100_000, SecondBombScore = 240_000, BombScoreStep = 200_000;
+    public const int FirstLifeScore = 225_000, LifeScoreStep = 300_000;
 
     /// <summary>The score at which the nth (from 0) spare lantern is given.</summary>
     public static int BombScore(int n) => n == 0 ? FirstBombScore : SecondBombScore + (n - 1) * BombScoreStep;

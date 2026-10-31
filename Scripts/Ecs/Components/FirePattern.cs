@@ -18,6 +18,18 @@ public struct FirePattern
     /// <summary>Spiral: degrees each shot turns by.</summary>
     public float Step;
 
+    // How the bullets look and behave (the same options as a boss's emitter): the style (null: the usual one of the kind), the size, and how they move.
+    public BulletStyle? Style;
+    public float Scale;                     // 0: the usual size
+    public BulletBehavior Behavior;
+    public float Curve;
+    public bool AlternateCurve;
+
+    /// <summary>The bullets of the pattern in another style.</summary>
+    public FirePattern Styled(BulletStyle style, float scale = 0) { var p = this; p.Style = style; p.Scale = scale; return p; }
+    /// <summary>Bullets that dance (see <see cref="BulletBehavior.Dance"/>): they sway on the beat, and with `alternate` neighbours sway against each other.</summary>
+    public FirePattern Dancing(float curve, bool alternate = true) { var p = this; p.Behavior = BulletBehavior.Dance; p.Curve = curve; p.AlternateCurve = alternate; return p; }
+
     public static FirePattern None => new FirePattern { Kind = FirePatternKind.None, Interval = 1 };
     /// <summary>A single bullet at the player.</summary>
     public static FirePattern Aimed(float interval, float speed) => new FirePattern { Kind = FirePatternKind.Aimed, Interval = interval, Speed = speed };

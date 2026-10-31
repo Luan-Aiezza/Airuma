@@ -93,11 +93,11 @@ public static class EnemySystem
                 e.Shots++;
                 // Easy: every second shot is left out. Hard: the shot becomes a three-way volley.
                 if (difficulty == Difficulty.Easy && e.Shots % 2 == 0) break;
-                Shoot(pool, e.Position, aim, pattern.Speed, BulletStyle.OrbGreen);
+                Shoot(pool, e, aim, pattern, BulletStyle.OrbGreen, 0);
                 if (difficulty == Difficulty.Hard)
                 {
-                    Shoot(pool, e.Position, aim - 14, pattern.Speed, BulletStyle.OrbGreen);
-                    Shoot(pool, e.Position, aim + 14, pattern.Speed, BulletStyle.OrbGreen);
+                    Shoot(pool, e, aim - 14, pattern, BulletStyle.OrbGreen, 1);
+                    Shoot(pool, e, aim + 14, pattern, BulletStyle.OrbGreen, 2);
                 }
                 break;
 
@@ -106,9 +106,9 @@ public static class EnemySystem
                 e.Spin += pattern.Spin;
                 int count = difficulty.Scale(pattern.Count, 4);
                 for (int i = 0; i < count; i++)
-                    Shoot(pool, e.Position, e.Spin + 360 * (float)i / count, pattern.Speed, BulletStyle.OrbRed);
+                    Shoot(pool, e, e.Spin + 360 * (float)i / count, pattern, BulletStyle.OrbRed, i);
                 // Hard: one more bullet in every ring, straight at the boat.
-                if (difficulty == Difficulty.Hard) Shoot(pool, e.Position, aim, pattern.Speed * 1.15f, BulletStyle.OrbRed);
+                if (difficulty == Difficulty.Hard) Shoot(pool, e, aim, pattern, BulletStyle.OrbRed, 0, 1.15f);
                 break;
             }
 
@@ -118,7 +118,7 @@ public static class EnemySystem
                 for (int i = 0; i < count; i++)
                 {
                     float t = count > 1 ? (float)i / (count - 1) - 0.5f : 0;
-                    Shoot(pool, e.Position, aim + t * pattern.Spread, pattern.Speed, BulletStyle.RiceRed);
+                    Shoot(pool, e, aim + t * pattern.Spread, pattern, BulletStyle.RiceRed, i);
                 }
                 break;
             }
@@ -129,15 +129,17 @@ public static class EnemySystem
                 // Easy: one arm fewer; Hard: one arm more.
                 int arms = difficulty == Difficulty.Easy ? Math.Max(1, pattern.Arms - 1) : (difficulty == Difficulty.Hard ? pattern.Arms + 1 : pattern.Arms);
                 for (int i = 0; i < arms; i++)
-                    Shoot(pool, e.Position, e.Spin + 360 * (float)i / arms, pattern.Speed, BulletStyle.RiceRed);
+                    Shoot(pool, e, e.Spin + 360 * (float)i / arms, pattern, BulletStyle.RiceRed, i);
                 break;
             }
         }
     }
 
-    private static void Shoot(BulletData[] pool, Vector2 position, float angle, float speed, BulletStyle style)
+    /// <summary>One bullet of a pattern: in the style of the pattern (or `usual`), the way it moves, and `index` to tell neighbours apart.</summary>
+    private static void Shoot(BulletData[] pool, EnemyEntity e, float angle, FirePattern pattern, BulletStyle usual, int index, float speedFactor = 1)
     {
-        float a = Mathx.Radians(angle);
-        BulletSystem.SpawnEnemyBullet(pool, position, new Vector2(MathF.Cos(a), MathF.Sin(a)) * speed, style);
+        float curve = pattern.AlternateCurve && index % 2 == 1 ? -pattern.Curve : pattern.Curve;
+        BulletSystem.FireBullet(pool, e.Position, angle, pattern.Speed * speedFactor, pattern.Style ?? usual, pattern.Scale > 0 ? pattern.Scale : 0.9f,
+                                0, curve, pattern.Behavior);
     }
 }

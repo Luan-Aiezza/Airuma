@@ -18,7 +18,10 @@ public static partial class SelfTest
         T("BossDefeatGivesVictory", BossDefeatGivesVictory);
         T("RunningOutOfLivesGivesDefeat", RunningOutOfLivesGivesDefeat);
         T("ResetRestoresInitialState", ResetRestoresInitialState);
-        T("TheTextIsInEnglish", TheTextIsInEnglish);
+        T("TheGameIsInPortugueseUntilAnotherLanguageIsChosen", TheGameIsInPortugueseUntilAnotherLanguageIsChosen);
+        T("EveryLanguageHasEveryText", EveryLanguageHasEveryText);
+        T("TheFontCoversEveryLanguage", TheFontCoversEveryLanguage);
+        T("AMissingTextFallsBackToEnglishAndThenToItsKey", AMissingTextFallsBackToEnglishAndThenToItsKey);
         T("EveryBossPhaseHasAnAttackName", EveryBossPhaseHasAnAttackName);
         T("TheBossComesDownFromAboveAndOnlyThenAttacks", TheBossComesDownFromAboveAndOnlyThenAttacks);
         T("ScoreGrowsWithHitsAndPhases", ScoreGrowsWithHitsAndPhases);
@@ -27,10 +30,11 @@ public static partial class SelfTest
         T("BossHitboxIsTwoThirdsOfItsSprite", BossHitboxIsTwoThirdsOfItsSprite);
         T("BossPatrolKeepsItsHitboxInsideTheField", BossPatrolKeepsItsHitboxInsideTheField);
         T("DashLanesFitTheSerpent", DashLanesFitTheSerpent);
+        T("TheLastAttackOnlyLungesAndItsEmbersGoOneStepDown", TheLastAttackOnlyLungesAndItsEmbersGoOneStepDown);
         T("ThePatrolStopsAtEachStationAndStaysAWhile", ThePatrolStopsAtEachStationAndStaysAWhile);
         T("FocusingSlowsTheBoatAndNarrowsAndStrengthensTheShot", FocusingSlowsTheBoatAndNarrowsAndStrengthensTheShot);
         T("ThePlayersBoltsAreWideAndTheWispsStrong", ThePlayersBoltsAreWideAndTheWispsStrong);
-        T("BossChangesFormAtPhaseFive", BossChangesFormAtPhaseFive);
+        T("TheLastAttacksOfABossAreEnragedAndNoOneChangesShape", TheLastAttacksOfABossAreEnragedAndNoOneChangesShape);
         T("PracticeStartsAtTheChosenAttack", PracticeStartsAtTheChosenAttack);
         T("PracticeEndsInVictoryWhenThatAttackIsBeaten", PracticeEndsInVictoryWhenThatAttackIsBeaten);
         T("TheTableKeepsTheBestFiveInOrder", TheTableKeepsTheBestFiveInOrder);
@@ -154,22 +158,70 @@ public static partial class SelfTest
         world.Step(Dt, Idle());
         world.Reset();
         Eq(world.Player.Health.Lives, 3);
-        Eq(world.Boss.Health.Lives, 6);
+        Eq(world.Boss.Health.Lives, Stages.One.Boss.Lives);
         True(world.Result == null);
     }
 
-    private static void TheTextIsInEnglish()
+    /// <summary>Runs `check` with each language in turn, and puts the language back as it was.</summary>
+    private static void InEveryLanguage(Action<Language> check)
     {
+        var before = Loc.Current;
+        try { foreach (var language in Loc.Available) { Loc.Set(language); check(language); } }
+        finally { Loc.Set(before); }
+    }
+
+    private static void TheGameIsInPortugueseUntilAnotherLanguageIsChosen()
+    {
+        Eq(Loc.Current, Language.PortugueseBrazil);
         string joined = string.Join(" ", UIText.All()).ToLowerInvariant();
-        foreach (var word in new[] { "pontos", "vidas", "vento", "lamparina", "força", "fada", "vitória", "derrota", "reiniciar", "recorde",
-                                     "cobra", "fogo", "sacerdotisa", "solstício", "vamos", "conseguimos", "boitat", "jaci" })
+        foreach (var word in new[] { "start", "lives", "wind", "lantern", "victory", "defeat", "restart", "paused", "easy", "hard", "stage", "choose a card" })
             False(joined.Contains(word), word);
         Eq(UIText.Title, "Airumã");
+        Eq(UIText.MenuStart, "Iniciar");
+    }
+
+    private static void EveryLanguageHasEveryText()
+    {
+        var english = Loc.TableOf(Language.English);
+        InEveryLanguage(language =>
+        {
+            var table = Loc.TableOf(language);
+            foreach (var key in english.Keys) True(table.ContainsKey(key), $"{language} lacks {key}");
+            foreach (var key in table.Keys) True(english.ContainsKey(key), $"{language} has {key}, which English lacks");
+            foreach (var text in UIText.All()) True(!string.IsNullOrWhiteSpace(text), "an empty text in " + language);
+        });
+        // Every text that UIText offers has an entry for it in the tables.
+        const System.Reflection.BindingFlags flags = System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static;
+        foreach (var property in typeof(UIText).GetProperties(flags).Where(p => p.PropertyType == typeof(string)))
+            True(english.ContainsKey(property.Name), "UIText." + property.Name + " has no text");
+        foreach (var field in typeof(UIText).GetFields(flags).Where(f => f.FieldType == typeof(UIText.CardText)))
+        {
+            True(english.ContainsKey(field.Name + ".Title"), field.Name + " has no title");
+            True(english.ContainsKey(field.Name + ".Detail"), field.Name + " has no text");
+        }
+    }
+
+    private static void TheFontCoversEveryLanguage()
+    {
+        InEveryLanguage(language =>
+        {
+            foreach (var text in UIText.All())
+                foreach (var c in text.Where(ch => ch != ' ')) True(PixelFont.Supports(c.ToString().ToUpperInvariant()), $"{language}: '{c}' ({(int)c}) in \"{text}\"");
+        });
+    }
+
+    private static void AMissingTextFallsBackToEnglishAndThenToItsKey()
+    {
+        Eq(Loc.Get("a key nobody wrote"), "a key nobody wrote");
+        var before = Loc.Current;
+        Loc.Set(Language.Spanish);   // no table yet: the language does not change
+        Eq(Loc.Current, before);
+        Eq(LanguageExt.FromCode(Language.PortugueseBrazil.Code()), (Language?)Language.PortugueseBrazil);
     }
 
     private static void EveryBossPhaseHasAnAttackName()
     {
-        for (int lives = 1; lives <= 6; lives++) True(Stages.One.Boss.AttackName(lives) != null);
+        for (int lives = 1; lives <= Stages.One.Boss.Lives; lives++) True(Stages.One.Boss.AttackName(lives) != null);
         True(Stages.One.Boss.AttackName(0) == null);
     }
 
@@ -233,7 +285,7 @@ public static partial class SelfTest
     {
         var definition = IrysshBoss.Definition;
         foreach (var phase in definition.Phases)
-            Near(phase.HitboxRadius * 2 / BossArt.SpriteSize(phase.Form).X, 2f / 3f, 0.02f);
+            Near(phase.HitboxRadius * 2 / definition.Style.SpriteSize.X, 2f / 3f, 0.02f);
         var boss = new BossEntity(definition);
         foreach (int lives in new[] { 6, 2, 1 })
         {
@@ -250,7 +302,7 @@ public static partial class SelfTest
         boss.MovementType = BossMovementType.Patrol;
         boss.Transform.Position = V(300, 100);
         float lowest = 1000, highest = -1000;
-        for (int i = 0; i < 60 * 20; i++)
+        for (int i = 0; i < 60 * 40; i++)
         {
             MovementSystem.MoveBoss(boss, World.PlayArea, 1f / 60);
             lowest = MathF.Min(lowest, boss.Transform.Position.X);
@@ -258,7 +310,8 @@ public static partial class SelfTest
         }
         GreaterEq(lowest, boss.Hitbox.Radius - 4);
         LessEq(highest, World.PlayArea.End.X - boss.Hitbox.Radius + 4);
-        Greater(highest - lowest, 300, "it still patrols across the river");
+        // the stations alternate on the two sides of the middle (60 px from it at the least), so the patrol always crosses the middle
+        Greater(highest - lowest, 120, "it still patrols across the river");
     }
 
     private static void DashLanesFitTheSerpent()
@@ -273,6 +326,22 @@ public static partial class SelfTest
             True(MathF.Abs(lane - last) > 1, "the dash never comes from the same lane twice running");
             last = lane;
         }
+        var seen = new HashSet<float>();
+        for (int i = 0; i < 200; i++) seen.Add(MovementSystem.NextDashLane(300));
+        True(seen.SetEquals(new[] { 100f, 500f }) || seen.SetEquals(new[] { 100f, 300f, 500f }) , "only left, centre and right");
+    }
+
+    private static void TheLastAttackOnlyLungesAndItsEmbersGoOneStepDown()
+    {
+        var boss = new BossEntity(IrysshBoss.Definition);
+        PhaseManagerSystem.ChangePhase(boss, 1, Difficulty.Easy);
+        False(boss.EmitterMain.IsActive, "easy: no embers");
+        PhaseManagerSystem.ChangePhase(boss, 1, Difficulty.Normal);
+        True(boss.EmitterMain.IsActive, "normal: embers");
+        True(boss.EmitterMain.BulletsPerVolley < 8, "normal: what easy would have had");
+        PhaseManagerSystem.ChangePhase(boss, 1, Difficulty.Hard);
+        Eq(boss.EmitterMain.BulletsPerVolley, 8);
+        False(boss.EmitterSub.IsActive, "hard: no aimed embers any more");
     }
 
     private static void ThePatrolStopsAtEachStationAndStaysAWhile()
@@ -337,31 +406,29 @@ public static partial class SelfTest
         Greater(BulletSystem.WispPower, 1f, "a wisp hits harder than a plain bolt");
     }
 
-    private static void BossChangesFormAtPhaseFive()
+    private static void TheLastAttacksOfABossAreEnragedAndNoOneChangesShape()
     {
         var boss = new BossEntity(IrysshBoss.Definition);
-        boss.Health.Lives = 4; Eq(boss.Form, BossForm.Human);
-        boss.Health.Lives = 3; Eq(boss.Form, BossForm.Human);
-        boss.Health.Lives = 2; Eq(boss.Form, BossForm.Serpent);
-        boss.Health.Lives = 1; Eq(boss.Form, BossForm.Serpent);
+        boss.Health.Lives = 3; False(boss.Definition.PhaseFor(3).Enraged);
+        boss.Health.Lives = 2; True(boss.Definition.PhaseFor(2).Enraged);
     }
 
     private static void PracticeStartsAtTheChosenAttack()
     {
-        for (int phase = 1; phase <= 6; phase++)
+        int attacks = Stages.One.Boss.Lives;
+        for (int phase = 1; phase <= attacks; phase++)
         {
             var world = new World(practicePhase: phase);
-            Eq(world.Boss.Health.Lives, 7 - phase);
-            Eq(world.Boss.Form, phase <= 4 ? BossForm.Human : BossForm.Serpent);
+            Eq(world.Boss.Health.Lives, attacks + 1 - phase);
             True(world.Boss.EmitterMain.IsActive);
         }
         Eq(new World(practicePhase: 99).Boss.Health.Lives, 1, "the phase is kept in range");
-        Eq(new World(withCards: false).Boss.Health.Lives, 6, "a normal run is unchanged");
+        Eq(new World(withCards: false).Boss.Health.Lives, attacks, "a normal run is unchanged");
     }
 
     private static void PracticeEndsInVictoryWhenThatAttackIsBeaten()
     {
-        var world = new World(practicePhase: 3);
+        var world = new World(practicePhase: 3);   // the first of the serpent's two attacks
         world.Boss.Health.CurrentHealth = 0;
         world.Step(Dt, Idle());
         Eq(world.Result, (GameResult?)GameResult.Victory);
