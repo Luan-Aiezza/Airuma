@@ -59,6 +59,11 @@ public static class UIText
     public static string CfgKeyFocus => Loc.Get(nameof(CfgKeyFocus));
     public static string CfgPressKey => Loc.Get(nameof(CfgPressKey));
     public static string CfgHint => Loc.Get(nameof(CfgHint));
+    public static string Stage6Title => Loc.Get(nameof(Stage6Title));
+    public static string KillaName => Loc.Get(nameof(KillaName));
+    public static string IllariName => Loc.Get(nameof(IllariName));
+    public static string EpilogueTitle => Loc.Get(nameof(EpilogueTitle));
+    public static string EpilogueHint => Loc.Get(nameof(EpilogueHint));
     public static string DemoLabel => Loc.Get(nameof(DemoLabel));
 
     // Side panel

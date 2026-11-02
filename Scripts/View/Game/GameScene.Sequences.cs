@@ -36,8 +36,7 @@ public partial class GameScene : Node2D
             _stageIntroPending = false;
             _rising = true;
             _riseClock = 0;
-            if (World.Part == StagePart.Boss) AnnounceBossPhase();          // boss practice opens with the boss
-            else
+            if (World.Part != StagePart.Boss)                                 // boss practice has no opening: the boss's own scene follows the rise
             {
                 MusicPlayer.Instance?.Play(World.Definition.Theme);
                 _title.Show(World.Definition.Title, World.Definition.MusicTitle, fire: false, hold: 3.0f, difficulty: Difficulty);
@@ -53,7 +52,7 @@ public partial class GameScene : Node2D
             {
                 _rising = false;
                 World.Player.Transform.Position = CombatSystem.PlayerSpawn;
-                if (World.Part == StagePart.Boss) BeginBossArrival(false);
+                if (World.Part == StagePart.Boss) BeginBossCutscene();           // boss practice has the same scene as a run: the river opens, the talks, the boss comes down
                 else if (World.UsesCards) { _dialoguePending = true; _dialogueDelay = TalkDelayAfterRise; }
             }
             return true;
@@ -80,7 +79,7 @@ public partial class GameScene : Node2D
                 float u = Mathf.Clamp(_sequenceClock / DescendTime, 0, 1);
                 float ease = 1 - (1 - u) * (1 - u) * (1 - u);
                 World.PlaceBoss(new Vector2(300, Mathf.Lerp(-170, Layout.BossY, ease)));
-                if (_sequenceClock >= DescendTime + 0.5f) { _bossSequence = BossSequence.TalkTwo; StartTalk(Stage.BossEncounter); }
+                if (_sequenceClock >= DescendTime + 0.5f) { _bossSequence = BossSequence.TalkTwo; StartTalk(Stage.BossEncounter); SendPriestessAway(); }
                 return true;
             }
             case BossSequence.TalkTwo:
@@ -104,6 +103,7 @@ public partial class GameScene : Node2D
                 if (_sequenceClock >= EndingDelay) { _endSequence = EndSequence.Talking; StartTalk(Stage.Ending); }
                 return true;
             case EndSequence.Talking:
+                UpdatePriestessEnding();
                 if (!_dialogue.IsOnScreen) _endSequence = EndSequence.Done;
                 return true;
         }
@@ -134,6 +134,7 @@ public partial class GameScene : Node2D
         World.PlaceBoss(new Vector2(300, -170));
         River.BeginOpenWater(3.2f);
         MusicPlayer.Instance?.Stop(1.2f);
+        ShowPriestess();
     }
 
     /// <summary>Boss practice: the river opens and the boss comes down at once, with her title and music.</summary>

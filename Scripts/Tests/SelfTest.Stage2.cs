@@ -232,7 +232,8 @@ public static partial class SelfTest
         True(Stages.After(Stages.Two) == Stages.Three, "3 follows 2");
         True(Stages.After(Stages.Three) == Stages.Four, "4 follows 3");
         True(Stages.After(Stages.Four) == Stages.Five, "5 follows 4");
-        True(Stages.After(Stages.Five) == null, "nothing after the last");
+        True(Stages.After(Stages.Five) == Stages.Six, "6 follows 5");
+        True(Stages.After(Stages.Six) == null, "nothing after the last");
         True(Stages.Two.Intro != null && Stages.Two.Ending != null && Stages.Two.BossEncounter != null, "stage 2 has its talks");
     }
 

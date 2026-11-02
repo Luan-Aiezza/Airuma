@@ -24,6 +24,16 @@ public sealed class StageDefinition
     /// The opening, before the waves; the arrival of the boss; the boss appearing and speaking; and what is said after her defeat.</summary>
     public System.Func<IReadOnlyList<DialogueLine>> Intro, BossArrival, BossEncounter, Ending;
 
+    /// <summary>The stage ends with a great light that whitens the screen and then goes dark (the card of the end is chosen in the dark), and the next stage opens from the dark.</summary>
+    public bool LightTransition;
+    /// <summary>The stage opens from the dark: the screen is black and clears while the boat rises.</summary>
+    public bool OpensFromDark;
+    /// <summary>The sleeping priestess lies in the middle of the field before the boss fight; the boss sends her away when she speaks, and brings her back, to wake, after the fight
+    /// (see <see cref="Dialogues.StageSixReturnLine"/>).</summary>
+    public bool Priestess;
+    /// <summary>The keys of the paragraphs of the story that is told, over a picture, after the last fight; null if the stage has none.</summary>
+    public System.Func<string[]> Epilogue;
+
     /// <summary>All the talks of the stage that it has, as lines.</summary>
     public IEnumerable<IReadOnlyList<DialogueLine>> Talks()
     {

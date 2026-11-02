@@ -88,6 +88,15 @@ public static class BossStyles
         RageMain = new Color(0.65f, 0.5f, 0.3f), RageAccent = new Color(1f, 0.95f, 0.8f), SceneTint = new Color(0.9f, 0.86f, 0.8f),
     };
 
+    /// <summary>Mama Killa, the Moon (stage 6), for now in the borrowed art of the divine person of stage 5, smaller than when she is fused (so that her head is clear of the boss bar) and in the silver of the moon.</summary>
+    public static readonly BossStyle Killa = new BossStyle
+    {
+        MakeFrame = KuychuArt.MakeFused, Width = KuychuArt.Width, Height = KuychuArt.Height, Centre = (KuychuArt.Centre.x, 55), WaterRow = KuychuArt.WaterRow, Scale = 1.6f,
+        GlowSize = 100, GlowRadius = 48,
+        GlowInner = 0xF4F8FF, GlowOuter = 0x9AB0E8, Spins = false,
+        RageMain = new Color(0.85f, 0.9f, 1f), RageAccent = new Color(1f, 1f, 0.9f), SceneTint = new Color(0.85f, 0.9f, 1f),
+    };
+
     /// <summary>Kuychu, the first of the two (the sun's, on the left): a divine person in a long gown, 60 x 80 px, with a glow of gold; the rage of the pair is the colours of the rainbow.</summary>
     public static readonly BossStyle Kuychu = new BossStyle
     {

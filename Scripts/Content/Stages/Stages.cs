@@ -42,13 +42,28 @@ public static class Stages
     public static readonly StageDefinition Five = new StageDefinition(
         nameof(UIText.Stage5Title), nameof(UIText.StageMusic), MusicPlayer.Theme.Stage, Stage5Waves.Waves, KuychuBoss.Definition)
     {
-        Scenery = Scenery.Waterfall, Hud = HudTheme.Andes, Spirits = SpiritStyle.Andes,
+        Scenery = Scenery.Waterfall, Hud = HudTheme.Andes, Spirits = SpiritStyle.Andes, LightTransition = true,
         Intro = () => Dialogues.StageFiveIntro,
         BossEncounter = () => Dialogues.StageFiveMeeting, Ending = () => Dialogues.StageFiveEnding,
     };
 
+    /// <summary>
+    /// The river of stars, in the realm of the spirits, the domain of Mama Killa: the last stage, and the one with every kind of spirit (the red ones in up to three). It opens from the
+    /// dark after the light that ends stage 5; the priestess sleeps on the ground in the middle of the river until the goddess sends her away, and is brought back after the fight; and the
+    /// end of the story is told after it. Its art is still borrowed from the other stages.
+    /// </summary>
+    public static readonly StageDefinition Six = new StageDefinition(
+        nameof(UIText.Stage6Title), nameof(UIText.StageMusic), MusicPlayer.Theme.Stage, Stage6Waves.Waves, KillaBoss.Definition)
+    {
+        Scenery = Scenery.Storm, Hud = HudTheme.Storm, Spirits = SpiritStyle.Andes,
+        OpensFromDark = true, Priestess = true,
+        Intro = () => Dialogues.StageSixIntro, BossArrival = () => Dialogues.StageSixArrival,
+        BossEncounter = () => Dialogues.StageSixMeeting, Ending = () => Dialogues.StageSixEnding,
+        Epilogue = () => Dialogues.StageSixEpilogue,
+    };
+
     /// <summary>The stages in the order they are played.</summary>
-    public static readonly IReadOnlyList<StageDefinition> All = new[] { One, Two, Three, Four, Five };
+    public static readonly IReadOnlyList<StageDefinition> All = new[] { One, Two, Three, Four, Five, Six };
 
     /// <summary>The place of a stage in the order they are played (0 for the first), or -1.</summary>
     public static int IndexOf(StageDefinition stage)

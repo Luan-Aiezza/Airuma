@@ -95,6 +95,7 @@ public partial class DialogueBox : Node2D
         DialogueSpeaker.Ukhumo => UIText.UkhumoName,
         DialogueSpeaker.LeftSerpent => UIText.SerpentLeftName,
         DialogueSpeaker.RightSerpent => UIText.SerpentRightName,
+        DialogueSpeaker.Illari => UIText.IllariName,
         _ => BossName,
     };
 

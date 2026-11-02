@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 
 /// <summary>Who speaks. `Boss` is the boss of the stage (the name is the stage's boss's); the others are friends and foes who speak in one stage only.</summary>
-public enum DialogueSpeaker { Atli, Airu, Boss, Ukhumo, LeftSerpent, RightSerpent }
+public enum DialogueSpeaker { Atli, Airu, Boss, Ukhumo, LeftSerpent, RightSerpent, Illari }
 
 /// <summary>How a speaker looks while saying a line (named Emotion because Godot already has a class called Expression).</summary>
 public enum Emotion { Neutral, Annoyed, Sheepish, Surprised, Happy, Worried }
@@ -243,4 +243,49 @@ public static class Dialogues
         new DialogueLine(DialogueSpeaker.Atli, Emotion.Happy, "S5End16"),
         new DialogueLine(DialogueSpeaker.Boss, Emotion.Happy, "S5End17"),
     };
+
+    // MARK: Stage 6, the river of stars
+
+    private static DialogueLine L(DialogueSpeaker who, Emotion e, string key, bool shout = false) => new DialogueLine(who, e, key, shout);
+
+    /// <summary>Stage 6, at the start: the water of the sky, shining, and the trail goes on.</summary>
+    public static IReadOnlyList<DialogueLine> StageSixIntro => new[]
+    {
+        L(DialogueSpeaker.Atli, Emotion.Surprised, "S6Intro01"), L(DialogueSpeaker.Airu, Emotion.Worried, "S6Intro02"),
+        L(DialogueSpeaker.Atli, Emotion.Happy, "S6Intro03"), L(DialogueSpeaker.Airu, Emotion.Neutral, "S6Intro04"),
+    };
+
+    /// <summary>Before the goddess: they find Illari asleep on the ground, in the middle of the river, and guess whose cat it was.</summary>
+    public static IReadOnlyList<DialogueLine> StageSixArrival => new[]
+    {
+        L(DialogueSpeaker.Atli, Emotion.Surprised, "S6Arr01"), L(DialogueSpeaker.Airu, Emotion.Worried, "S6Arr02"), L(DialogueSpeaker.Atli, Emotion.Worried, "S6Arr03"),
+    };
+
+    /// <summary>The goddess comes down and sends the sleeping Illari away (at the first line), and the longer talk that ends with the fight.</summary>
+    public static IReadOnlyList<DialogueLine> StageSixMeeting => new[]
+    {
+        L(DialogueSpeaker.Boss, Emotion.Neutral, "S6Meet01"), L(DialogueSpeaker.Boss, Emotion.Annoyed, "S6Meet02"), L(DialogueSpeaker.Atli, Emotion.Surprised, "S6Meet03"),
+        L(DialogueSpeaker.Boss, Emotion.Neutral, "S6Meet04"), L(DialogueSpeaker.Airu, Emotion.Annoyed, "S6Meet05"), L(DialogueSpeaker.Boss, Emotion.Annoyed, "S6Meet06"),
+        L(DialogueSpeaker.Atli, Emotion.Neutral, "S6Meet07"), L(DialogueSpeaker.Boss, Emotion.Neutral, "S6Meet08"), L(DialogueSpeaker.Airu, Emotion.Worried, "S6Meet09"),
+        L(DialogueSpeaker.Boss, Emotion.Annoyed, "S6Meet10", shout: true),
+    };
+
+    /// <summary>The line (of <see cref="StageSixEnding"/>) at which the goddess brings Illari back, asleep, and the line at which she wakes.</summary>
+    public const int StageSixReturnLine = 13, StageSixWakeLine = 15;
+
+    /// <summary>After the goddess: tired, she is talked round; she brings Illari back, who wakes and speaks with the three.</summary>
+    public static IReadOnlyList<DialogueLine> StageSixEnding => new[]
+    {
+        L(DialogueSpeaker.Boss, Emotion.Worried, "S6End01"), L(DialogueSpeaker.Atli, Emotion.Neutral, "S6End02"), L(DialogueSpeaker.Boss, Emotion.Neutral, "S6End03"),
+        L(DialogueSpeaker.Atli, Emotion.Neutral, "S6End04"), L(DialogueSpeaker.Boss, Emotion.Happy, "S6End05"), L(DialogueSpeaker.Atli, Emotion.Neutral, "S6End06"),
+        L(DialogueSpeaker.Airu, Emotion.Annoyed, "S6End07"), L(DialogueSpeaker.Atli, Emotion.Neutral, "S6End08"), L(DialogueSpeaker.Boss, Emotion.Sheepish, "S6End09"),
+        L(DialogueSpeaker.Atli, Emotion.Happy, "S6End10"), L(DialogueSpeaker.Boss, Emotion.Sheepish, "S6End11"), L(DialogueSpeaker.Atli, Emotion.Happy, "S6End12"),
+        L(DialogueSpeaker.Boss, Emotion.Sheepish, "S6End13"), L(DialogueSpeaker.Atli, Emotion.Surprised, "S6End14"), L(DialogueSpeaker.Boss, Emotion.Neutral, "S6End15"),
+        L(DialogueSpeaker.Illari, Emotion.Surprised, "S6End16"), L(DialogueSpeaker.Atli, Emotion.Happy, "S6End17"), L(DialogueSpeaker.Illari, Emotion.Happy, "S6End18"),
+        L(DialogueSpeaker.Illari, Emotion.Worried, "S6End19"), L(DialogueSpeaker.Boss, Emotion.Sheepish, "S6End20"), L(DialogueSpeaker.Atli, Emotion.Happy, "S6End21"),
+        L(DialogueSpeaker.Airu, Emotion.Happy, "S6End22"),
+    };
+
+    /// <summary>The story after the last fight, told over a picture: the keys of its paragraphs.</summary>
+    public static readonly string[] StageSixEpilogue = { "S6Epi01", "S6Epi02", "S6Epi03", "S6Epi04" };
 }

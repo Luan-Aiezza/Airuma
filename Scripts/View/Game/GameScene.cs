@@ -130,6 +130,7 @@ public partial class GameScene : Node2D
         _pause.Continue += Resume;
         _pause.GiveUp += DoExit;
         BuildJoystick();
+        BuildFinale();
         if (Demo)
         {
             _demoPilot = new DemoPilot();
@@ -163,6 +164,7 @@ public partial class GameScene : Node2D
         _boss.Reset();
         _twin?.Reset();
         _endSequence = EndSequence.None;
+        ResetFinale();
         _afterBossOffered = false;
         _dialoguePending = false;
         // The boat waits below the screen.
@@ -188,6 +190,7 @@ public partial class GameScene : Node2D
         double dt = Math.Min(delta, 0.1);
         _clock += delta;
         float fdt = (float)dt;
+        UpdateVeil(fdt);
 
         River.Update(fdt);
         _wake.Update(fdt, _playerNode.Position, World.Result != GameResult.Defeat);
@@ -213,11 +216,15 @@ public partial class GameScene : Node2D
         {
             if (result == GameResult.Victory && PracticePhase == null && !StagePractice && _endSequence == EndSequence.Done && Stages.After(Stage) != null)
             {
-                // The stage is won; the boss leaves a gift (one choice of cards), and then the river goes on.
-                if (!_afterBossOffered) { _afterBossOffered = true; World.OfferAfterBoss(); }
-                if (!_exited && World.Draft == null && !_picker.IsShown) { _exited = true; _input.EndAll(); NextStage?.Invoke(RunCarry.From(World)); }
+                // The stage is won; a stage that ends in a great light goes white and then dark first; the boss leaves a gift (one choice of cards), and then the river goes on.
+                if (Stage.LightTransition && !_lightDone) _lightDone = RunLightTransition(fdt);
+                else
+                {
+                    if (!_afterBossOffered) { _afterBossOffered = true; World.OfferAfterBoss(); }
+                    if (!_exited && World.Draft == null && !_picker.IsShown) { _exited = true; _input.EndAll(); NextStage?.Invoke(RunCarry.From(World)); }
+                }
             }
-            else if (result == GameResult.Victory && PracticePhase == null && _endSequence != EndSequence.Done)
+            else if (result == GameResult.Victory && _endSequence != EndSequence.Done)
             {
                 // The boss is beaten: a last talk before the end screen.
                 if (_endSequence == EndSequence.None)
@@ -228,6 +235,12 @@ public partial class GameScene : Node2D
                     MusicPlayer.Instance?.Stop(1.5f);
                 }
             }
+            else if (result == GameResult.Victory && Stage.LightTransition && !_lightDone)
+            {
+                // Practice: the great light and the dark play too, and then the screen clears for the end screen (the next stage is not entered).
+                if (RunLightTransition(fdt)) { _lightDone = true; FadeVeil(new Color(0, 0, 0, 0), 1.0f); }
+            }
+            else if (result == GameResult.Victory && Stage.Epilogue != null && !_epilogueDone) RunEpilogue(fdt);
             else Finish(result);
         }
         if (World.Result != null && _hud.IsEndVisible)
