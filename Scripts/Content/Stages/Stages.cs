@@ -55,7 +55,7 @@ public static class Stages
     public static readonly StageDefinition Six = new StageDefinition(
         nameof(UIText.Stage6Title), nameof(UIText.StageMusic), MusicPlayer.Theme.Stage, Stage6Waves.Waves, KillaBoss.Definition)
     {
-        Scenery = Scenery.Storm, Hud = HudTheme.Storm, Spirits = SpiritStyle.Andes,
+        Scenery = Scenery.Cosmos, Hud = HudTheme.Cosmos, Spirits = SpiritStyle.Celestial,
         OpensFromDark = true, Priestess = true,
         Intro = () => Dialogues.StageSixIntro, BossArrival = () => Dialogues.StageSixArrival,
         BossEncounter = () => Dialogues.StageSixMeeting, Ending = () => Dialogues.StageSixEnding,

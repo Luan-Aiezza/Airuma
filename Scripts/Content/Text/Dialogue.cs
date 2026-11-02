@@ -286,6 +286,9 @@ public static class Dialogues
         L(DialogueSpeaker.Airu, Emotion.Happy, "S6End22"),
     };
 
+    /// <summary>The story told when the game opens, over a picture of the night: the keys of its paragraphs.</summary>
+    public static readonly string[] IntroStory = { "IntroPage1", "IntroPage2", "IntroPage3", "IntroPage4" };
+
     /// <summary>The story after the last fight, told over a picture: the keys of its paragraphs.</summary>
     public static readonly string[] StageSixEpilogue = { "S6Epi01", "S6Epi02", "S6Epi03", "S6Epi04" };
 }

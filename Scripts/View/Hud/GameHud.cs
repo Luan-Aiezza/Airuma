@@ -29,8 +29,8 @@ public partial class GameHud : Node2D
     private const float Art = HudArt.Scale;
 
     // Textures, built once.
-    private readonly ImageTexture _boatFull = HudArt.BoatIcon(true).ToTexture();
-    private readonly ImageTexture _boatEmpty = HudArt.BoatIcon(false).ToTexture();
+    private readonly ImageTexture _heartFull = HudArt.HeartIcon(true).ToTexture();
+    private readonly ImageTexture _heartEmpty = HudArt.HeartIcon(false).ToTexture();
     private readonly ImageTexture _lanternFull = HudArt.LanternIcon(true).ToTexture();
     private readonly ImageTexture _lanternEmpty = HudArt.LanternIcon(false).ToTexture();
     private readonly ImageTexture _flameFull = HudArt.FlameIcon(true).ToTexture();
@@ -118,7 +118,10 @@ public partial class GameHud : Node2D
     private static Vector2 At(float x, float top) => AtScene(x + PanelShift, top >= CardPlaqueBottom ? top + CardPlaqueGrow : top);
 
     /// <summary>The strip of cards is taller than the first plaque was: everything under it moves down by this much (screen points).</summary>
-    private const float CardPlaqueGrow = 32, CardPlaqueBottom = 190;
+    /// <summary>The box of the six cards (art pixels, from the panel's top left): three slots of 64 points across and two down, with the same gap (12 points) between them and to the edge, so it is
+    /// 60 art pixels wide and 41 high (29 + the growth), centred on the panel.</summary>
+    private const float CardGap = 12, CardBoxX = 18, CardBoxWidth = 60;
+    private const float CardPlaqueGrow = 48, CardPlaqueBottom = 190;
 
     /// <summary>A point in the game field, with x measured from the field's left edge (inside the trees' inset).</summary>
     private static Vector2 AtField(float x, float top) => AtScene(x + Layout.FieldInset, top);
@@ -158,18 +161,19 @@ public partial class GameHud : Node2D
     {
         // Plaques in art pixels, relative to the panel's top-left.
         const float grow = CardPlaqueGrow / 4; // in art pixels
-        var plaques = new[] { new Rect2(11, 19, 74, 29 + grow), new Rect2(11, 49 + grow, 74, 17), new Rect2(11, 67 + grow, 74, 54), new Rect2(11, 122 + grow, 74, 46) };
+        var plaques = new[] { new Rect2(CardBoxX, 19, CardBoxWidth, 29 + grow), new Rect2(11, 49 + grow, 74, 17), new Rect2(11, 67 + grow, 74, 54), new Rect2(11, 122 + grow, 74, 46) };
         MakeSprite(HudArt.MakePanel(plaques, _theme).ToTexture(), AtScene(PanelX, 0));
 
         var title = new PixelLabel(PixelLabel.Style.Title, 6, PixelLabel.Align.Center);
         Label(title, UIText.Title, 790, 32);
 
         // The strip of cards, in the first plaque: six places (three by two), locked until the cards are taken (a whole run gathers six).
-        const float slotScale = 4, pitchX = 98, pitchY = 72;
+        // The gap between the slots, sideways and up and down, is the same as the gap between them and the edge of the box (CardGap, in screen points): the box is made to fit them.
+        const float slotScale = 4, slotSize = 16 * slotScale, pitch = slotSize + CardGap;
         for (int i = 0; i < RunState.MaxCards; i++)
         {
             var slot = new Sprite2D { Texture = _lockedSlot, Centered = false, Scale = new Vector2(slotScale, slotScale), ZIndex = Z(2) };
-            slot.Position = AtScene(PanelX + 62 + (i % 3) * pitchX, 82 + (i / 3) * pitchY);
+            slot.Position = AtScene(PanelX + CardBoxX * 4 + CardGap + (i % 3) * pitch, 19 * 4 + CardGap + (i / 3) * pitch);
             AddChild(slot);
             _cardSlots.Add(slot);
         }
@@ -215,7 +219,8 @@ public partial class GameHud : Node2D
         Label(new PixelLabel(PixelLabel.Style.Label), UIText.Wind, 654, 398);
 
         static float SlotX(int i) => 826 + i * 32;
-        for (int i = 0; i < LifeSlots; i++) _lifeIcons.Add(MakeSprite(_boatEmpty, At(SlotX(i) - 2, 276), 2));
+        // the hearts are drawn a little smaller than the other icons (3 points per art pixel, 27 wide), so that there is the same gap between them as between the lanterns and the flames
+        for (int i = 0; i < LifeSlots; i++) _lifeIcons.Add(MakeSprite(_heartEmpty, At(SlotX(i) + 1, 277), 2, scale: 3));
         for (int i = 0; i < MaxBombs; i++)
         {
             _bombIcons.Add(MakeSprite(_lanternEmpty, At(SlotX(i), 317), 2));
@@ -260,8 +265,9 @@ public partial class GameHud : Node2D
         _portrait.Texture = _portraitFrames[0];
         AddChild(_portrait);
 
-        Label(new PixelLabel(PixelLabel.Style.Gold), UIText.FairyName, 738, 504);
-        Label(new PixelLabel(PixelLabel.Style.Dim), UIText.FairyRole, 738, 532);
+        // beside the portrait goes only the role of the guide (her name is not shown: she has none yet), in the gold of a name, wrapped into lines that fit the column
+        var role = Wrap(UIText.FairyRole, 11, 2);
+        for (int i = 0; i < role.Count; i++) Label(new PixelLabel(PixelLabel.Style.Gold), role[i], 738, 508 + i * 28);
 
         MakeSprite(HudArt.Box(73, 24).ToTexture(), At(648, 574), 1);
         for (int i = 0; i < DialogueLineCount; i++)
@@ -346,7 +352,7 @@ public partial class GameHud : Node2D
 
     public void Update(HudState state, float dt)
     {
-        for (int i = 0; i < _lifeIcons.Count; i++) _lifeIcons[i].Texture = i < state.Lives ? _boatFull : _boatEmpty;
+        for (int i = 0; i < _lifeIcons.Count; i++) _lifeIcons[i].Texture = i < state.Lives ? _heartFull : _heartEmpty;
         for (int i = 0; i < MaxBombs; i++)
         {
             _bombIcons[i].Texture = i < state.Bombs ? _lanternFull : _lanternEmpty;

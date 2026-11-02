@@ -46,6 +46,35 @@ public static class WindArt
         return result;
     }
 
+    // MARK: Stars (the wind of the river of stars)
+
+    public const int StarTones = 3, StarFrames = 2;
+
+    /// <summary>A little star that twinkles (frame 0 a cross of light, frame 1 a smaller one with a halo): white, cyan or gold.</summary>
+    public static PixelCanvas MakeStar(int tone, int frame)
+    {
+        var c = new PixelCanvas(9, 9);
+        var core = new[] { PixelColor.Hex(0xFFFFFF), PixelColor.Hex(0xD8F6FF), PixelColor.Hex(0xFFF2B0) }[tone % StarTones];
+        var arm = new[] { PixelColor.Hex(0xB8C8F0), PixelColor.Hex(0x58C8E8), PixelColor.Hex(0xE8B040) }[tone % StarTones];
+        c[4, 4] = core;
+        foreach (var (dx, dy) in new[] { (1, 0), (-1, 0), (0, 1), (0, -1) }) c[4 + dx, 4 + dy] = frame == 0 ? core : arm;
+        if (frame == 0) foreach (var (dx, dy) in new[] { (2, 0), (-2, 0), (0, 2), (0, -2) }) c[4 + dx, 4 + dy] = arm;
+        else foreach (var (dx, dy) in new[] { (1, 1), (-1, -1), (1, -1), (-1, 1) }) c[4 + dx, 4 + dy] = arm.WithAlpha(140);
+        return c;
+    }
+
+    /// <summary>[tone][frame]</summary>
+    public static Texture2D[][] MakeStarTextures()
+    {
+        var result = new Texture2D[StarTones][];
+        for (int tone = 0; tone < StarTones; tone++)
+        {
+            result[tone] = new Texture2D[StarFrames];
+            for (int f = 0; f < StarFrames; f++) result[tone][f] = MakeStar(tone, f).ToTexture();
+        }
+        return result;
+    }
+
     // MARK: Lanterns (the wind of the river of the parties)
 
     public const int LanternFrames = 2;

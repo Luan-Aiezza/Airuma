@@ -9,11 +9,30 @@ public static class KillaBoss
 
     private static readonly BossBuilder Builder = new BossBuilder(NameKey, 32, BossStyles.Killa, health: 420, enragedHealth: 680);
 
-    public static readonly BossDefinition Definition = Builder.Build(
-        Builder.Calm(Attacks.StarPentagram()),
-        Builder.Calm(Attacks.ZigzagLightning()),
-        Builder.Calm(Attacks.FineWeave()),
-        Builder.Calm(Attacks.HailCurtain()),
-        Builder.Enraged(Attacks.SkyFalls()),
-        Builder.Enraged(Attacks.Eclipse()));
+    /// <summary>Where her position is when her skirt touches the horizon of the water: she stands exactly under its line.</summary>
+    public static readonly float StandY = Layout.Horizon - BossStyles.Killa.Waterline;
+
+    /// <summary>She stands under the horizon: her attacks begin there and she never goes above it, only to the sides and down.</summary>
+    private static BossPhase Grounded(BossPhase attack)
+    {
+        attack.Target = new Godot.Vector2(attack.Target.X, StandY);
+        attack.TwinTarget = attack.Target;
+        attack.MinY = StandY;
+        return attack;
+    }
+
+    public static readonly BossDefinition Definition = Build();
+
+    private static BossDefinition Build()
+    {
+        var definition = Builder.Build(
+            Builder.Calm(Grounded(Attacks.StarPentagram())),
+            Builder.Calm(Grounded(Attacks.ZigzagLightning())),
+            Builder.Calm(Grounded(Attacks.FineWeave())),
+            Builder.Calm(Grounded(Attacks.HailCurtain())),
+            Builder.Enraged(Grounded(Attacks.SkyFalls())),
+            Builder.Enraged(Grounded(Attacks.Eclipse())));
+        definition.StandY = StandY;
+        return definition;
+    }
 }

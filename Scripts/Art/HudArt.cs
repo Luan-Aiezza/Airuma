@@ -144,19 +144,18 @@ public static class HudArt
 
     // MARK: Icons
 
-    /// <summary>A little sailboat seen from the side: one per life.</summary>
-    public static PixelCanvas BoatIcon(bool filled)
+    /// <summary>A little heart: one per life (and the light that falls in the stage to give one back).</summary>
+    public static PixelCanvas HeartIcon(bool filled)
     {
-        string[] rows = { "....M....", "....MW...", "....MWW..", "....MWWW.", "....M....", "hhhhhhhhh", ".hHHHHHh.", "..hhhhh.." };
+        string[] rows = { ".RRR.RRR.", "RHHRRRRRr", "RHRRRRRRr", "RRRRRRRrr", ".RRRRRRr.", "..RRRRr..", "...RRr...", "....r...." };
         if (filled)
             return Canvas(rows, new Dictionary<char, PixelColor>
             {
-                ['M'] = PixelColor.Hex(0x3A2616), ['W'] = PixelColor.Hex(0xF2EAD2),
-                ['h'] = PixelColor.Hex(0xB07A48), ['H'] = PixelColor.Hex(0x8A5A35),
+                ['R'] = PixelColor.Hex(0xE8483C), ['H'] = PixelColor.Hex(0xFF9E8E), ['r'] = PixelColor.Hex(0xA82030),
             });
         return Canvas(rows, new Dictionary<char, PixelColor>
         {
-            ['M'] = Colors.Dim, ['W'] = Colors.Dim, ['h'] = Colors.Dim, ['H'] = PixelColor.Hex(0x241C19),
+            ['R'] = Colors.Dim, ['H'] = Colors.Dim, ['r'] = PixelColor.Hex(0x241C19),
         });
     }
 

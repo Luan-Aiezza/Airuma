@@ -8,6 +8,12 @@ using System;
 public sealed class Scenery
 {
     public Func<PixelCanvas> MakeSky;
+    /// <summary>The bed seen faintly through the water (null: the river bed of the forest, see <see cref="BedArt"/>). It must be as wide as the river.</summary>
+    public Func<PixelCanvas> MakeBed;
+    /// <summary>The high sky that the far water reflects in the sea of the fight, below the reflection of the horizon (null: that of the night of the forest).</summary>
+    public Func<PixelCanvas> MakeDeep;
+    /// <summary>The sky of the fight in the boss's second form (null: it does not change), faded in over the first.</summary>
+    public Func<PixelCanvas> MakeHorizonRage;
     /// <summary>What the water reflects of the banks.</summary>
     public Func<BankArt.Side, PixelCanvas> MakeReflection;
     /// <summary>The ground of the banks, drawn over the boat and the boss.</summary>
@@ -24,6 +30,10 @@ public sealed class Scenery
     public bool LanternWind;
     /// <summary>The wind is shown by birds that pass.</summary>
     public bool BirdWind;
+    /// <summary>The wind is shown by little stars that drift across.</summary>
+    public bool StarWind;
+    /// <summary>The river of stars (stage 6): there are no banks (so the sides of the field are open from the start); the water is that of the river of stage 1 and reflects the sky of the stage.</summary>
+    public bool Cosmic;
 
     // The weather and the mood (only for the eyes: none of it changes the game, not even the wind).
     /// <summary>Rain and lightning over the river.</summary>
@@ -57,6 +67,13 @@ public sealed class Scenery
     public float RiverReflection = 0.82f, LakeReflection = 0.82f;
     /// <summary>A colour that the banks and the water are tinted with (white: none).</summary>
     public Godot.Color BankTint = Godot.Colors.White, WaterGrade = Godot.Colors.White;
+
+    /// <summary>The river of stars, in the realm of the spirits (stage 6): a river like that of stage 1, with water that reflects the sky (here the Milky Way and a few small planets), but no banks and no horizon: the sides of the field are open from the start. In the boss fight the horizon of the water comes down, as in the other stages, with a great Moon sitting on it (the upper half in the sky, the lower half in the water) and the boss in front of it.</summary>
+    public static readonly Scenery Cosmos = new Scenery
+    {
+        MakeSky = CosmosArt.MakeSky, MakeBed = CosmosArt.MakeBed, MakeHorizon = CosmosArt.MakeHorizon, MakeHorizonRage = CosmosArt.MakeHorizonRed, MakeDeep = CosmosArt.MakeDeep,
+        Cosmic = true, StarWind = true, OpensToSea = true, MirrorLake = true, Moonless = true, RiverReflection = 0.85f, LakeReflection = 0.85f,
+    };
 
     /// <summary>The jungle: a night sky with its moon and stars, trees on the banks, leaves in the wind.</summary>
     public static readonly Scenery Jungle = new Scenery

@@ -66,7 +66,7 @@ public static class LightArt
                 if ((x + y) % 2 == 0 && t < 0.33f) alpha = 0;
                 if (alpha > 0) c[x, y] = PixelColor.Hex(0xFF8A5A, alpha);
             }
-        var icon = HudArt.BoatIcon(true);
+        var icon = HudArt.HeartIcon(true);
         int ox = (BombSize - icon.Width) / 2, oy = (BombSize - icon.Height) / 2;
         for (int y = 0; y < icon.Height; y++)
             for (int x = 0; x < icon.Width; x++)

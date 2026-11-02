@@ -12,6 +12,8 @@ public sealed class BossDefinition
     public readonly IReadOnlyList<BossPhase> Phases;
     /// <summary>How the boss looks (the art, the glow, the colours of its rage).</summary>
     public BossStyle Style = BossStyles.Iryssh;
+    /// <summary>Where the boss's position is when she stands on the horizon (her feet on its line): by default that of the woman of the first stage.</summary>
+    public float StandY = Layout.BossY;
     /// <summary>The boss is two bodies that share one life (the second has the style <c>Style.Twin</c>).</summary>
     public bool HasTwin => Style.Twin != null;
 

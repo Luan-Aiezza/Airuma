@@ -25,18 +25,37 @@ public partial class EpilogueScreen : Node2D
     private int _total;
     private bool _leaving;
 
-    public EpilogueScreen(IEnumerable<string> pageKeys)
+    private readonly string _titleKey;
+    private readonly Func<PixelCanvas> _picture;
+    /// <summary>The screen reads the keys and the clicks itself (the opening of the game, where there is no scene to do it); in the game the scene does.</summary>
+    public bool HandlesOwnInput;
+
+    /// <summary>The pages of the story (keys of the texts), its title (a key; null: the end of the story) and its picture (null: the dawn).</summary>
+    public EpilogueScreen(IEnumerable<string> pageKeys, string titleKey = null, Func<PixelCanvas> picture = null)
     {
         _pages = pageKeys.Select(Loc.Get).ToList();
+        _titleKey = titleKey;
+        _picture = picture;
         ZIndex = 148;
+    }
+
+    public override void _Input(InputEvent @event)
+    {
+        if (!HandlesOwnInput) return;
+        if (@event is InputEventKey { Pressed: true, Echo: false } key)
+        {
+            if (key.Keycode is Key.Z or Key.Enter or Key.KpEnter or Key.Space) { Advance(); GetViewport().SetInputAsHandled(); }
+            else if (key.Keycode is Key.X or Key.Escape) { Skip(); GetViewport().SetInputAsHandled(); }
+        }
+        else if (@event is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } || @event is InputEventScreenTouch { Pressed: true }) Advance();
     }
 
     public override void _Ready()
     {
-        AddChild(new Sprite2D { Texture = MakeDawn().ToTexture(), Centered = false, Scale = new Vector2(Layout.SceneSize.X / PictureWidth, Layout.SceneSize.Y / PictureHeight) });
+        AddChild(new Sprite2D { Texture = (_picture ?? MakeDawn)().ToTexture(), Centered = false, Scale = new Vector2(Layout.SceneSize.X / PictureWidth, Layout.SceneSize.Y / PictureHeight) });
         AddChild(new ColorRect { Color = new Color(0.03f, 0.02f, 0.08f, 0.62f), Position = new Vector2(70, 480), Size = new Vector2(Layout.SceneSize.X - 140, 240), MouseFilter = Control.MouseFilterEnum.Ignore });
         var title = new PixelLabel(PixelLabel.Style.Title, 6, PixelLabel.Align.Center) { Position = new Vector2(Layout.SceneSize.X / 2, 70) };
-        title.SetText(UIText.EpilogueTitle);
+        title.SetText(_titleKey == null ? UIText.EpilogueTitle : Loc.Get(_titleKey));
         AddChild(title);
         for (int i = 0; i < MaxLines; i++)
         {
@@ -152,6 +171,79 @@ public partial class EpilogueScreen : Node2D
             int near = horizon - 1 - (int)(22 * MathF.Pow(MathF.Abs(MathF.Sin(x * 0.03f + 2.1f)), 0.9f) + 3 * MathF.Sin(x * 0.33f));
             for (int y = near; y < horizon; y++) c[x, y] = PixelColor.Hex(0x241A44);
         }
+        return c;
+    }
+
+    /// <summary>The picture of the opening: a night without end. The sky is deep blue with stars and a pale moon that does not move, the mountains are black against it, and on the river, small and
+    /// alone, a boat with a lantern whose warm light is the only warm thing in the picture.</summary>
+    public static PixelCanvas MakeNight()
+    {
+        var c = new PixelCanvas(PictureWidth, PictureHeight);
+        const int horizon = 100;
+        PixelColor[] sky = { PixelColor.Hex(0x03040E), PixelColor.Hex(0x0A1030), PixelColor.Hex(0x142050), PixelColor.Hex(0x22346E) };
+        PixelColor[] water = { PixelColor.Hex(0x1C2C60), PixelColor.Hex(0x101C46), PixelColor.Hex(0x080F2C), PixelColor.Hex(0x03061A) };
+        const float moonX = 150f, moonY = 40f;
+        var rng = new SeededGenerator(0x1A57);
+        for (int y = 0; y < PictureHeight; y++)
+            for (int x = 0; x < PictureWidth; x++)
+            {
+                float bayer = Bayer.Threshold(x, y) - 0.5f;
+                if (y < horizon)
+                {
+                    float t = MathF.Pow(y / (float)horizon, 1.4f) * (sky.Length - 1);
+                    var col = sky[Math.Clamp((int)MathF.Floor(t + bayer * 0.9f + 0.5f), 0, sky.Length - 1)];
+                    float d = MathF.Sqrt((x - moonX) * (x - moonX) + (y - moonY) * (y - moonY));
+                    float glow = MathF.Pow(MathF.Max(0, 1 - d / 46f), 1.7f);
+                    if (MathF.Floor(glow * 5 + bayer * 0.8f) / 5 > 0) col = col.Mixed(PixelColor.Hex(0x6A86C8), MathF.Min(1, MathF.Floor(glow * 5 + bayer * 0.8f) / 5 * 0.9f));
+                    c[x, y] = col;
+                }
+                else
+                {
+                    float t = (y - horizon) / (float)(PictureHeight - horizon) * (water.Length - 1) * 1.1f;
+                    var col = water[Math.Clamp((int)MathF.Floor(t + bayer * 0.9f + 0.5f), 0, water.Length - 1)];
+                    float road = 1 - MathF.Abs(x - moonX) / (3 + (y - horizon) * 0.35f);
+                    if (road > 0 && (y + x / 3) % 3 != 0) col = col.Mixed(PixelColor.Hex(0xC8D8F8), Math.Clamp(road * 0.55f, 0, 0.55f));
+                    c[x, y] = col;
+                }
+            }
+        // stars
+        for (int i = 0; i < 150; i++)
+        {
+            int x = rng.Range(0, PictureWidth - 1), y = rng.Range(0, horizon - 8);
+            if (MathF.Sqrt((x - moonX) * (x - moonX) + (y - moonY) * (y - moonY)) < 20) continue;
+            c[x, y] = i % 7 == 0 ? PixelColor.Hex(0xFFF2B0) : (i % 3 == 0 ? PixelColor.Hex(0xAFC8FF) : PixelColor.Hex(0xFFFFFF));
+        }
+        // the moon, pale and full
+        for (int y = 0; y < horizon; y++)
+            for (int x = 0; x < PictureWidth; x++)
+            {
+                float d = MathF.Sqrt((x - moonX) * (x - moonX) + (y - moonY) * (y - moonY));
+                if (d <= 13) c[x, y] = d > 11.5f ? PixelColor.Hex(0xC8D4F0) : ((x - moonX) * 0.5f + (y - moonY) * 0.5f > 3 + Bayer.Threshold(x, y) * 3 ? PixelColor.Hex(0xD6DCEE) : PixelColor.Hex(0xF2F6FF));
+            }
+        // the mountains, black against the sky
+        for (int x = 0; x < PictureWidth; x++)
+        {
+            int far = horizon - 4 - (int)(12 * MathF.Abs(MathF.Sin(x * 0.04f + 1f)) + 4 * MathF.Sin(x * 0.17f));
+            for (int y = far; y < horizon; y++) c[x, y] = PixelColor.Hex(0x0E1434);
+            int near = horizon - 1 - (int)(16 * MathF.Pow(MathF.Abs(MathF.Sin(x * 0.028f + 2.6f)), 0.9f) + 2 * MathF.Sin(x * 0.3f));
+            for (int y = near; y < horizon; y++) c[x, y] = PixelColor.Hex(0x060A1C);
+        }
+        // the boat and its lantern, small and alone in the middle of the river
+        const int bx = 80, by = 126;
+        for (int dy = -9; dy <= 9; dy++)
+            for (int dx = -12; dx <= 12; dx++)
+            {
+                float d = MathF.Sqrt(dx * dx + dy * dy);
+                if (d < 12 && (dx + dy) % 2 == 0 && c.Contains(bx + dx - 5, by + dy - 6)) c[bx + dx - 5, by + dy - 6] = c[bx + dx - 5, by + dy - 6].Mixed(PixelColor.Hex(0xFFB347), 0.5f * (1 - d / 12));
+            }
+        for (int x = -8; x <= 8; x++) if (c.Contains(bx + x, by)) c[bx + x, by] = PixelColor.Hex(0x04060F);
+        for (int x = -6; x <= 6; x++) if (c.Contains(bx + x, by + 1)) c[bx + x, by + 1] = PixelColor.Hex(0x0A0E22);
+        for (int y = -14; y < 0; y++) if (c.Contains(bx + 2, by + y)) c[bx + 2, by + y] = PixelColor.Hex(0x04060F);                     // the mast
+        for (int y = -13; y < -2; y++) for (int x = 3; x < 3 + (y + 13) / 2 + 1; x++) if (c.Contains(bx + x, by + y)) c[bx + x, by + y] = PixelColor.Hex(0x14183A);   // the sail
+        for (int y = -7; y <= -5; y++) for (int x = -6; x <= -4; x++) if (c.Contains(bx + x, by + y)) c[bx + x, by + y] = y == -6 && x == -5 ? PixelColor.Hex(0xFFFAD0) : PixelColor.Hex(0xFFC060);   // the lantern
+        for (int y = -9; y < -7; y++) if (c.Contains(bx - 5, by + y)) c[bx - 5, by + y] = PixelColor.Hex(0x04060F);
+        // its light on the water
+        for (int y = by + 2; y < by + 12; y++) for (int x = bx - 6; x <= bx - 4; x++) if (c.Contains(x, y) && (x + y) % 2 == 0) c[x, y] = c[x, y].Mixed(PixelColor.Hex(0xFFB347), 0.55f);
         return c;
     }
 }

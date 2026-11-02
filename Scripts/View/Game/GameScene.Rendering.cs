@@ -9,7 +9,7 @@ public partial class GameScene : Node2D
     private void BuildWorldNodes()
     {
         River = new RiverBackground(new Vector2(Layout.RiverWidth, Layout.Height), Stage.Scenery);
-        _windEffect.Style = Stage.Scenery.BirdWind ? WindEffect.Kind.Birds : (Stage.Scenery.LanternWind ? WindEffect.Kind.Lanterns : WindEffect.Kind.Leaves);
+        _windEffect.Style = Stage.Scenery.StarWind ? WindEffect.Kind.Stars : Stage.Scenery.BirdWind ? WindEffect.Kind.Birds : (Stage.Scenery.LanternWind ? WindEffect.Kind.Lanterns : WindEffect.Kind.Leaves);
         AddChild(River);
         BuildMirrors();
 

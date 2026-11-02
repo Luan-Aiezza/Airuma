@@ -88,10 +88,10 @@ public static class BossStyles
         RageMain = new Color(0.65f, 0.5f, 0.3f), RageAccent = new Color(1f, 0.95f, 0.8f), SceneTint = new Color(0.9f, 0.86f, 0.8f),
     };
 
-    /// <summary>Mama Killa, the Moon (stage 6), for now in the borrowed art of the divine person of stage 5, smaller than when she is fused (so that her head is clear of the boss bar) and in the silver of the moon.</summary>
+    /// <summary>Mama Killa, the Moon (stage 6): the goddess of the night in a gown of silver-blue under a mantle of stars, a crescent cradling her head. Shown at 1.6, so that her head is clear of the boss bar.</summary>
     public static readonly BossStyle Killa = new BossStyle
     {
-        MakeFrame = KuychuArt.MakeFused, Width = KuychuArt.Width, Height = KuychuArt.Height, Centre = (KuychuArt.Centre.x, 55), WaterRow = KuychuArt.WaterRow, Scale = 1.6f,
+        MakeFrame = KillaArt.MakeFrame, Width = KillaArt.Width, Height = KillaArt.Height, Centre = KillaArt.Centre, WaterRow = KillaArt.WaterRow, Scale = 1.6f,
         GlowSize = 100, GlowRadius = 48,
         GlowInner = 0xF4F8FF, GlowOuter = 0x9AB0E8, Spins = false,
         RageMain = new Color(0.85f, 0.9f, 1f), RageAccent = new Color(1f, 1f, 0.9f), SceneTint = new Color(0.85f, 0.9f, 1f),

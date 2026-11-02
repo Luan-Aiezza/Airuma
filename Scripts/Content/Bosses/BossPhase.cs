@@ -34,6 +34,8 @@ public sealed class BossPhase
     public bool Fused;
     /// <summary>The two bodies take turns to move anywhere on the screen while the other stays parked at the top (see <see cref="TwinDance"/>); each goes back to its place (Target, TwinTarget) before the other leaves.</summary>
     public bool Dance;
+    /// <summary>The boss never goes higher than this (its y; null: no limit), for a boss that stands on the horizon and may go to the sides and down, not above it.</summary>
+    public float? MinY;
     public BossMovementType TwinMovement = BossMovementType.Stationary;
     public Vector2 TwinTarget;
 

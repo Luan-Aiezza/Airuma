@@ -63,5 +63,9 @@ public static partial class MovementSystem
                 DashStep(boss, bounds, delta);
                 break;
         }
+        // a boss that stands on the horizon never goes above its line (to the sides and down only)
+        if (boss.MovementType != BossMovementType.Transition && boss.Health.Lives > 0
+            && boss.Definition.PhaseFor(boss.Health.Lives).MinY is float floor && boss.Transform.Position.Y < floor)
+            boss.Transform.Position.Y = floor;
     }
 }

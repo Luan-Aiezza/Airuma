@@ -132,7 +132,28 @@ public partial class RiverBackground : Node2D
     private float _clear;
     /// <summary>How agitated the water is now (it moves towards what the scenery says for the moment: the boss fight is rougher).</summary>
     private float _agitation;
+    /// <summary>How far the river of stars has opened into the sea of the fight (0...1): its banks are always gone (<see cref="_open"/> is 1 from the start), but the horizon comes down only when the boss comes.</summary>
+    private float _sea;
     private bool _bossFight;
+    /// <summary>The sky of the boss's second form (the Moon gone red), faded in over the sky of the fight, and how far it has faded in (0...1).</summary>
+    private Sprite2D _horizonSkyRage, _horizonReflectionRage;
+    private float _rage, _rageTarget;
+
+    /// <summary>The boss is in her second form (or not): the sky of the fight turns red (or back).</summary>
+    public void SetRage(bool on) => _rageTarget = on ? 1 : 0;
+
+    private void PlaceRage()
+    {
+        if (_horizonSkyRage == null) return;
+        float e = _look.Cosmic ? _sea : _open;
+        bool visible = e > 0.001f && _rage > 0.001f;
+        _horizonSkyRage.Visible = _horizonReflectionRage.Visible = visible;
+        if (!visible) return;
+        _horizonSkyRage.Position = _horizonSky.Position;
+        _horizonSkyRage.Modulate = new Color(1, 1, 1, _rage * Mathf.Clamp(e * 3, 0, 1));
+        _horizonReflectionRage.Position = _horizonReflection.Position;
+        _horizonReflectionRage.Modulate = new Color(1, 1, 1, _rage * e);
+    }
     /// <summary>Where the water's glitter path starts: at the moon, or nowhere (far off the picture) when there is no moon.</summary>
     private Vector2 MoonSpot => _look.OpensToSea && !_look.Moonless ? MoonGridPosition : new Vector2(-1000, -1000);
 
@@ -194,17 +215,28 @@ public partial class RiverBackground : Node2D
             Texture = horizonTexture, Centered = false, Scale = new Vector2(pixel, -pixel * (_look.MirrorLake ? 1 : 2)), ZIndex = ReflectionLayer.Sky + 1, Visible = false,
         };
         WaterViewport.AddChild(_horizonReflection);
+        if (_look.MakeHorizonRage != null)
+        {
+            var redTexture = _look.MakeHorizonRage().ToTexture();
+            _horizonReflectionRage = new Sprite2D
+            {
+                Texture = redTexture, Centered = false, Scale = new Vector2(pixel, -pixel * (_look.MirrorLake ? 1 : 2)), ZIndex = ReflectionLayer.Sky + 2, Visible = false,
+            };
+            WaterViewport.AddChild(_horizonReflectionRage);
+            _horizonSkyRage = new Sprite2D { Texture = redTexture, Centered = false, Scale = new Vector2(pixel, pixel), ZIndex = -94, Visible = false, TextureFilter = TextureFilterEnum.Nearest };
+            AddChild(_horizonSkyRage);
+        }
         // ... and below it, the high sky, so that the far water goes on being a surface that reflects the stars.
         _deepReflection = new Sprite2D
         {
-            Texture = HorizonSkyArt.MakeDeepCanvas().ToTexture(), Centered = false, Scale = new Vector2(pixel, pixel * 2),
+            Texture = (_look.MakeDeep ?? (() => HorizonSkyArt.MakeDeepCanvas()))().ToTexture(), Centered = false, Scale = new Vector2(pixel, pixel * 2),
             ZIndex = ReflectionLayer.Sky + 1, Visible = false,
         };
         WaterViewport.AddChild(_deepReflection);
 
-        // Tree crowns, mirrored into the water: they start a little inside the river.
+        // Tree crowns, mirrored into the water: they start a little inside the river (the river of stars has no banks).
         var sides = new[] { BankArt.Side.Left, BankArt.Side.Right };
-        for (int i = 0; i < 2; i++)
+        for (int i = 0; i < (_look.Cosmic ? 0 : 2); i++)
         {
             var texture = _look.MakeReflection(sides[i]).ToTexture();
             float crownWidth = texture.GetWidth() * pixel;
@@ -220,10 +252,11 @@ public partial class RiverBackground : Node2D
         WaterViewport.AddChild(MirrorLayer);
 
         _water = new ShaderMaterial { Shader = GD.Load<Shader>("res://Shaders/water.gdshader") };
-        _water.SetShaderParameter("bed", BedArt.MakeCanvas().ToTexture());
+        var bedCanvas = (_look.MakeBed ?? BedArt.MakeCanvas)();
+        _water.SetShaderParameter("bed", bedCanvas.ToTexture());
         _water.SetShaderParameter("moon", MoonSpot);
         _water.SetShaderParameter("grid", new Vector2(GridWidth, GridHeight));
-        _water.SetShaderParameter("bed_size", new Vector2(BedArt.Width, BedArt.Height));
+        _water.SetShaderParameter("bed_size", new Vector2(bedCanvas.Width, bedCanvas.Height));
         _water.SetShaderParameter("scroll_rows", ScrollRowsPerSecond * 0.65f);
         _water.SetShaderParameter("refl_strength", _look.RiverReflection);
         var water = new Sprite2D
@@ -235,7 +268,7 @@ public partial class RiverBackground : Node2D
 
         // Foreground (roots, branches, vines)
         float bankWidth = BankArt.Width * pixel;
-        foreach (var side in sides)
+        foreach (var side in _look.Cosmic ? System.Array.Empty<BankArt.Side>() : sides)
         {
             float x = side == BankArt.Side.Left ? 0 : size.X - bankWidth;
             var origin = new Vector2(x, 0);
@@ -273,7 +306,7 @@ public partial class RiverBackground : Node2D
         };
         AddChild(_horizonSky);
         var hazeCanvas = new PixelCanvas(1, 24);
-        for (int y = 0; y < 24; y++) hazeCanvas[0, y] = PixelColor.Hex(0x86B4CC, (byte)(150 * System.Math.Pow(1 - y / 24f, 1.6)));
+        for (int y = 0; y < 24; y++) hazeCanvas[0, y] = PixelColor.Hex(_look.Cosmic ? 0xB89CE0u : 0x86B4CCu, (byte)(150 * System.Math.Pow(1 - y / 24f, 1.6)));
         _haze = new Sprite2D
         {
             Texture = hazeCanvas.ToTexture(), Centered = false, Scale = new Vector2(size.X, 5), ZIndex = -94, Visible = false,
@@ -294,8 +327,9 @@ public partial class RiverBackground : Node2D
         _water.SetShaderParameter("grade", new Vector3(_look.WaterGrade.R, _look.WaterGrade.G, _look.WaterGrade.B));
         _agitation = _look.Agitation;
         foreach (var (node, _, _, _) in _banks) node.Modulate = _look.BankTint;
-        _horizonLine = new ColorRect { Color = new Color(0.72f, 0.88f, 0.95f, 0.55f), Size = new Vector2(size.X, 2), ZIndex = -93, Visible = false };
+        _horizonLine = new ColorRect { Color = _look.Cosmic ? new Color(0.82f, 0.74f, 0.96f, 0.55f) : new Color(0.72f, 0.88f, 0.95f, 0.55f), Size = new Vector2(size.X, 2), ZIndex = -93, Visible = false };
         AddChild(_horizonLine);
+        if (_look.Cosmic) _open = 1;     // no banks: the sides of the field are open from the start
     }
 
     /// <summary>Opens the river into the sea: the banks slide out, and the horizon comes down from above the screen with the moon on it.</summary>
@@ -304,6 +338,7 @@ public partial class RiverBackground : Node2D
         // At the festival the banks still slide away, but there is no horizon: the river stays as it is, with a few lanterns afloat on the water.
         if (_look.FloatingLanterns) _floatersWanted = true;
         _bossFight = true;
+
         _weather?.SetFight(true);
         _openTime = 0;
         _openDuration = seconds;
@@ -316,13 +351,15 @@ public partial class RiverBackground : Node2D
         _bossFight = false;
         _weather?.SetFight(false);
         _openTime = -1;
-        _open = 0;
+        _sea = 0;
+        _rage = _rageTarget = 0;
+        _open = _look.Cosmic ? 1 : 0;
         ApplyOpen();
     }
 
     private void ApplyOpen()
     {
-        float e = _open;
+        float e = _look.Cosmic ? _sea : _open;
         bool open = e > 0.001f;
         PlaceBanks();
         PlacePlatform(e);
@@ -385,6 +422,7 @@ public partial class RiverBackground : Node2D
             _water.SetShaderParameter("refl_strength", Mathf.Lerp(_look.RiverReflection, _look.LakeReflection, _open));
             _streaks?.Update(dt, rush);
         }
+        if (_horizonSkyRage != null) { _rage = Mathf.MoveToward(_rage, _rageTarget, dt / 2.5f); PlaceRage(); }
         _snow?.Update(dt, _open);
         UpdateFloaters(dt);
         _life?.Update(dt, _open);
@@ -405,7 +443,7 @@ public partial class RiverBackground : Node2D
         {
             _openTime += dt;
             float u = Mathf.Clamp((float)(_openTime / _openDuration), 0, 1);
-            _open = u * u * (3 - 2 * u);
+            if (_look.Cosmic) _sea = u * u * (3 - 2 * u); else _open = u * u * (3 - 2 * u);     // (the river of stars has no banks to slide, only the horizon to bring)
             ApplyOpen();
             if (u >= 1) _openTime = -1;
         }

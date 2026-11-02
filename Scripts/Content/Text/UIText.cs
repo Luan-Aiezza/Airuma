@@ -64,6 +64,7 @@ public static class UIText
     public static string IllariName => Loc.Get(nameof(IllariName));
     public static string EpilogueTitle => Loc.Get(nameof(EpilogueTitle));
     public static string EpilogueHint => Loc.Get(nameof(EpilogueHint));
+    public static string IntroTitle => Loc.Get(nameof(IntroTitle));
     public static string DemoLabel => Loc.Get(nameof(DemoLabel));
 
     // Side panel

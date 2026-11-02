@@ -39,11 +39,12 @@ public partial class WindEffect : Node2D
 
     public readonly Vector2 Field;
     /// <summary>What the wind carries: leaves in the jungle, paper lanterns at the festival.</summary>
-    public enum Kind { Leaves, Lanterns, Birds }
+    public enum Kind { Leaves, Lanterns, Birds, Stars }
     public Kind Style = Kind.Leaves;
     private readonly Texture2D[][] _leafTextures = WindArt.MakeLeafTextures();
     private Texture2D[][] _lanternTextures;
     private Texture2D[] _birdTextures;
+    private Texture2D[][] _starTextures;
     private readonly Leaf[] _leaves;
     private readonly Sprite2D[] _nodes;
     private readonly List<Pending> _pending = new List<Pending>();
@@ -181,7 +182,8 @@ public partial class WindEffect : Node2D
         leaf.SwayAmplitude = Rand(16, 36);
         leaf.SwayRate = Rand(2.2f, 4);
         leaf.Fall = Rand(18, 40);
-        leaf.Tone = _rng.Next(0, Style == Kind.Lanterns ? FestivalArt.LanternTones : WindArt.LeafTones);
+        leaf.Tone = _rng.Next(0, Style == Kind.Lanterns ? FestivalArt.LanternTones : (Style == Kind.Stars ? WindArt.StarTones : WindArt.LeafTones));
+        if (Style == Kind.Stars) leaf.Fall = 0;                 // stars do not sink: they drift straight with the wind
         if (Style == Kind.Lanterns) leaf.Fall = Rand(-6, 8);   // paper lanterns float level
         if (Style == Kind.Birds) { leaf.Fall = 0; leaf.SwayAmplitude = Rand(4, 12); leaf.SwayRate = Rand(1, 2); leaf.Speed *= 1.15f; leaf.Life = distance / leaf.Speed; }   // a bird glides straight along the wind
         leaf.TumbleRate = Rand(3, 6);
@@ -213,6 +215,18 @@ public partial class WindEffect : Node2D
             node.Scale = new Vector2(3, 3);
             float bt = leaf.Age / leaf.Life;
             node.Modulate = new Color(1, 1, 1, Math.Min(1, bt / 0.06f) * Math.Min(1, (1 - bt) / 0.12f));
+            node.Visible = true;
+            return;
+        }
+        if (Style == Kind.Stars)
+        {
+            // A little star drifts with the wind, twinkling.
+            _starTextures ??= WindArt.MakeStarTextures();
+            node.Texture = _starTextures[leaf.Tone][(int)(leaf.Age * 4 + leaf.Phase) % WindArt.StarFrames];
+            node.Rotation = 0;
+            node.Scale = new Vector2(WindArt.Scale, WindArt.Scale);
+            float st = leaf.Age / leaf.Life;
+            node.Modulate = new Color(1, 1, 1, Math.Min(1, st / 0.1f) * Math.Min(1, (1 - st) / 0.2f));
             node.Visible = true;
             return;
         }

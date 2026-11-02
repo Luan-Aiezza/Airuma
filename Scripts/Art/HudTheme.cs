@@ -283,6 +283,102 @@ public sealed class HudTheme
     }
 
     /// <summary>
+    /// Stage 6, the river of stars in the realm of Killa, the Moon: the theme is the phases of the moon and the stars. The panel is the night sky, a deep violet with soft nebula, stars of
+    /// two kinds and here and there a little four-pointed sparkle; along its edge runs a column of moons (a crescent, a sparkle of gold, a full moon, a sparkle) in silver; the plaques
+    /// are framed in silver and moonlit blue; and at the bottom, in an arch, the eight phases of the moon, from the new to the full and back.
+    /// </summary>
+    public static HudTheme Cosmos()
+    {
+        P space = P.Hex(0x0A0818), deep = P.Hex(0x120E2C), cloud = P.Hex(0x1C1644), glowCloud = P.Hex(0x2A2060), silver = P.Hex(0xDCE6F8), silverDark = P.Hex(0x8E9CC8), edge = P.Hex(0x0C0A22);
+        string[] crescent = { "..####..", ".###....", "###.....", "###.....", "###.....", ".###....", "..####..", "........" };
+        string[] disc = { "..####..", ".######.", "########", "########", "########", "########", ".######.", "..####.." };
+        return new HudTheme
+        {
+            Name = "moon phases",
+            // Space: soft clouds of nebula (in flat, dithered bands), stars of three kinds, and little four-pointed sparkles of light.
+            Background = (x, y) =>
+            {
+                int gx = x / 37, gy = y / 41, h = (gx * 131 + gy * 71) % 97;
+                if (h % 2 == 0)
+                {
+                    int sx = gx * 37 + 4 + h % 29, sy = gy * 41 + 4 + (h * 7) % 33;
+                    int dx = Math.Abs(x - sx), dy = Math.Abs(y - sy);
+                    if (dx == 0 && dy == 0) return P.Hex(0xFFFFFF);
+                    if ((dx == 0 && dy == 1) || (dy == 0 && dx == 1)) return P.Hex(0xFFF2B0);
+                    if ((dx == 0 && dy == 2) || (dy == 0 && dx == 2)) return P.Hex(0xB8A868);
+                }
+                int hash = (x * 73 + y * 151 + (x / 7) * 29) % 109;
+                if (hash == 0) return P.Hex(0xFFFFFF);
+                if (hash == 1 && (x + y) % 2 == 0) return P.Hex(0x9AB4FF);
+                if (hash == 2 && (x * y) % 3 == 0) return P.Hex(0xFFE890);
+                float n = MathF.Sin(x * 0.045f + MathF.Sin(y * 0.021f) * 2.4f) + MathF.Sin(y * 0.037f + x * 0.018f) + 0.6f * MathF.Sin((x + y) * 0.07f);
+                float level = n * 0.5f + 1.2f + (((x + y) % 2 == 0) ? 0.12f : -0.12f);
+                return level > 2.0f ? glowCloud : (level > 1.35f ? cloud : (level > 0.7f ? deep : space));
+            },
+            // A column of moons: a silver crescent, a sparkle of gold, a full moon (lit on the left), a sparkle.
+            Band = (x, y) =>
+            {
+                int v = y % 32, row = v % 8;
+                if (v < 8) return crescent[row][x] == '#' ? (row % 3 == 0 ? P.Hex(0xFFFFFF) : silver) : edge;
+                if (v >= 16 && v < 24)
+                {
+                    if (disc[row][x] != '#') return edge;
+                    bool crater = (x == 5 && row == 2) || (x == 4 && row == 5) || (x == 6 && row == 4);
+                    return crater ? silverDark : (x < 4 ? P.Hex(0xFFFFFF) : silver);
+                }
+                int dx = Math.Abs(x * 2 - 7), dy = Math.Abs(row * 2 - 7);        // 1 and 3 from the middle of the 8 x 8 cell
+                bool sparkle = (dx == 1 && dy <= 1) || (dx <= 1 && dy == 1) || (dx == 3 && dy == 1 && false);
+                bool arm = (dx == 1 && dy == 3) || (dx == 3 && dy == 1);
+                return sparkle ? P.Hex(0xFFF2B0) : (arm ? P.Hex(0xB8A868) : edge);
+            },
+            Ink = P.Hex(0x070614), RimInner = P.Hex(0x6A7ADC), BeadLight = P.Hex(0xFFFFFF), BeadDark = P.Hex(0x6A7ADC),
+            PlaqueEdgeA = silver, PlaqueEdgeB = P.Hex(0x3E4AA4), PlaqueFill = P.Hex(0x08061A),
+            RuleA = silver, RuleB = P.Hex(0x7A8AE0),
+            FrameDot = P.Hex(0xFFF0A8), FrameBase = P.Hex(0x3E4AA4), FrameLine = P.Hex(0x070614),
+            Ornament = MoonPhasesOrnament,
+        };
+    }
+
+    /// <summary>The eight phases of the moon in an arch across the bottom of the panel, from the new moon on the left, through the full one at the top, to the waning crescent on the right, with a trail of stars along the arch.</summary>
+    public static PixelCanvas MoonPhasesOrnament()
+    {
+        var c = new PixelCanvas(OrnamentWidth, OrnamentHeight);
+        P lit = P.Hex(0xE8EEFF), litShade = P.Hex(0xB4C0E8), dark = P.Hex(0x1C2048), rim = P.Hex(0x7A8AE0);
+        const float r = 4.1f;
+        float Arch(float u) => 17.5f - 11f * MathF.Sin(u * MathF.PI);          // u: 0 at the left end ... 1 at the right: the middle is the highest
+        // the trail of stars along the arch, a little above the moons
+        for (int x = 3; x < OrnamentWidth - 3; x += 3)
+        {
+            float u = (x - 3f) / (OrnamentWidth - 7f);
+            int y = (int)MathF.Round(Arch(u) - 7.2f);
+            if (c.Contains(x, y)) c[x, y] = (x / 3) % 2 == 0 ? P.Hex(0xFFF2B0) : P.Hex(0x5A6AC8);
+        }
+        for (int i = 0; i < 8; i++)
+        {
+            float u = i / 7f;
+            float cx = 5.5f + u * (OrnamentWidth - 11f), cy = Arch(u);
+            float phase = i * MathF.PI / 4;                                        // new, crescent, quarter, gibbous, FULL, gibbous, quarter, crescent
+            float cph = -MathF.Cos(phase);                                         // -1 new ... 1 full
+            bool waxing = i < 4;
+            bool full = i == 4;
+            for (int y = (int)(cy - r - 1); y <= (int)(cy + r + 1); y++)
+                for (int x = (int)(cx - r - 1); x <= (int)(cx + r + 1); x++)
+                {
+                    float uu = (x + 0.5f - cx) / r, vv = (y + 0.5f - cy) / r;
+                    float d2 = uu * uu + vv * vv;
+                    if (d2 > 1.15f || !c.Contains(x, y)) continue;
+                    float w = MathF.Sqrt(MathF.Max(0, 1 - vv * vv));
+                    bool isLit = full || (waxing ? uu > -cph * w : uu < cph * w);
+                    if (d2 > 0.8f) c[x, y] = isLit ? lit : rim;
+                    else c[x, y] = isLit ? (uu < 0 ? lit : litShade) : dark;
+                }
+            // a glow round the full moon
+            if (i == 4) foreach (var (dx, dy) in new[] { (-6, 0), (6, 0), (0, -6), (-4, -4), (4, -4) }) if (c.Contains((int)cx + dx, (int)cy + dy)) c[(int)cx + dx, (int)cy + dy] = P.Hex(0xFFF2B0);
+        }
+        return c;
+    }
+
+    /// <summary>
     /// At the bottom of the panel, a bear-skin rug laid flat, seen from above, with its head pointing down: only the head (the ears, the shut eyes, the snout and the
     /// nose) and the two front paws, with their claws, on either side of it, are in the picture; the body goes on above, out of it. Brown fur on a border of red felt.
     /// </summary>

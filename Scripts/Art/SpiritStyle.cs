@@ -40,6 +40,13 @@ public sealed class SpiritStyle
         FrameCount = AndeanSpiritArt.FrameCount,
     };
 
+    /// <summary>The creatures of the night sky in the realm of Killa (stage 6): little stars, moon moths and new moons.</summary>
+    public static readonly SpiritStyle Celestial = new SpiritStyle
+    {
+        MakeCanvas = CelestialSpiritArt.MakeCanvas, SparkColour = CelestialSpiritArt.SparkColour, Width = CelestialSpiritArt.Width, Height = CelestialSpiritArt.Height,
+        FrameCount = CelestialSpiritArt.FrameCount,
+    };
+
     /// <summary>The spirits of the festival (stage 2).</summary>
     public static readonly SpiritStyle Party = new SpiritStyle
     {

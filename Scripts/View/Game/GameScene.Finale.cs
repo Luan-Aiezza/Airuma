@@ -35,12 +35,10 @@ public partial class GameScene : Node2D
         AddChild(_veil);
         if (Stage.Priestess)
         {
-            _priestess = new Sprite2D
-            {
-                Texture = KuychuArt.MakeRight(0).ToTexture(), Rotation = MathF.PI / 2, Scale = new Vector2(PriestessScale, PriestessScale),
-                Position = Point(PriestessPlace), ZIndex = Z(1.8f), Visible = false,
-            };
+            _priestess = new Sprite2D { Texture = IllariArt.MakeLying().ToTexture(), Scale = new Vector2(PriestessScale, PriestessScale), ZIndex = Z(1.8f), Visible = false };
+            _priestessStanding = new Sprite2D { Texture = IllariArt.MakeStanding().ToTexture(), Scale = new Vector2(StandingScale, StandingScale), ZIndex = Z(1.8f), Visible = false };
             AddChild(_priestess);
+            AddChild(_priestessStanding);
         }
     }
 
@@ -53,7 +51,7 @@ public partial class GameScene : Node2D
         _epilogueState = 0; _epilogueDone = false;
         _epilogue?.QueueFree(); _epilogue = null;
         _priestessTween?.Kill();
-        if (_priestess != null) { _priestess.Visible = false; _priestessReturned = _priestessAwake = false; }
+        if (_priestess != null) { _priestess.Visible = false; _priestessStanding.Visible = false; _priestessReturned = _priestessAwake = false; }
     }
 
     // MARK: The great light (the end of stage 5)
@@ -80,18 +78,23 @@ public partial class GameScene : Node2D
 
     // MARK: The priestess (stage 6)
 
-    private Sprite2D _priestess;
+    private Sprite2D _priestess, _priestessStanding;
     private Tween _priestessTween;
     private bool _priestessReturned, _priestessAwake;
-    private const float PriestessScale = 1.5f;
-    private static readonly Vector2 PriestessPlace = new Vector2(300, 400);
+    /// <summary>Screen pixels per art pixel: lying on the water, and standing.</summary>
+    private const float PriestessScale = 1.6f, StandingScale = 1.6f;      // the same as Killa's
+    /// <summary>She lies on her side along the line of the horizon of the water, a little below it, in the middle (the boss, who stands on the line, is over her).</summary>
+    private static readonly Vector2 PriestessPlace = new Vector2(300, Layout.Horizon + 14);
+    /// <summary>Where the standing picture goes so that her feet are where the lying one's body was (its centre is that far above).</summary>
+    private static float StandingLift => (IllariArt.LyingBaseline - IllariArt.LyingHeight / 2f) * PriestessScale - (IllariArt.StandingFeet - IllariArt.StandingHeight / 2f) * StandingScale;
 
-    /// <summary>She lies asleep on the ground in the middle of the river (she fades in as the river opens).</summary>
+    /// <summary>She lies asleep on her side on the water, on the line of the horizon (she fades in as the river opens).</summary>
     private void ShowPriestess()
     {
         if (_priestess == null) return;
         _priestessTween?.Kill();
-        _priestess.Position = Point(PriestessPlace); _priestess.Rotation = MathF.PI / 2; _priestess.Scale = new Vector2(PriestessScale, PriestessScale);
+        _priestessStanding.Visible = false;
+        _priestess.Position = Point(PriestessPlace); _priestess.Scale = new Vector2(PriestessScale, PriestessScale);
         _priestess.Modulate = new Color(1, 1, 1, 0); _priestess.Visible = true;
         _priestessTween = CreateTween();
         _priestessTween.TweenProperty(_priestess, "modulate:a", 1f, 1.6f);
@@ -116,7 +119,8 @@ public partial class GameScene : Node2D
         if (_priestess == null) return;
         _priestessTween?.Kill();
         SfxPlayer.Instance?.Play(SfxBank.Sound.LevelUp);
-        _priestess.Position = Point(PriestessPlace); _priestess.Rotation = MathF.PI / 2; _priestess.Scale = new Vector2(0.25f, 0.25f);
+        _priestessStanding.Visible = false;
+        _priestess.Position = Point(PriestessPlace); _priestess.Scale = new Vector2(0.25f, 0.25f);
         _priestess.Modulate = new Color(3, 3, 3, 0); _priestess.Visible = true;
         _priestessTween = CreateTween();
         _priestessTween.TweenProperty(_priestess, "scale", new Vector2(PriestessScale, PriestessScale), 0.7f);
@@ -124,14 +128,20 @@ public partial class GameScene : Node2D
         _priestessTween.Parallel().TweenProperty(_priestess, "modulate", new Color(1, 1, 1, 1), 0.9f);
     }
 
-    /// <summary>She wakes: she sits up and stands.</summary>
+    /// <summary>She wakes: the picture of her asleep gives way to the one of her standing, who rises a little out of the water, her hands still in prayer.</summary>
     private void WakePriestess()
     {
         if (_priestess == null) return;
         _priestessTween?.Kill();
+        var home = Point(PriestessPlace) + new Vector2(0, StandingLift);
+        _priestessStanding.Position = home + new Vector2(0, 26);
+        _priestessStanding.Modulate = new Color(1, 1, 1, 0);
+        _priestessStanding.Visible = true;
         _priestessTween = CreateTween().SetTrans(Tween.TransitionType.Sine).SetEase(Tween.EaseType.Out);
-        _priestessTween.TweenProperty(_priestess, "rotation", 0f, 0.9f);
-        _priestessTween.Parallel().TweenProperty(_priestess, "position:y", Point(PriestessPlace).Y - 45f, 0.9f);
+        _priestessTween.TweenProperty(_priestess, "modulate:a", 0f, 0.7f);
+        _priestessTween.Parallel().TweenProperty(_priestessStanding, "modulate:a", 1f, 0.8f);
+        _priestessTween.Parallel().TweenProperty(_priestessStanding, "position:y", home.Y, 1.0f);
+        _priestessTween.TweenCallback(Callable.From(() => _priestess.Visible = false));
     }
 
     /// <summary>During the last talk: she returns at her line and wakes at the first line she speaks.</summary>

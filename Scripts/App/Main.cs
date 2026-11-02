@@ -152,7 +152,8 @@ public partial class Main : Node2D
         AddChild(new SfxPlayer());
         if (_options.Practice is int phase) StartGame(phase, Difficulty.Normal, _options.Stage);
         else if (_options.Game) StartGame(null, _options.Difficulty, _options.Stage);
-        else ShowMenu();
+        else if (_shot != null) ShowMenu();
+        else ShowIntro();
     }
 
     private void Swap(Node next)
@@ -166,9 +167,22 @@ public partial class Main : Node2D
 
     private void ContinueRun(int stage, int level) => StartGame(null, (Difficulty)level, stage, _carry);
 
-    private void ShowMenu()
+    private bool _menuThemeOn;
+
+    /// <summary>When the game opens, before the menu: the story so far, over a picture of the night (Z turns the page, X skips it).</summary>
+    private void ShowIntro()
     {
         MusicPlayer.Instance?.Play(MusicPlayer.Theme.Menu);
+        _menuThemeOn = true;
+        var story = new EpilogueScreen(Dialogues.IntroStory, nameof(UIText.IntroTitle), EpilogueScreen.MakeNight) { HandlesOwnInput = true };
+        story.Finished += () => CallDeferred(nameof(ShowMenu));
+        Swap(story);
+    }
+
+    private void ShowMenu()
+    {
+        if (!_menuThemeOn) MusicPlayer.Instance?.Play(MusicPlayer.Theme.Menu);
+        _menuThemeOn = false;
         _idle = 0;
         _inMenu = true;
         var menu = new MenuScene();
