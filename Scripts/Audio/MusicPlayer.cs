@@ -11,7 +11,9 @@ public partial class MusicPlayer : Node
 
     public static MusicPlayer Instance { get; private set; }
 
-    private const float PlayDb = -6f;
+    private const float BaseDb = -6f;
+    /// <summary>The volume of the music: its own level less what the player took off in Config.</summary>
+    private static float PlayDb => BaseDb + Settings.ToDb(Settings.Music);
 
     private AudioStreamPlayer _player;
     private readonly Task<(float[], float[])>[] _tasks = new Task<(float[], float[])>[4];
@@ -32,6 +34,14 @@ public partial class MusicPlayer : Node
         _tasks[(int)Theme.Stage] = Task.Run(Songs.EmberSerpent);
         _tasks[(int)Theme.Boss] = Task.Run(Songs.InfernoSerpent);
         _tasks[(int)Theme.BossTwo] = Task.Run(Songs.SerpentAblaze);
+    }
+
+    /// <summary>The volume was changed in Config: it takes effect on what is playing now.</summary>
+    public void ApplyVolume()
+    {
+        if (_player == null) return;
+        if (_fade != null && _fade.IsValid()) return;      // it is fading out: it has its own way down
+        _player.VolumeDb = PlayDb;
     }
 
     public override void _ExitTree()

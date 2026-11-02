@@ -37,7 +37,9 @@ public partial class SfxPlayer : Node
 
     public void Play(SfxBank.Sound sound)
     {
+        if (Settings.Sfx <= 0) return;
         var (db, gap) = SfxBank.Settings(sound);
+        db += Settings.ToDb(Settings.Sfx);
         double now = Time.GetTicksMsec() / 1000.0;
         if (_lastPlayed.TryGetValue(sound, out double last) && now - last < gap) return;
         _lastPlayed[sound] = now;

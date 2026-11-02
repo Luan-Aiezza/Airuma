@@ -42,7 +42,7 @@ public static class Stages
     public static readonly StageDefinition Five = new StageDefinition(
         nameof(UIText.Stage5Title), nameof(UIText.StageMusic), MusicPlayer.Theme.Stage, Stage5Waves.Waves, KuychuBoss.Definition)
     {
-        Scenery = Scenery.Waterfall, Spirits = SpiritStyle.Andes,
+        Scenery = Scenery.Waterfall, Hud = HudTheme.Andes, Spirits = SpiritStyle.Andes,
         Intro = () => Dialogues.StageFiveIntro,
         BossEncounter = () => Dialogues.StageFiveMeeting, Ending = () => Dialogues.StageFiveEnding,
     };

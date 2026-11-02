@@ -24,6 +24,14 @@ public partial class GameScene : Node2D
     public event Action Exit;
     private readonly InputController _input = new();
     public bool Autoplay;
+    /// <summary>The demonstration shown when the menu is left alone: a pilot plays a stage by itself, and any key, click, touch or move of the mouse goes back to the menu.</summary>
+    public bool Demo;
+    private DemoPilot _demoPilot;
+    private PixelLabel _demoLabel;
+    private double _demoClock;
+    /// <summary>The demonstration ends after this many seconds if it has not ended by itself.</summary>
+    private const double DemoSeconds = 80;
+    private bool Scripted => Autoplay || Demo;
 
     private double _accumulator;
     private PlayerInputComponent _sampledInput;
@@ -122,6 +130,13 @@ public partial class GameScene : Node2D
         _pause.Continue += Resume;
         _pause.GiveUp += DoExit;
         BuildJoystick();
+        if (Demo)
+        {
+            _demoPilot = new DemoPilot();
+            _demoLabel = new PixelLabel(PixelLabel.Style.Gold, 4, PixelLabel.Align.Center) { Position = new Vector2(Layout.FieldInset + 300, 40), ZIndex = 160 };
+            _demoLabel.SetText(UIText.DemoLabel);
+            AddChild(_demoLabel);
+        }
         SyncNodes();
         StartRun();
         UpdateHUD(0);
@@ -163,6 +178,13 @@ public partial class GameScene : Node2D
     {
         if (_exited) return;
         if (_pause.IsShown) return; // the game stands still while paused
+        if (Demo)
+        {
+            _demoClock += delta;
+            // it ends when the boat is lost, the stage is won or the time is up; the label blinks
+            if (World.Result != null || _demoClock > DemoSeconds) { DoExit(); return; }
+            _demoLabel.Modulate = new Color(1, 1, 1, (float)_demoClock % 1.2f < 0.8f ? 1 : 0.25f);
+        }
         double dt = Math.Min(delta, 0.1);
         _clock += delta;
         float fdt = (float)dt;
@@ -179,7 +201,7 @@ public partial class GameScene : Node2D
             if (_attackNameDelay <= 0) { _hud.ShowAttackName(_pendingAttackName); _pendingAttackName = null; }
         }
         _accumulator += Math.Min(delta, 0.25);
-        _sampledInput = Autoplay ? AutoInput() : _input.Sample();
+        _sampledInput = Demo ? _demoPilot.Sample(World, fdt) : (Autoplay ? AutoInput() : _input.Sample());
         while (_accumulator >= TickRate)
         {
             _accumulator -= TickRate;

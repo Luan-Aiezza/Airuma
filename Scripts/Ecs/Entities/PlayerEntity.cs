@@ -3,7 +3,7 @@ using Godot;
 /// <summary>The boat: the components that move, shoot, bomb and hurt it, with the lantern's energy and the cards' wards.</summary>
 public class PlayerEntity
 {
-    /// <summary>The boat at the start of a run: three lives, three bombs, the plain weapon.</summary>
+    /// <summary>The boat at the start of a run: the lives and the bombs chosen in Config (three each at first), the plain weapon.</summary>
     public static PlayerEntity Create() => new PlayerEntity
     {
         Id = 1,
@@ -11,8 +11,8 @@ public class PlayerEntity
         Movement = new VelocityComponent { Speed = 400 },
         Weapon = new PlayerWeaponComponent { PowerLevel = 1, FireRate = 0.1f, TimeSinceLastFire = 0, BulletSpeed = 800 },
         Hitbox = new HitboxComponent(4),
-        Health = new HealthComponent(1, 1, 3, 0),
-        Bomb = new BombComponent(3, false, 0, 5, 250),
+        Health = new HealthComponent(1, 1, Settings.Lives, 0),
+        Bomb = new BombComponent(Settings.Bombs, false, 0, 5, 250),
         WindModifier = new WindModifierComponent(1),
     };
 

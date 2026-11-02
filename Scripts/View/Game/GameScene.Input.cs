@@ -43,7 +43,7 @@ public partial class GameScene : Node2D
             _pickerLock = Math.Max(0, _pickerLock - dt);
             if (_pickerLock == 0)
             {
-                if (Autoplay) { Take(0); return; }
+                if (Scripted) { Take(0); return; }
                 if (JustPressed(Key.Left, Key.A)) _picker.Move(-1);
                 if (JustPressed(Key.Right, Key.D)) _picker.Move(1);
                 if (JustPressed(Key.Z, Key.Enter, Key.KpEnter, Key.Space)) Take(_picker.Selected);
@@ -66,7 +66,7 @@ public partial class GameScene : Node2D
     /// <summary>Z / Enter / Space move the conversation on; X skips it. (The autoplay test pilot skips it at once.)</summary>
     private void UpdateDialogueKeys()
     {
-        if (Autoplay) { _dialogue.Skip(true); return; }
+        if (Scripted) { _dialogue.Skip(true); return; }
         bool Fresh(params Key[] keys) => keys.Any(k => KeyDown(k) && !_dialogueHeld.Contains(k));
         if (Fresh(Key.X)) _dialogue.Skip();
         else if (Fresh(Key.Z, Key.Enter, Key.KpEnter, Key.Space)) _dialogue.Advance();
@@ -84,6 +84,14 @@ public partial class GameScene : Node2D
 
     public override void _Input(InputEvent @event)
     {
+        if (Demo)
+        {
+            // any key, click, touch or move of the mouse brings the menu back (a moment of grace first, so what the scene change itself stirs up does not)
+            bool wake = @event is InputEventKey { Pressed: true } || @event is InputEventMouseButton { Pressed: true } || @event is InputEventScreenTouch { Pressed: true }
+                || @event is InputEventJoypadButton { Pressed: true } || (_demoClock > 0.5 && @event is InputEventMouseMotion or InputEventScreenDrag);
+            if (wake && !(@event is InputEventKey fk && fk.Keycode is Key.F11)) { DoExit(); GetViewport().SetInputAsHandled(); }
+            return;
+        }
         if (@event is InputEventKey key && key.Pressed && !key.Echo)
         {
             if (key.Keycode == Key.Escape && World.Result == null && !_exited)

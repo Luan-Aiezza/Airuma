@@ -26,9 +26,56 @@ public partial class Main : Node2D
     /// <summary>For looking at the picture: `--shot=file.png` saves the view after a few frames (`--shot-frames=N`, 90 by default) and quits.</summary>
     public override void _Process(double delta)
     {
+        // the menu left alone for a while turns into a demonstration of the game
+        if (_inMenu && !_starting && (_idle += (float)delta) >= IdleSeconds) StartDemo();
         if (_shot == null || ++_shotFrames < _shotAt) return;
         GetViewport().GetTexture().GetImage().SavePng(_shot);
         GetTree().Quit();
+    }
+
+    /// <summary>Seconds without a key, click, touch or move of the mouse in the menu before the demonstration begins.</summary>
+    private const float IdleSeconds = 10;
+    private float _idle;
+    private bool _inMenu, _starting;
+    private static int _demoStage = System.Random.Shared.Next(4);
+
+    /// <summary>A black veil over everything, for the soft change between the menu and the demonstration.</summary>
+    private readonly ColorRect _veil = new() { Color = new Color(0, 0, 0, 0), MouseFilter = Control.MouseFilterEnum.Ignore };
+    private Tween _veilTween;
+    private const float FadeSeconds = 0.7f;
+
+    private void BuildVeil()
+    {
+        var layer = new CanvasLayer { Layer = 100 };
+        AddChild(layer);
+        _veil.AnchorRight = 1; _veil.AnchorBottom = 1;
+        _veil.Visible = false;
+        layer.AddChild(_veil);
+    }
+
+    /// <summary>Fades the veil to `alpha` (1: black); `then` runs when it gets there. At 0 the veil is hidden, so it costs nothing.</summary>
+    private void FadeTo(float alpha, System.Action then = null)
+    {
+        _veilTween?.Kill();
+        _veil.Visible = true;
+        _veilTween = CreateTween();
+        _veilTween.TweenProperty(_veil, "color:a", alpha, FadeSeconds);
+        _veilTween.TweenCallback(Callable.From(() => { if (alpha <= 0) _veil.Visible = false; then?.Invoke(); }));
+    }
+
+    private void StartDemo()
+    {
+        _starting = true;
+        var definition = Stages.All[_demoStage++ % 4];     // stages 1 to 4, in turns
+        // the menu fades to black, the demonstration is built behind the veil and fades in; on leaving, the same the other way round
+        FadeTo(1, () =>
+        {
+            _starting = false; _inMenu = false;
+            var game = new GameScene(null, Difficulty.Normal, definition, null, stagePractice: true) { Demo = true };
+            game.Exit += () => FadeTo(1, () => { ShowMenu(); FadeTo(0); });
+            Swap(game);
+            FadeTo(0);
+        });
     }
 
     private void Fit()
@@ -46,8 +93,12 @@ public partial class Main : Node2D
     /// picture grows to the screen keeping its proportions, and what is left at the sides is filled by the pillars of <see cref="SideFrame"/> (stretch mode canvas_items / expand).</summary>
     public static bool IsFullscreen => DisplayServer.WindowGetMode() == DisplayServer.WindowMode.Fullscreen;
 
+    /// <summary>The mode last chosen (the window itself may take a frame to show it).</summary>
+    public static bool FullscreenChosen { get; private set; }
+
     public static void SetFullscreen(bool on)
     {
+        FullscreenChosen = on;
         DisplayServer.WindowSetMode(on ? DisplayServer.WindowMode.Fullscreen : DisplayServer.WindowMode.Windowed);
         var cfg = new ConfigFile();
         cfg.Load(SettingsPath);
@@ -58,6 +109,11 @@ public partial class Main : Node2D
     /// <summary>F11, Alt+Enter or Cmd+Ctrl+F toggle full screen from anywhere (menu or game).</summary>
     public override void _Input(InputEvent @event)
     {
+        if (_inMenu && @event is InputEventKey or InputEventMouseButton or InputEventMouseMotion or InputEventScreenTouch or InputEventScreenDrag or InputEventJoypadButton)
+        {
+            _idle = 0;
+            if (_starting) { _starting = false; FadeTo(0); }     // a key during the fade to black: the menu stays
+        }
         if (@event is InputEventKey { Pressed: true, Echo: false } key)
         {
             bool toggle = key.Keycode == Key.F11
@@ -77,16 +133,19 @@ public partial class Main : Node2D
         var settings = new ConfigFile();
         if (settings.Load(SettingsPath) == Error.Ok && (bool)settings.GetValue("display", "fullscreen", false))
             DisplayServer.WindowSetMode(DisplayServer.WindowMode.Fullscreen);
+        FullscreenChosen = IsFullscreen;
 
         _options = LaunchOptions.FromCommandLine();
         if (DevTools.Run(_options)) { GetTree().Quit(); return; }
         if (_options.SelfTest) { GetTree().Quit(SelfTest.Run()); return; }
+        Settings.Load();
         _shot = _options.Shot;
         _shotAt = _options.ShotFrames;
         _autoplay = _options.Autoplay;
 
         AddChild(_sides);
         AddChild(_stage);
+        BuildVeil();
         Fit();
         GetTree().Root.SizeChanged += Fit;
         AddChild(new MusicPlayer());
@@ -110,6 +169,8 @@ public partial class Main : Node2D
     private void ShowMenu()
     {
         MusicPlayer.Instance?.Play(MusicPlayer.Theme.Menu);
+        _idle = 0;
+        _inMenu = true;
         var menu = new MenuScene();
         menu.Quit += () => GetTree().Quit();
         menu.StartGame += level => CallDeferred(nameof(StartGameDeferred), -1, (int)level, 0);
@@ -121,6 +182,7 @@ public partial class Main : Node2D
 
     private void StartGame(int? phase, Difficulty difficulty = Difficulty.Normal, int stage = 0, RunCarry carry = null, bool stagePractice = false)
     {
+        _inMenu = false;
         var definition = Stages.All[System.Math.Clamp(stage, 0, Stages.All.Count - 1)];
         var game = new GameScene(phase, difficulty, definition, carry, stagePractice) { Autoplay = _autoplay };
         game.Exit += () => CallDeferred(nameof(ShowMenu));

@@ -32,7 +32,8 @@ public partial class World
     public const float CollectLine = 190;
     /// <summary>The boat is drawing every light to itself: it is high in the picture and its power is at the top.</summary>
     public bool Collecting => Player.Transform.Position.Y < CollectLine && PowerCurve.Level(Player.Energy) >= PowerCurve.MaxLevel;
-    public const int MaxLives = 3;
+    /// <summary>The most lives the boat can hold: three, or more if it began with more (Config).</summary>
+    public static int MaxLives => Math.Max(3, Settings.Lives);
 
     // The stage
     public readonly StageDefinition Definition;
@@ -54,6 +55,7 @@ public partial class World
     public BossEntity Boss { get; private set; }
     /// <summary>The second body of a boss that is two persons who share one life (null for the others): hitting either hurts the same boss.</summary>
     public BossEntity Twin { get; private set; }
+    private readonly TwinDance _dance = new TwinDance();
     /// <summary>The second body while it is a body of its own (not after it has fused into the first); null if there is none.</summary>
     private BossEntity TwinBody => Twin != null && !Twin.Merged ? Twin : null;
     public List<EnemyEntity> Enemies { get; private set; } = new List<EnemyEntity>();
@@ -185,6 +187,7 @@ public partial class World
     /// <summary>The boss's attack for the lives it has left begins (for a boss that is two, both bodies go to their places).</summary>
     private void StartBossPhase()
     {
+        _dance.Reset();
         PhaseManagerSystem.ChangePhase(Boss, Boss.Health.Lives, Difficulty);
         if (Twin != null) PhaseManagerSystem.ChangeTwinPhase(Twin, Boss);
     }
@@ -271,11 +274,14 @@ public partial class World
         if (bossActive && Twin != null)
         {
             if (!Twin.Merged) MovementSystem.MoveBoss(Twin, Field, delta, Player.Transform.Position);
+            var dancePhase = Boss.Health.Lives > 0 ? Boss.Definition.PhaseFor(Boss.Health.Lives) : null;
+            if (dancePhase != null && dancePhase.Dance && !Twin.Merged && Boss.MovementType != BossMovementType.Transition && Twin.MovementType != BossMovementType.Transition)
+                MovementSystem.DanceStep(_dance, Boss, Twin, dancePhase.Target, dancePhase.TwinTarget, Field, delta);
             Twin.Health = Boss.Health;
             // in an attack where the two are one, the second fuses with the first once it has arrived, and then follows it
             bool fuse = Boss.Health.Lives > 0 && Boss.Definition.PhaseFor(Boss.Health.Lives).Fused;
             if (fuse && !Twin.Merged && Twin.MovementType != BossMovementType.Transition) Twin.Merged = true;
-            if (!fuse) Twin.Merged = false;
+            if (!fuse && !Boss.Definition.PhaseFor(Math.Max(1, Boss.Health.Lives)).Fused) Twin.Merged = false;
             if (Twin.Merged) Twin.Transform.Position = Boss.Transform.Position;
         }
         foreach (var enemy in Enemies) EnemySystem.Move(enemy, delta);
@@ -358,7 +364,7 @@ public partial class World
             Player.Health.CurrentHealth = Player.Health.MaxHealth;
             Player.Health.InvincibilityTimer = 3.0f;
             Player.Transform.Position = CombatSystem.PlayerSpawn;
-            Player.Bomb.BombsLeft = Math.Max(Player.Bomb.BombsLeft, MaxBombs);
+            Player.Bomb.BombsLeft = Math.Max(Player.Bomb.BombsLeft, Settings.Bombs);
             _events.Add(WorldEvent.PlayerHit());
         }
         if (CombatSystem.ProcessHealth(Player, Boss, delta, bossActive))
@@ -373,7 +379,7 @@ public partial class World
         {
             PowerSystem.LoseEnergy(Player, Lights, placeBefore);
             // Like in Touhou: after losing a life the bag of bombs is full again.
-            Player.Bomb.BombsLeft = Math.Max(Player.Bomb.BombsLeft, MaxBombs);
+            Player.Bomb.BombsLeft = Math.Max(Player.Bomb.BombsLeft, Settings.Bombs);
             _events.Add(WorldEvent.PlayerHit());
         }
     }

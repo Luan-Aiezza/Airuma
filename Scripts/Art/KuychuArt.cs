@@ -86,10 +86,24 @@ public static class KuychuArt
                 if (hood[x, y].A > 0 && y < 24 + bob)
                 {
                     float dx = (x + 0.5f - Cx) / 5.3f, dy = (y + 0.5f - 17.8f - bob) / 6.7f;
-                    if (dx * dx + dy * dy <= 1) hood[x, y] = cloth[2];
+                    if (dx * dx + dy * dy <= 1) hood[x, y] = cloth[(x + y) % 3 == 0 ? 2 : 1];
                 }
         for (int y = 12 + bob; y <= 28 + bob; y++) { foreach (int sd in new[] { -1, 1 }) { int x = Cx + sd * (int)MathF.Round(6.2f + (y - 12) * 0.12f); if (hood.Contains(x, y) && hood[x, y].A > 0 && y % 4 != 0) hood[x, y] = cloth[2]; } }
         Blit(head, hood);
+    }
+
+    /// <summary>Like <see cref="AddOutlined"/>, but the line is drawn only against the empty air: where the part lies over the clothes there is no line, so the hood is one cloth with the mantle.</summary>
+    private static void OutlinedOverEmpty(PixelCanvas fig, PixelCanvas part, P outline)
+    {
+        (int, int)[] dirs = { (1, 0), (-1, 0), (0, 1), (0, -1) };
+        for (int y = 0; y < part.Height; y++)
+            for (int x = 0; x < part.Width; x++)
+            {
+                if (part[x, y].A != 0 || fig[x, y].A != 0) continue;
+                foreach (var (dx, dy) in dirs)
+                    if (part.Contains(x + dx, y + dy) && part[x + dx, y + dy].A > 0) { fig[x, y] = outline; break; }
+            }
+        Blit(fig, part);
     }
 
     private static PixelCanvas Finish(PixelCanvas glow, PixelCanvas fig, int frame)
@@ -106,19 +120,87 @@ public static class KuychuArt
     // MARK: The two as one
 
     /// <summary>
-    /// The two fused into one body (the second half of the fight): one tall hooded figure, the left half of the one that is the sun's and the right half of the one that is the water's, joined
-    /// down the middle: a hood of crimson and a hood of indigo, a gown of cream and a gown of ice, a mantle of crimson and a mantle of indigo, the staff of gold in the left hand and the
-    /// drop of water over the right palm, a gold light for one eye and a pale blue one for the other.
+    /// The two fused into a NEW being (the second half of the fight): no hood, the face bare under long hair of gold, and two long, irregular horns. The dress recalls both: a mantle that
+    /// is crimson at the shoulders and deepens into indigo at the hem, a gown of cream that ends in tiers of ice, the gold collar and sash of the sun with the turquoise stone of the water,
+    /// the staff of gold in one hand and the drop of water over the other palm.
     /// </summary>
     public static PixelCanvas MakeFused(int frame)
     {
         int bob = frame == 2 || frame == 3 ? 1 : 0;
-        var l = LeftFigure(frame, bob); var r = RightFigure(frame, bob);
-        var c = Sheet();
-        for (int y = 0; y < Height; y++) for (int x = 0; x < Width; x++) c[x, y] = x < Cx ? l[x, y] : r[x, y];
-        // a thin seam down the middle of the body, where the two are joined, in a pale light
-        for (int y = 26; y <= 74; y++) if (c[Cx, y].A > 0) c[Cx, y] = (y % 3 == 0) ? P.Hex(0xFFFFE8) : c[Cx, y].Mixed(P.Hex(0xFFFFE8), 0.45f);
-        return c;
+        float sway = new[] { 0f, 1f, 0f, -1f }[frame];
+        var mantleA = Sheet(); var mantleB = Sheet(); var mantle = Sheet(); var gown = Sheet(); var sash = Sheet(); var arms = Sheet(); var hair = Sheet(); var locks = Sheet();
+        var head = Sheet(); var horns = Sheet(); var staff = Sheet(); var glow = Sheet();
+
+        // the mantle: crimson from the shoulders, dithering into indigo towards the hem; steps of gold (tocapu) along its edges
+        var outline = Pts((Cx - 11f, 22f + bob), (Cx + 11f, 22f + bob), (Cx + 21f + sway, 75f), (Cx - 21f - sway, 75f));
+        Fill(mantleA, outline, Crimson); Fill(mantleB, outline, Indigo);
+        for (int y = 0; y < Height; y++)
+            for (int x = 0; x < Width; x++)
+            {
+                if (mantleA[x, y].A == 0) continue;
+                int line = 40 + ((x + y) % 2 == 0 ? 0 : 4) + (y % 3 == 0 ? 2 : 0);
+                mantle[x, y] = y < line ? mantleA[x, y] : mantleB[x, y];
+            }
+        for (int y = 26; y <= 74; y++)
+        {
+            int half = (int)MathF.Round(11 + (y - 22) * 0.19f + sway * (y - 22) / 50f);
+            if ((y / 3) % 2 == 0) { Put(mantle, Cx - half + 1, y, Gold[1]); Put(mantle, Cx - half + 2, y, Gold[1]); Put(mantle, Cx + half - 1, y, Gold[1]); Put(mantle, Cx + half - 2, y, Gold[1]); }
+            else { Put(mantle, Cx - half + 3, y, Gold[2]); Put(mantle, Cx + half - 3, y, Gold[2]); }
+        }
+
+        // the gown: cream to the floor; in the lower half, tiers of ice with a lace of silver, and a hem of gold
+        Fill(gown, Pts((Cx - 7.5f, 26f + bob), (Cx + 7.5f, 26f + bob), (Cx + 8.5f, 42f), (Cx + 14f, 75f), (Cx - 14f, 75f), (Cx - 8.5f, 42f)), Cream);
+        foreach (int tier in new[] { 52, 61, 68 })
+            for (int x = Cx - 15; x <= Cx + 15; x++)
+                if (gown[x, tier].A > 0)
+                {
+                    for (int y = tier; y < 75; y++) if (gown[x, y].A > 0 && y < tier + 5) gown[x, y] = Ice[(x + y) % 3 == 0 ? 0 : 1];
+                    Put(gown, x, tier, (x % 2 == 0) ? Silver[0] : Silver[1]);
+                }
+        for (int x = Cx - 14; x <= Cx + 14; x++) { Put(gown, x, 73, Gold[1]); Put(gown, x, 74, (x % 2 == 0) ? Gold[0] : Gold[2]); Put(gown, x, 75, Gold[2]); }
+        Folds(gown, 34, 72, Cream, 7, 7);
+        // the collar: the disc of the sun, with the turquoise stone of the water at its heart
+        FillEllipse(gown, Cx, 28f + bob, 8f, 4.4f, Gold);
+        FillEllipse(gown, Cx, 28f + bob, 3.2f, 2.4f, Teal);
+        for (int k = 0; k < 10; k++) { float a = k * MathF.PI / 5; Put(gown, (int)MathF.Round(Cx + MathF.Cos(a) * 8.6f), (int)MathF.Round(28 + bob + MathF.Sin(a) * 5f), Gold[0]); }
+        // the sash: gold with a thread of silver, its end falling
+        for (int x = Cx - 8; x <= Cx + 8; x++) for (int y = 41; y <= 43; y++) Put(sash, x, y, y == 42 ? Silver[0] : Gold[1]);
+        for (int y = 44; y <= 56; y++) { Put(sash, Cx + 1, y, Gold[1]); Put(sash, Cx + 2, y, Gold[2]); }
+
+        // the arms: wide sleeves of cream edged with ice; one holds the staff, the other is open, with a drop of water over the palm
+        Limb(arms, new[] { (Cx - 8f, 28f + bob), (Cx - 14f, 38f), (Cx - 17f, 46f) }, 3f, 2.3f, Cream); FillEllipse(arms, Cx - 17.5f, 47.6f, 2f, 2f, Skin); FillEllipse(arms, Cx - 16f, 44.4f, 3f, 1.6f, Ice);
+        Limb(arms, new[] { (Cx + 8f, 28f + bob), (Cx + 15f, 35f), (Cx + 18f, 33f - bob) }, 3f, 2.3f, Cream); FillEllipse(arms, Cx + 18.4f, 31.2f - bob, 2f, 1.7f, Skin); FillEllipse(arms, Cx + 15.6f, 34.4f, 3f, 1.6f, Ice);
+        FillEllipse(glow, Cx + 19f, 25f - bob, 4.6f, 4.6f, new[] { P.Hex(0xC8F0FF, 110), P.Hex(0xB0E4FF, 110), P.Hex(0x5EA8E8, 70) });
+        PixelPaint.Ellipse(glow, Cx + 19f, 25f - bob, 2f, 2f, P.Hex(0xFFFFFF));
+        for (int y = 14; y <= 76; y++) { Put(staff, Cx - 19, y, y % 6 < 3 ? Gold[1] : Gold[2]); Put(staff, Cx - 18, y, Gold[0]); }
+        FillEllipse(staff, Cx - 18.4f, 11.6f, 2.8f, 3.2f, Gold); FillEllipse(staff, Cx - 17.4f, 8.8f, 2.2f, 1.8f, Gold);
+        Put(staff, Cx - 18, 8, Ink); Put(staff, Cx - 19, 12, Crimson[0]); Put(staff, Cx - 17, 14, Crimson[0]);
+
+        // the hair: gold, very long, falling to the waist and moving; two locks fall in front of the shoulders
+        Fill(hair, Pts((Cx - 8f, 9f + bob), (Cx + 8f, 9f + bob), (Cx + 11f + sway * 0.7f, 42f), (Cx + 8f, 60f), (Cx + 3f, 55f), (Cx - 2f, 61f), (Cx - 8f, 56f), (Cx - 11f - sway * 0.7f, 42f)), Gold);
+        Folds(hair, 16, 58, Gold, 6, 5);
+        Fill(locks, Pts((Cx - 7f, 15f + bob), (Cx - 4.4f, 18f + bob), (Cx - 5.4f - sway * 0.4f, 40f), (Cx - 8f, 50f), (Cx - 9.4f, 40f)), Gold);
+        Fill(locks, Pts((Cx + 7f, 15f + bob), (Cx + 4.4f, 18f + bob), (Cx + 5.4f + sway * 0.4f, 40f), (Cx + 8f, 52f), (Cx + 9.4f, 40f)), Gold);
+
+        // the horns: long and irregular, no two alike; each rises from the brow, bends, and ends in a point; one carries a broken spur
+        Limb(horns, new[] { (Cx - 4f, 12f + bob), (Cx - 8f, 7f + bob), (Cx - 9f, 3f + bob), (Cx - 13f, -1f + bob) }, 2.2f, 0.5f, Cream);
+        Limb(horns, new[] { (Cx - 7.6f, 7.4f + bob), (Cx - 12f, 7f + bob), (Cx - 15f, 4f + bob) }, 1.3f, 0.4f, Cream);
+        Limb(horns, new[] { (Cx + 4f, 12f + bob), (Cx + 6f, 6f + bob), (Cx + 10f, 4f + bob), (Cx + 9f, -2f + bob), (Cx + 11f, -4f + bob) }, 2.2f, 0.4f, Cream);
+        Limb(horns, new[] { (Cx + 9.6f, 3.6f + bob), (Cx + 14f, 2f + bob), (Cx + 16f, -1f + bob) }, 1.2f, 0.4f, Cream);
+        for (int y = 0; y < horns.Height; y++) for (int x = 0; x < horns.Width; x++) if (horns[x, y].A > 0 && (x * 3 + y * 5) % 11 == 0) horns[x, y] = Gold[2];
+
+        // the head: bare, the face lit; eyes of gold; the hair parts over the brow
+        FillEllipse(head, Cx, 17.4f + bob, 4.9f, 5.8f, Skin);
+        Put(head, Cx - 3, 17 + bob, Ink); Put(head, Cx - 2, 17 + bob, Gold[0]); Put(head, Cx + 2, 17 + bob, Gold[0]); Put(head, Cx + 3, 17 + bob, Ink);
+        Put(head, Cx - 3, 16 + bob, Skin[2]); Put(head, Cx - 2, 16 + bob, Skin[2]); Put(head, Cx + 2, 16 + bob, Skin[2]); Put(head, Cx + 3, 16 + bob, Skin[2]);
+        Put(head, Cx, 20 + bob, Skin[2]); Put(head, Cx - 1, 22 + bob, Crimson[1]); Put(head, Cx, 22 + bob, Crimson[1]);
+        Fill(head, Pts((Cx - 5.6f, 13f + bob), (Cx, 10.4f + bob), (Cx + 5.6f, 13f + bob), (Cx + 5.2f, 17f + bob), (Cx + 3.4f, 14.4f + bob), (Cx + 0.6f, 13.2f + bob), (Cx - 1.4f, 14.6f + bob), (Cx - 3.4f, 14f + bob), (Cx - 5.2f, 18f + bob)), Gold);
+        FillEllipse(glow, Cx, 13f + bob, 12f, 12f, new[] { P.Hex(0xFFF0A8, 60), P.Hex(0xFFF0A8, 60), P.Hex(0xC8F0FF, 30) });
+
+        var fig = Sheet();
+        AddOutlined(fig, staff, Outline); AddOutlined(fig, mantle, Outline); AddOutlined(fig, hair, Outline); AddOutlined(fig, gown, Outline); Blit(fig, sash);
+        AddOutlined(fig, arms, Outline); AddOutlined(fig, locks, Outline); AddOutlined(fig, horns, Outline); AddOutlined(fig, head, Outline);
+        return Finish(glow, fig, frame);
     }
 
     // MARK: The one on the left: the sun's
@@ -170,7 +252,7 @@ public static class KuychuArt
 
         var fig = Sheet();
         AddOutlined(fig, staff, Outline); AddOutlined(fig, mantle, Outline); AddOutlined(fig, hair, Outline); AddOutlined(fig, gown, Outline); Blit(fig, sash);
-        AddOutlined(fig, arms, Outline); AddOutlined(fig, head, Outline);
+        AddOutlined(fig, arms, Outline); OutlinedOverEmpty(fig, head, Outline);
         return Finish(glow, fig, frame);
     }
 
@@ -216,7 +298,7 @@ public static class KuychuArt
         FillEllipse(glow, Cx, 13f + bob, 11f, 11f, new[] { P.Hex(0xC8F0FF, 55), P.Hex(0xC8F0FF, 55), P.Hex(0x5EA8E8, 30) });
 
         var fig = Sheet();
-        AddOutlined(fig, veil, Outline); AddOutlined(fig, hair, Outline); AddOutlined(fig, gown, Outline); AddOutlined(fig, arms, Outline); AddOutlined(fig, head, Outline);
+        AddOutlined(fig, veil, Outline); AddOutlined(fig, hair, Outline); AddOutlined(fig, gown, Outline); AddOutlined(fig, arms, Outline); OutlinedOverEmpty(fig, head, Outline);
         return Finish(glow, fig, frame);
     }
 }

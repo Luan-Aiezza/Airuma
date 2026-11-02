@@ -65,19 +65,22 @@ public class InputController
 
     private static bool Down(Key key) => Godot.Input.IsKeyPressed(key);
 
+    /// <summary>The key chosen for the action is down (or its letter, W A S D, which also move the boat while the arrows have their own keys).</summary>
+    private static bool Held(ControlAction action) => Down(Settings.KeyFor(action)) || (Settings.Alias(action) is Key alias && Down(alias));
+
     public PlayerInputComponent Sample()
     {
         if (Override != null) return Override();
         var input = new PlayerInputComponent();
         var dir = Vector2.Zero;
 
-        if (Down(Key.Left) || Down(Key.A)) dir.X -= 1;
-        if (Down(Key.Right) || Down(Key.D)) dir.X += 1;
-        if (Down(Key.Up) || Down(Key.W)) dir.Y -= 1;
-        if (Down(Key.Down) || Down(Key.S)) dir.Y += 1;
-        input.IsShooting = Down(Key.Z);
-        input.IsBombing = Down(Key.X);
-        input.IsFocused = Down(Key.Shift);
+        if (Held(ControlAction.Left)) dir.X -= 1;
+        if (Held(ControlAction.Right)) dir.X += 1;
+        if (Held(ControlAction.Up)) dir.Y -= 1;
+        if (Held(ControlAction.Down)) dir.Y += 1;
+        input.IsShooting = Down(Settings.KeyFor(ControlAction.Shoot));
+        input.IsBombing = Down(Settings.KeyFor(ControlAction.Bomb));
+        input.IsFocused = Down(Settings.KeyFor(ControlAction.Focus));
 
         if (_movementTouch != null)
         {

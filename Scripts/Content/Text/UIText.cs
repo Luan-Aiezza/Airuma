@@ -39,6 +39,27 @@ public static class UIText
     public static string NoScore => Loc.Get(nameof(NoScore));
     public static string Cleared => Loc.Get(nameof(Cleared));
     public static string MenuHint => Loc.Get(nameof(MenuHint));
+    public static string CfgTitle => Loc.Get(nameof(CfgTitle));
+    public static string CfgLives => Loc.Get(nameof(CfgLives));
+    public static string CfgBombs => Loc.Get(nameof(CfgBombs));
+    public static string CfgMusic => Loc.Get(nameof(CfgMusic));
+    public static string CfgSfx => Loc.Get(nameof(CfgSfx));
+    public static string CfgMode => Loc.Get(nameof(CfgMode));
+    public static string CfgFullscreen => Loc.Get(nameof(CfgFullscreen));
+    public static string CfgWindowed => Loc.Get(nameof(CfgWindowed));
+    public static string CfgControls => Loc.Get(nameof(CfgControls));
+    public static string CfgDefaults => Loc.Get(nameof(CfgDefaults));
+    public static string CfgExit => Loc.Get(nameof(CfgExit));
+    public static string CfgKeyUp => Loc.Get(nameof(CfgKeyUp));
+    public static string CfgKeyDown => Loc.Get(nameof(CfgKeyDown));
+    public static string CfgKeyLeft => Loc.Get(nameof(CfgKeyLeft));
+    public static string CfgKeyRight => Loc.Get(nameof(CfgKeyRight));
+    public static string CfgKeyShoot => Loc.Get(nameof(CfgKeyShoot));
+    public static string CfgKeyBomb => Loc.Get(nameof(CfgKeyBomb));
+    public static string CfgKeyFocus => Loc.Get(nameof(CfgKeyFocus));
+    public static string CfgPressKey => Loc.Get(nameof(CfgPressKey));
+    public static string CfgHint => Loc.Get(nameof(CfgHint));
+    public static string DemoLabel => Loc.Get(nameof(DemoLabel));
 
     // Side panel
     public static string HiScore => Loc.Get(nameof(HiScore));

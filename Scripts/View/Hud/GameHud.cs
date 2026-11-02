@@ -18,7 +18,9 @@ public partial class GameHud : Node2D
     public const float PanelX = Layout.PanelX;
     /// <summary>The panel was drawn for a river 600 wide; everything on it shifts by the extra width.</summary>
     private const float PanelShift = Layout.PanelX - 598;
-    public const int MaxLives = 3, MaxBombs = 3, MaxPower = 3;
+    public const int MaxBombs = 3, MaxPower = 3;
+    /// <summary>Slots for the lives: the boat holds three, or as many as it began with if more (Config).</summary>
+    private static int LifeSlots => World.MaxLives;
 
     /// <summary>Characters per line in the dialogue box.</summary>
     public const int DialogueWidth = 14;
@@ -213,9 +215,9 @@ public partial class GameHud : Node2D
         Label(new PixelLabel(PixelLabel.Style.Label), UIText.Wind, 654, 398);
 
         static float SlotX(int i) => 826 + i * 32;
-        for (int i = 0; i < MaxLives; i++)
+        for (int i = 0; i < LifeSlots; i++) _lifeIcons.Add(MakeSprite(_boatEmpty, At(SlotX(i) - 2, 276), 2));
+        for (int i = 0; i < MaxBombs; i++)
         {
-            _lifeIcons.Add(MakeSprite(_boatEmpty, At(SlotX(i) - 2, 276), 2));
             _bombIcons.Add(MakeSprite(_lanternEmpty, At(SlotX(i), 317), 2));
             _powerIcons.Add(MakeSprite(_flameEmpty, At(SlotX(i) + 4, 355), 2));
         }
@@ -344,9 +346,9 @@ public partial class GameHud : Node2D
 
     public void Update(HudState state, float dt)
     {
-        for (int i = 0; i < MaxLives; i++)
+        for (int i = 0; i < _lifeIcons.Count; i++) _lifeIcons[i].Texture = i < state.Lives ? _boatFull : _boatEmpty;
+        for (int i = 0; i < MaxBombs; i++)
         {
-            _lifeIcons[i].Texture = i < state.Lives ? _boatFull : _boatEmpty;
             _bombIcons[i].Texture = i < state.Bombs ? _lanternFull : _lanternEmpty;
             _powerIcons[i].Texture = i < state.Power ? _flameFull : _flameEmpty;
         }

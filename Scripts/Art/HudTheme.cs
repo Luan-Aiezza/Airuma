@@ -201,6 +201,88 @@ public sealed class HudTheme
     }
 
     /// <summary>
+    /// Stage 5, the divinity under the mountains of the Andes: the panel is Inca stonework, blocks of dark blue-grey laid in courses with a lit top edge; along its edge runs a column of
+    /// tocapu (stepped squares and crosses in crimson, gold and indigo); the plaques are framed in gold; and, at the bottom, a range of snowy peaks under a golden sun with its rays.
+    /// </summary>
+    public static HudTheme Andes()
+    {
+        P joint = P.Hex(0x0C0E1C), stone = P.Hex(0x1C2240), stoneLight = P.Hex(0x2A3258), stoneDark = P.Hex(0x161B34), lit = P.Hex(0x3A4474);
+        P gold = P.Hex(0xF2C14E), goldDark = P.Hex(0xB8862B), crimson = P.Hex(0xB62A30), indigo = P.Hex(0x3C34A4), ice = P.Hex(0xA8D0F0);
+        // a chakana (the stepped Andean cross) and a stepped square, 8 x 8 each
+        string[] cross = { "...##...", "..####..", ".######.", "########", "########", ".######.", "..####..", "...##..." };
+        string[] square = { "########", "#......#", "#.####.#", "#.#..#.#", "#.#..#.#", "#.####.#", "#......#", "########" };
+        return new HudTheme
+        {
+            Name = "andes",
+            // Ashlar: courses of 9 rows, the blocks of each course offset from the last; every block lit on its top edge and its left, and worn in places.
+            Background = (x, y) =>
+            {
+                int course = y / 9, v = y % 9;
+                int width = 14 + (course % 3) * 2, u = (x + (course * 7) % width) % width;
+                if (v == 8 || u == width - 1) return joint;
+                if (v == 0 || u == 0) return lit;
+                int wear = (x * 31 + y * 17 + course * 13) % 23;
+                if (wear == 0) return stoneLight;
+                if (wear == 1 || (x + y * 3) % 29 == 0) return stoneDark;
+                return ((course * 5 + (x + (course * 7) % width) / width) % 4 == 0) ? stoneLight : stone;
+            },
+            // Tocapu: a chakana in gold on crimson, then a stepped square in ice on indigo, each in its 8 x 8 cell, with a dark line between.
+            Band = (x, y) =>
+            {
+                int cell = (y / 10) % 2, v = y % 10;
+                if (v >= 8) return joint;
+                char mark = (cell == 0 ? cross : square)[v][x];
+                if (cell == 0) return mark == '#' ? ((x + v) % 4 == 0 ? P.Hex(0xFFF0A8) : gold) : crimson;
+                return mark == '#' ? ice : indigo;
+            },
+            Ink = P.Hex(0x080A16), RimInner = goldDark, BeadLight = P.Hex(0xFFF0A8), BeadDark = goldDark,
+            PlaqueEdgeA = gold, PlaqueEdgeB = P.Hex(0x4A3A8A), PlaqueFill = P.Hex(0x0A0C1A),
+            RuleA = gold, RuleB = crimson,
+            FrameDot = P.Hex(0xFFF0A8), FrameBase = indigo, FrameLine = P.Hex(0x080A16),
+            Ornament = MountainOrnament,
+        };
+    }
+
+    /// <summary>A range of snowy peaks across the bottom of the panel, with the sun of the Andes (a gold disc and its rays) rising between them, and a few stars.</summary>
+    public static PixelCanvas MountainOrnament()
+    {
+        var c = new PixelCanvas(OrnamentWidth, OrnamentHeight);
+        P gold = P.Hex(0xF2C14E), goldLight = P.Hex(0xFFF0A8), ray = P.Hex(0x8A6A2A);
+        const float sunX = 37f, sunY = 11f;
+        // rays
+        for (int k = 0; k < 14; k++)
+        {
+            float a = -MathF.PI + k * MathF.PI / 13f;
+            for (float r = 6.5f; r < (k % 2 == 0 ? 15f : 11f); r += 0.5f)
+            {
+                int x = (int)MathF.Round(sunX + MathF.Cos(a) * r * 1.5f), y = (int)MathF.Round(sunY + MathF.Sin(a) * r * 0.9f);
+                if (c.Contains(x, y)) c[x, y] = r < 10f ? gold : ray;
+            }
+        }
+        PixelPaint.Ellipse(c, sunX, sunY, 6f, 5f, gold);
+        PixelPaint.Ellipse(c, sunX - 1f, sunY - 1f, 3.6f, 3f, goldLight);
+        foreach (var (x, y) in new[] { (5, 3), (14, 6), (60, 4), (68, 8), (26, 2), (50, 2) }) if (c.Contains(x, y)) c[x, y] = P.Hex(0xE8F6FF);
+        // two ranges: a far one in indigo, a near one in dark blue with snow on the peaks
+        float Far(int x) => 17f - 4.5f * MathF.Abs(MathF.Sin(x * 0.11f + 0.6f)) - 2f * MathF.Sin(x * 0.31f);
+        float Near(int x) => 20f - 9f * MathF.Pow(MathF.Abs(MathF.Sin(x * 0.085f + 1.1f)), 0.8f) - 1.5f * MathF.Sin(x * 0.4f);
+        for (int x = 0; x < OrnamentWidth; x++)
+            for (int y = (int)Far(x); y < OrnamentHeight; y++) if (c.Contains(x, y)) c[x, y] = (x + y) % 5 == 0 ? P.Hex(0x4A42B8) : P.Hex(0x3C34A4);
+        for (int x = 0; x < OrnamentWidth; x++)
+        {
+            int top = (int)Near(x);
+            for (int y = top; y < OrnamentHeight; y++)
+            {
+                if (!c.Contains(x, y)) continue;
+                int depth = y - top;
+                bool snow = Near(x) < 14.5f && depth < 2 + (int)((14.5f - Near(x)) * 0.6f) && (depth < 1 || (x + y) % 3 != 0);
+                c[x, y] = snow ? (depth == 0 ? P.Hex(0xFFFFFF) : P.Hex(0xDCE8FF)) : (x % 7 < 3 ? P.Hex(0x1C2240) : P.Hex(0x141A34));
+            }
+            if (c.Contains(x, top - 1) && c[x, top - 1].A == 0) c[x, top - 1] = P.Hex(0x080A16);
+        }
+        return c;
+    }
+
+    /// <summary>
     /// At the bottom of the panel, a bear-skin rug laid flat, seen from above, with its head pointing down: only the head (the ears, the shut eyes, the snout and the
     /// nose) and the two front paws, with their claws, on either side of it, are in the picture; the body goes on above, out of it. Brown fur on a border of red felt.
     /// </summary>

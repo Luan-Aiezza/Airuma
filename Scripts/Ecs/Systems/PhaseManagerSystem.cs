@@ -29,6 +29,8 @@ public static class PhaseManagerSystem
         }
         var phase = boss.Definition.PhaseFor(boss.Health.Lives);
         twin.Hitbox.Radius = phase.HitboxRadius;
+        // once fused they stay one for the rest of the fight: no un-fusing in the breather between attacks
+        if (twin.Merged && phase.Fused) { twin.MovementType = BossMovementType.Stationary; return; }
         twin.MovementType = BossMovementType.Transition;
         twin.TransitionTimer = BreatherSeconds;
         twin.TransitionSpeed = 0;

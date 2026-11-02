@@ -32,6 +32,8 @@ public sealed class BossPhase
     /// <summary>Where the second body goes and how it moves, for a boss that is two (see <see cref="BossDefinition.HasTwin"/>).</summary>
     /// <summary>In this attack the two bodies of a boss that is two are ONE: the second glides to the first and they fuse (the fused style is shown, and the twin is gone).</summary>
     public bool Fused;
+    /// <summary>The two bodies take turns to move anywhere on the screen while the other stays parked at the top (see <see cref="TwinDance"/>); each goes back to its place (Target, TwinTarget) before the other leaves.</summary>
+    public bool Dance;
     public BossMovementType TwinMovement = BossMovementType.Stationary;
     public Vector2 TwinTarget;
 

@@ -5,7 +5,7 @@ using Godot;
 /// two-headed serpent of the rivers, the rainbow and the earthquake. The boss is two persons who share one life (the one on the left is the boss itself, the one on the right is its
 /// twin, see <see cref="BossDefinition.HasTwin"/>); they fire in turns, each from where it stands, and they move apart. The water of its rivers comes as jets and as walls
 /// (<see cref="SlashSpec"/>, the level ones from the side); the earth shakes when it moves under the border (<see cref="QuakeSpec"/>); and the rainbow is its bullets in the seven colours
-/// (<see cref="BulletEmitterComponent.Rainbow"/>). Whatever they do, one of them is always where the boat can hit it.
+/// (<see cref="BulletEmitterComponent.Rainbow"/>). In the first half they take turns to roam the whole screen while the other stays parked at the top (<see cref="TwinDance"/>); one of them is always where the boat can hit it.
 /// </summary>
 public static partial class Attacks
 {
@@ -20,10 +20,10 @@ public static partial class Attacks
         sub: new BulletEmitterComponent
         {
             IsActive = true, FireRate = 1.6f, TimeSinceLastFire = -0.8f, BulletsPerVolley = 5, SpreadAngle = 45, BulletSpeed = 215, IsAimed = true, BulletScale = 1.0f, BulletStyle = BulletStyle.OrbRed, FromTwin = true,
-        });
+        }, dance: true);
 
     /// <summary>The rainbow: from each of the two, seven arms of bullets in the seven colours, turning in opposite senses, bend as they go in great arcs that cross in the middle.</summary>
-    public static BossPhase SevenArcs() => Attack("AttackSevenArcs", BossMovementType.Stationary, new Vector2(210, Layout.BossY),
+    public static BossPhase SevenArcs() => Attack("AttackSevenArcs", BossMovementType.Stationary, LeftSide,
         main: new BulletEmitterComponent
         {
             IsActive = true, FireRate = 0.24f, BulletsPerVolley = 7, SpreadAngle = 360, BulletSpeed = 150, SpinRate = 3.4f, CurveRate = 32, BulletScale = 0.95f, Rainbow = true, BulletStyle = BulletStyle.OrbRed,
@@ -31,10 +31,10 @@ public static partial class Attacks
         sub: new BulletEmitterComponent
         {
             IsActive = true, FireRate = 0.24f, BulletsPerVolley = 7, SpreadAngle = 360, BulletSpeed = 150, SpinRate = -3.4f, CurveRate = -32, BulletScale = 0.95f, Rainbow = true, BulletStyle = BulletStyle.OrbRed, FromTwin = true,
-        });
+        }, dance: true);
 
     /// <summary>The earthquake: the border shakes, the screen with it, and drops of the falls come down from above in a crowd (the left one stamps); between the tremors, fans at the boat from the right one.</summary>
-    public static BossPhase BorderQuake() => Attack("AttackBorderQuake", BossMovementType.Stationary, new Vector2(120, Layout.BossY),
+    public static BossPhase BorderQuake() => Attack("AttackBorderQuake", BossMovementType.Stationary, LeftSide,
         main: new BulletEmitterComponent
         {
             IsActive = true, FireRate = 0.1f, BulletsPerVolley = 1, BulletSpeed = 300, BulletScale = 1.3f, BulletStyle = BulletStyle.Hail, Ceiling = true, QuakeOnly = true,
@@ -43,7 +43,7 @@ public static partial class Attacks
         {
             IsActive = true, FireRate = 1.4f, BulletsPerVolley = 3, SpreadAngle = 30, BulletSpeed = 200, IsAimed = true, BulletScale = 1.0f, BulletStyle = BulletStyle.VenomOrb, FromTwin = true,
         },
-        quake: new QuakeSpec { IsActive = true, Interval = 3.0f, Duration = 3.6f, Intensity = 1f });
+        quake: new QuakeSpec { IsActive = true, Interval = 3.0f, Duration = 3.6f, Intensity = 1f }, dance: true);
 
     /// <summary>The tide: walls of water cross the field from the side, level, one above the other, each warned of by a line; the boat has to go up or down between them. The left one stands; the right one drifts about.</summary>
     public static BossPhase Tide() => Attack("AttackTide", BossMovementType.Stationary, LeftSide,
@@ -56,10 +56,10 @@ public static partial class Attacks
             IsActive = true, FireRate = 1.4f, BulletsPerVolley = 1, SpreadAngle = 0, BulletSpeed = 190, IsAimed = true, BulletScale = 1.1f, BulletStyle = BulletStyle.LotusPetal, FromTwin = true,
         },
         slashes: new SlashSpec { IsActive = true, Interval = 2.7f, Telegraph = 1.1f, Strike = 0.45f, Width = 44, Spacing = 200, Count = 2, Angle = 84, Aim = SlashAim.Player },
-        twinMovement: BossMovementType.Roam, twinTarget: RightSide);
+        twinTarget: RightSide, dance: true);
 
     /// <summary>The trial of worth: the two fire together, face to face, rings that turn in opposite senses and cross in the middle in a lattice of colours.</summary>
-    public static BossPhase Trial() => Attack("AttackTrial", BossMovementType.Stationary, new Vector2(220, Layout.BossY),
+    public static BossPhase Trial() => Attack("AttackTrial", BossMovementType.Stationary, LeftSide,
         main: new BulletEmitterComponent
         {
             IsActive = true, FireRate = 0.75f, BulletsPerVolley = 16, SpreadAngle = 360, BulletSpeed = 130, SpinRate = 7.5f, BulletScale = 0.95f, Rainbow = true, BulletStyle = BulletStyle.OrbRed,
@@ -67,10 +67,10 @@ public static partial class Attacks
         sub: new BulletEmitterComponent
         {
             IsActive = true, FireRate = 0.75f, BulletsPerVolley = 16, SpreadAngle = 360, BulletSpeed = 130, SpinRate = -7.5f, BulletScale = 0.95f, Rainbow = true, BulletStyle = BulletStyle.OrbRed, FromTwin = true,
-        });
+        }, dance: true);
 
     // From here the two are ONE (the second half of the fight): the second glides to the first and they fuse, and the one body that is left fires from the two halves of itself.
-    private static readonly Vector2 Fusion = new Vector2(300, Layout.BossY);
+    private static readonly Vector2 Fusion = new Vector2(300, Layout.BossY + 50);   // the fused body is big: lower, so that its head is clear of the boss bar
 
     /// <summary>The broken rainbow (enraged, fused): the one body glides about the field while two spirals of the seven colours, turning in opposite senses, curve out of it, and jets of water cut down the field.</summary>
     public static BossPhase BrokenRainbow() => Attack("AttackBrokenRainbow", BossMovementType.Roam, Fusion,
