@@ -18,6 +18,28 @@ public static class PhaseManagerSystem
         boss.TransitionSpeed = (boss.TargetPosition.Y + 170) / (EntranceSeconds - 0.4f);
     }
 
+    /// <summary>The second body of a boss that is two: it glides to its place for the attack that the first one begins (it has no attacks of its own: the first one fires for both).</summary>
+    public static void ChangeTwinPhase(BossEntity twin, BossEntity boss)
+    {
+        if (boss.Health.Lives <= 0)
+        {
+            twin.MovementType = BossMovementType.Stationary;
+            twin.Transform.Position = new Vector2(-9999, -9999);
+            return;
+        }
+        var phase = boss.Definition.PhaseFor(boss.Health.Lives);
+        twin.Hitbox.Radius = phase.HitboxRadius;
+        twin.MovementType = BossMovementType.Transition;
+        twin.TransitionTimer = BreatherSeconds;
+        twin.TransitionSpeed = 0;
+        twin.Merged = false;
+        // in an attack where they are one, the second glides to the first (where it will be) and fuses with it
+        twin.NextMovementType = phase.Fused ? BossMovementType.Stationary : phase.TwinMovement;
+        twin.TargetPosition = phase.Fused ? phase.Target : phase.TwinTarget;
+        twin.Patrol.Reset(); twin.Roam.Reset(); twin.Dive.Reset(); twin.Dash.Reset(twin.TargetPosition.X); twin.Cross.Reset();
+        twin.Sweep.Reset(Difficulty.Normal);
+    }
+
     public static void ChangePhase(BossEntity boss, int currentLives, Difficulty difficulty = Difficulty.Normal)
     {
         // No lives left: the boss is defeated.
@@ -36,6 +58,7 @@ public static class PhaseManagerSystem
         boss.Health.CurrentHealth = phase.MaxHealth;
         boss.EmitterMain = phase.Main;
         boss.EmitterSub = phase.Sub;
+        boss.Specials = SpecialsSystem.Begin(phase, difficulty);
 
         boss.MovementType = BossMovementType.Transition;
         boss.TransitionTimer = BreatherSeconds;
@@ -46,6 +69,7 @@ public static class PhaseManagerSystem
         boss.Dive.Reset();
         boss.Sweep.Reset(difficulty);
         boss.Dash.Reset(phase.Target.X);
+        boss.Cross.Reset();
         if (phase.StartsAtTarget) boss.Transform.Position = phase.Target;
 
         ApplyDifficulty(boss, phase, difficulty);
@@ -62,8 +86,16 @@ public static class PhaseManagerSystem
             if (difficulty == Difficulty.Normal) return;
         }
         if (difficulty == Difficulty.Normal) return;
-        if (boss.EmitterMain.IsActive) boss.EmitterMain.BulletsPerVolley = difficulty.Scale(boss.EmitterMain.BulletsPerVolley);
-        if (boss.EmitterSub.IsActive) boss.EmitterSub.BulletsPerVolley = difficulty.Scale(boss.EmitterSub.BulletsPerVolley);
+        ScaleEmitter(ref boss.EmitterMain, difficulty);
+        ScaleEmitter(ref boss.EmitterSub, difficulty);
         if (difficulty == Difficulty.Hard && !boss.EmitterSub.IsActive && phase.HardExtra.IsActive) boss.EmitterSub = phase.HardExtra;
+    }
+
+    /// <summary>Easy: fewer bullets in a volley, a wider gap in a curtain. Hard: more bullets, a narrower gap. A constellation keeps its shape.</summary>
+    private static void ScaleEmitter(ref BulletEmitterComponent emitter, Difficulty difficulty)
+    {
+        if (!emitter.IsActive) return;
+        if (emitter.Curtain) emitter.CurtainGap *= difficulty == Difficulty.Easy ? 1.35f : (difficulty == Difficulty.Hard ? 0.85f : 1);
+        else if (!emitter.Link) emitter.BulletsPerVolley = difficulty.Scale(emitter.BulletsPerVolley);
     }
 }

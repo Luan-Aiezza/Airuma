@@ -113,7 +113,10 @@ public partial class GameHud : Node2D
     private static Vector2 AtScene(float x, float top) => new Vector2(x, top);
 
     /// <summary>A point on the side panel, with x as drawn for the original 600-wide river.</summary>
-    private static Vector2 At(float x, float top) => AtScene(x + PanelShift, top);
+    private static Vector2 At(float x, float top) => AtScene(x + PanelShift, top >= CardPlaqueBottom ? top + CardPlaqueGrow : top);
+
+    /// <summary>The strip of cards is taller than the first plaque was: everything under it moves down by this much (screen points).</summary>
+    private const float CardPlaqueGrow = 32, CardPlaqueBottom = 190;
 
     /// <summary>A point in the game field, with x measured from the field's left edge (inside the trees' inset).</summary>
     private static Vector2 AtField(float x, float top) => AtScene(x + Layout.FieldInset, top);
@@ -152,25 +155,26 @@ public partial class GameHud : Node2D
     private void BuildPanel()
     {
         // Plaques in art pixels, relative to the panel's top-left.
-        var plaques = new[] { new Rect2(11, 19, 74, 29), new Rect2(11, 49, 74, 17), new Rect2(11, 67, 74, 54), new Rect2(11, 122, 74, 46) };
+        const float grow = CardPlaqueGrow / 4; // in art pixels
+        var plaques = new[] { new Rect2(11, 19, 74, 29 + grow), new Rect2(11, 49 + grow, 74, 17), new Rect2(11, 67 + grow, 74, 54), new Rect2(11, 122 + grow, 74, 46) };
         MakeSprite(HudArt.MakePanel(plaques, _theme).ToTexture(), AtScene(PanelX, 0));
 
         var title = new PixelLabel(PixelLabel.Style.Title, 6, PixelLabel.Align.Center);
         Label(title, UIText.Title, 790, 32);
 
-        // The strip of cards, in the first plaque: twelve places, locked until the cards are taken (a whole run gathers twelve).
-        const float slotScale = 3, pitchX = 49, pitchY = 50;
+        // The strip of cards, in the first plaque: six places (three by two), locked until the cards are taken (a whole run gathers six).
+        const float slotScale = 4, pitchX = 98, pitchY = 72;
         for (int i = 0; i < RunState.MaxCards; i++)
         {
             var slot = new Sprite2D { Texture = _lockedSlot, Centered = false, Scale = new Vector2(slotScale, slotScale), ZIndex = Z(2) };
-            slot.Position = AtScene(PanelX + 44 + 5 + (i % 6) * pitchX, 76 + 9 + (i / 6) * pitchY);
+            slot.Position = AtScene(PanelX + 62 + (i % 3) * pitchX, 82 + (i / 3) * pitchY);
             AddChild(slot);
             _cardSlots.Add(slot);
         }
 
         // The theme's ornament, in the free space at the bottom.
         if (_theme.Ornament != null)
-            MakeSprite(_theme.Ornament().ToTexture(), At(646, 680), 1);
+            MakeSprite(_theme.Ornament().ToTexture(), At(646, 668), 1);
     }
 
     private void ShowCards(IReadOnlyList<Card> cards)

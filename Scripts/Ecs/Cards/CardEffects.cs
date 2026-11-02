@@ -37,19 +37,19 @@ public struct CardEffects : IEquatable<CardEffects>
         float n(Card card) => stacks.TryGetValue(card, out int v) ? v : 0;
         HomingWisps = (int)n(Card.HomingWisp);
         FanPairs = (int)n(Card.TwinFan);
-        Pierce = (int)n(Card.PiercingLight);
-        DamageMultiplier = 1 + 0.25f * n(Card.Fervor);
-        FireRateMultiplier = 1 + 0.2f * n(Card.QuickWick);
-        BurstRadius = n(Card.BurstingBolts) > 0 ? 34 + 14 * n(Card.BurstingBolts) : 0;
+        Pierce = (int)n(Card.PiercingLight) + 2 * (int)n(Card.StormBolt);
+        DamageMultiplier = 1 + 0.25f * n(Card.Fervor) + 0.35f * n(Card.SerpentFlame);
+        FireRateMultiplier = 1 + 0.2f * n(Card.QuickWick) + 0.25f * n(Card.StormBolt);
+        BurstRadius = MathF.Max(n(Card.BurstingBolts) > 0 ? 34 + 14 * n(Card.BurstingBolts) : 0, n(Card.SerpentFlame) > 0 ? 60 : 0);
         MendingWard = n(Card.MendingWard) > 0;
         HitboxRadius = n(Card.SlimWake) > 0 ? 3 : 4;
-        WindMultiplier = MathF.Max(0.1f, 1 - 0.4f * n(Card.CalmSails));
+        WindMultiplier = MathF.Max(0.1f, 1 - 0.4f * n(Card.CalmSails) - 0.3f * n(Card.BearCloak));
         BombRadiusMultiplier = 1 + 0.2f * n(Card.BrighterLight);
         BombDurationBonus = 1.0f * n(Card.LongBurn);
         BombDamageMultiplier = 1 + 0.5f * n(Card.SearingLight);
-        LightValueMultiplier = 1 + 0.5f * n(Card.HungryLantern);
+        LightValueMultiplier = 1 + 0.5f * n(Card.HungryLantern) + 0.3f * n(Card.PartyFever);
         MagnetMultiplier = 1 + 0.4f * n(Card.WideNet);
-        ScoreMultiplier = 1 + 0.25f * n(Card.GoldenSpirits);
+        ScoreMultiplier = 1 + 0.25f * n(Card.GoldenSpirits) + 0.4f * n(Card.PartyFever);
     }
 
     public bool Equals(CardEffects o) =>

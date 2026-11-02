@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Godot;
 using P = PixelColor;
+using static PixelShapes;
 
 /// <summary>
 /// Baylo in his human form, on the same fine grid as the woman (a figure about 48 x 58 pixels, each shown 2 x 2 screen pixels): a dancer
@@ -29,60 +30,6 @@ public static class BayloArt
     private static readonly P Shade = P.Hex(0x1E1228);
 
     private static void Put(PixelCanvas c, int x, int y, P colour) => BossArt.Put(c, x, y, colour);
-
-    /// <summary>Fills a polygon with white-ish cloth lit from the left: lit on the left third, shaded on the right, dithered between.</summary>
-    private static void Fill(PixelCanvas c, IList<Vector2> pts, P[] ramp)
-    {
-        var layer = new PixelCanvas(c.Width, c.Height);
-        PixelPaint.Poly(layer, pts, ramp[1]);
-        float minX = float.MaxValue, maxX = float.MinValue;
-        foreach (var p in pts) { minX = Math.Min(minX, p.X); maxX = Math.Max(maxX, p.X); }
-        for (int y = 0; y < c.Height; y++)
-            for (int x = 0; x < c.Width; x++)
-            {
-                if (layer[x, y].A == 0) continue;
-                float t = (x + 0.5f - minX) / Math.Max(1, maxX - minX);
-                float f = t * 3 + (Bayer.Threshold(x, y) - 0.5f) * 0.9f;
-                c[x, y] = f < 0.55f ? ramp[0] : (f < 1.9f ? ramp[1] : ramp[2]);
-            }
-    }
-
-    /// <summary>A limb: discs stamped along a bent path, thinning from radius `r0` to `r1`, shaded like <see cref="Fill"/>.</summary>
-    private static void Limb(PixelCanvas c, (float x, float y)[] path, float r0, float r1, P[] ramp)
-    {
-        var layer = new PixelCanvas(c.Width, c.Height);
-        int segments = path.Length - 1;
-        for (int s = 0; s < segments; s++)
-            for (int i = 0; i <= 12; i++)
-            {
-                float t = i / 12f, u = (s + t) / segments;
-                float x = path[s].x + (path[s + 1].x - path[s].x) * t, y = path[s].y + (path[s + 1].y - path[s].y) * t;
-                PixelPaint.Ellipse(layer, x, y, r0 + (r1 - r0) * u, r0 + (r1 - r0) * u, ramp[1]);
-            }
-        for (int y = 0; y < c.Height; y++)
-            for (int x = 0; x < c.Width; x++)
-            {
-                if (layer[x, y].A == 0) continue;
-                float f = (Bayer.Threshold(x, y) - 0.5f) * 0.9f + (x % 5 < 2 ? 0 : 1) * 0.15f;
-                // lit from the left: the left edge of the limb is bright
-                bool leftEdge = x == 0 || layer[x - 1, y].A == 0;
-                bool rightEdge = x == c.Width - 1 || layer[x + 1, y].A == 0 || (x + 2 < c.Width && layer[x + 2, y].A == 0);
-                c[x, y] = leftEdge ? ramp[0] : (rightEdge ? ramp[2] : (f > 0.3f ? ramp[0] : ramp[1]));
-            }
-    }
-
-
-    private static List<Vector2> Pts(params (float x, float y)[] pts)
-    {
-        var list = new List<Vector2>();
-        foreach (var (x, y) in pts) list.Add(new Vector2(x, y));
-        return list;
-    }
-
-    private static void Blit(PixelCanvas dst, PixelCanvas src)
-    {
-        for (int y = 0; y < src.Height; y++) for (int x = 0; x < src.Width; x++) if (src[x, y].A > 0) dst[x, y] = src[x, y];
-    }
 
     public static PixelCanvas MakeCanvas(int frame)
     {
@@ -159,18 +106,7 @@ public static class BayloArt
 
         // Compose part by part, each with its own outline, so that the arms and legs stand out from the body.
         var fig = new PixelCanvas(Width, Height);
-        void Add(PixelCanvas part)
-        {
-            (int, int)[] dirs = { (1, 0), (-1, 0), (0, 1), (0, -1) };
-            for (int y = 0; y < Height; y++)
-                for (int x = 0; x < Width; x++)
-                {
-                    if (part[x, y].A != 0) continue;
-                    foreach (var (dx, dy) in dirs)
-                        if (part.Contains(x + dx, y + dy) && part[x + dx, y + dy].A > 0) { fig[x, y] = Outline; break; }
-                }
-            Blit(fig, part);
-        }
+        void Add(PixelCanvas part) => AddOutlined(fig, part, Outline);
         Add(behind); Add(shoes); Add(body); Add(arm); Add(curls); Add(front);
 
         var c = new PixelCanvas(Width, Height);

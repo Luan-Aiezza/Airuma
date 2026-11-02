@@ -2,12 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 
 /// <summary>
-/// The cards of the run: each one a boon the player takes, one of three offered at the start of the stage and again
-/// before the boss. They pile up for as long as the run lasts, and are all lost when the run ends in defeat.
+/// The cards of the run: each one a boon the player takes, one of three offered at the start of the first stage and again
+/// after each boss (where a special card of that boss may come in place of one of them). They pile up for as long as the run lasts, and are all lost when the run ends in defeat.
 /// </summary>
 public static class CardInfo
 {
-    public static int Weight(CardRarity rarity) => rarity switch { CardRarity.Common => 10, CardRarity.Uncommon => 6, _ => 3 };
+    public static int Weight(CardRarity rarity) => rarity switch { CardRarity.Common => 10, CardRarity.Uncommon => 6, CardRarity.Special => 0, _ => 3 };
 
     private static UIText.CardText Text(Card card) => card switch
     {
@@ -27,6 +27,10 @@ public static class CardInfo
         Card.SpareLantern => UIText.CardSpareLantern,
         Card.HungryLantern => UIText.CardHungryLantern,
         Card.WideNet => UIText.CardWideNet,
+        Card.SerpentFlame => UIText.CardSerpentFlame,
+        Card.PartyFever => UIText.CardPartyFever,
+        Card.StormBolt => UIText.CardStormBolt,
+        Card.BearCloak => UIText.CardBearCloak,
         _ => UIText.CardGoldenSpirits,
     };
 
@@ -43,6 +47,8 @@ public static class CardInfo
                 return CardRarity.Common;
             case Card.HomingWisp: case Card.PiercingLight: case Card.SearingLight: case Card.HungryLantern:
                 return CardRarity.Uncommon;
+            case Card.SerpentFlame: case Card.PartyFever: case Card.StormBolt: case Card.BearCloak:
+                return CardRarity.Special;
             default:
                 return CardRarity.Rare;
         }
@@ -53,7 +59,7 @@ public static class CardInfo
     {
         switch (card)
         {
-            case Card.MendingWard: case Card.SlimWake: return 1;
+            case Card.MendingWard: case Card.SlimWake: case Card.SerpentFlame: case Card.PartyFever: case Card.StormBolt: case Card.BearCloak: return 1;
             case Card.TwinFan: case Card.BurstingBolts: case Card.CalmSails: case Card.HungryLantern: case Card.SpiritWard: return 2;
             case Card.SpareLantern: return 99;
             default: return 3;

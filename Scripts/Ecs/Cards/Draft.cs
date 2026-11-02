@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-public enum DraftMoment { StageStart, BeforeBoss }
+public enum DraftMoment { StageStart, AfterBoss }
 
 /// <summary>A choice of cards the player has to make before the game goes on.</summary>
 public class Draft

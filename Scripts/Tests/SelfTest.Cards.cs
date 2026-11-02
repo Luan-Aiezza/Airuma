@@ -15,7 +15,9 @@ public static partial class SelfTest
         T("StacksBuildTheEffects", StacksBuildTheEffects);
         T("EveryCardHasATitleAndText", EveryCardHasATitleAndText);
         T("ARunOpensWithACardChoiceAndWaitsForIt", ARunOpensWithACardChoiceAndWaitsForIt);
-        T("AnotherChoiceComesBeforeTheBoss", AnotherChoiceComesBeforeTheBoss);
+        T("NoChoiceComesBeforeTheBoss", NoChoiceComesBeforeTheBoss);
+        T("ABossLeavesAChoiceAndPerhapsASpecialCard", ABossLeavesAChoiceAndPerhapsASpecialCard);
+        T("SpecialCardsHaveTheThemeOfTheirBoss", SpecialCardsHaveTheThemeOfTheirBoss);
         T("LosingTheRunLosesTheCards", LosingTheRunLosesTheCards);
         T("BossPracticeHasNoCards", BossPracticeHasNoCards);
         T("TakingACardIsReported", TakingACardIsReported);
@@ -60,7 +62,7 @@ public static partial class SelfTest
         var seen = new HashSet<Card>();
         var rng = new SeededGenerator(7);
         for (int i = 0; i < 400; i++) foreach (var c in CardDeck.Offers(new RunState(), 1, rng)) seen.Add(c);
-        Eq(seen.Count, Enum.GetValues<Card>().Length);
+        Eq(seen.Count, Enum.GetValues<Card>().Count(c => CardInfo.Rarity(c) != CardRarity.Special), "the special ones come only from a boss");
     }
 
     private static void CommonCardsComeUpMoreThanRareOnes()
@@ -115,18 +117,58 @@ public static partial class SelfTest
         Greater(world.Player.Transform.Position.X, x);
     }
 
-    private static void AnotherChoiceComesBeforeTheBoss()
+    private static void NoChoiceComesBeforeTheBoss()
     {
         var world = new World(seed: 2);
         world.Choose(0);
         world.CalmWindForTesting();
         world.FinishWavesForTesting();
         StepN(world, 5);
-        Eq(world.Draft?.Moment, (DraftMoment?)DraftMoment.BeforeBoss);
-        Eq(world.Part, StagePart.Waves, "the boss waits for the choice");
-        world.Choose(0);
+        True(world.Draft == null);
         Eq(world.Part, StagePart.Boss);
-        Eq(world.Run.TotalCards, 2, "cards pile up");
+        Eq(world.Run.TotalCards, 1);
+        var later = new World(seed: 2, stage: Stages.Two, carry: new RunCarry { Lives = 3, Bombs = 3 });
+        True(later.Draft == null, "only the first stage opens with a choice");
+    }
+
+    private static void ABossLeavesAChoiceAndPerhapsASpecialCard()
+    {
+        var carry = new RunCarry { Lives = 3, Bombs = 3, Score = 1000 };
+        var plain = new World(seed: 9, stage: Stages.Two, carry: carry);
+        plain.OfferAfterBoss();
+        Eq(plain.Draft?.Moment, (DraftMoment?)DraftMoment.AfterBoss);
+        Eq(plain.Draft?.Offers.Count, (int?)3);
+        plain.Choose(0);
+        True(plain.Draft == null);
+        // the better the stage went, the likelier the gift
+        Greater(CardDeck.SpecialChance(CardDeck.GoodStageScore), CardDeck.SpecialChance(0));
+        Eq(CardDeck.SpecialChance(10 * CardDeck.GoodStageScore), CardDeck.SpecialChance(CardDeck.GoodStageScore));
+        int Gifts(int score)
+        {
+            int n = 0;
+            for (ulong seed = 1; seed <= 300; seed++)
+                if (CardSystem.MakeDraft(DraftMoment.AfterBoss, new RunState(), 3, new SeededGenerator(seed), Card.PartyFever, score).Offers.Contains(Card.PartyFever)) n++;
+            return n;
+        }
+        int poor = Gifts(0), rich = Gifts(CardDeck.GoodStageScore);
+        Greater(rich, poor);
+        Greater(poor, 0);
+        True(rich >= 200, "a good stage nearly always brings the gift: " + rich);
+        Eq(CardSystem.MakeDraft(DraftMoment.AfterBoss, new RunState(), 3, new SeededGenerator(1), null, CardDeck.GoodStageScore).Offers.Count(c => CardInfo.Rarity(c) == CardRarity.Special), 0);
+        var owned = new RunState(); owned.Add(Card.PartyFever);
+        False(CardDeck.Offers(owned, 3, new SeededGenerator(1), 1, Card.PartyFever, 1).Contains(Card.PartyFever), "a special card is taken once");
+        True(Stages.One.BossCard != null && Stages.Two.BossCard != null && Stages.Three.BossCard != null);
+    }
+
+    private static void SpecialCardsHaveTheThemeOfTheirBoss()
+    {
+        True(new CardEffects(new Dictionary<Card, int> { [Card.SerpentFlame] = 1 }).BurstRadius > 0, "fire bursts in embers");
+        Greater(new CardEffects(new Dictionary<Card, int> { [Card.SerpentFlame] = 1 }).DamageMultiplier, 1f);
+        Greater(new CardEffects(new Dictionary<Card, int> { [Card.PartyFever] = 1 }).ScoreMultiplier, 1f);
+        var storm = new CardEffects(new Dictionary<Card, int> { [Card.StormBolt] = 1 });
+        Eq(storm.Pierce, 2);
+        Greater(storm.FireRateMultiplier, 1f);
+        Eq(RunState.MaxCards, 6);
     }
 
     private static void LosingTheRunLosesTheCards()

@@ -11,7 +11,7 @@ using P = PixelColor;
 /// vertically so it can scroll forever. The right bank is a mirrored copy of different geometry, shaded with the
 /// same light so shadows stay consistent.
 /// </summary>
-public static class BankArt
+public static partial class BankArt
 {
     public const int Width = 40;
     public const int Height = 256;

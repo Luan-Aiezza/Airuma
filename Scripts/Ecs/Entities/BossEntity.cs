@@ -4,6 +4,8 @@ using Godot;
 public class BossEntity
 {
     public int Id = 0;
+    /// <summary>The second body of a boss that is two has fused into the first: it takes no more part in the fight.</summary>
+    public bool Merged;
     public readonly BossDefinition Definition;
 
     public BossEntity(BossDefinition definition) { Definition = definition; }
@@ -28,6 +30,7 @@ public class BossEntity
     public readonly DashBrain Dash = new DashBrain();
     public readonly DiveBrain Dive = new DiveBrain();
     public readonly SweepBrain Sweep = new SweepBrain();
+    public readonly CrossBrain Cross = new CrossBrain();
 
     public BossMovementType MovementType = BossMovementType.Patrol;
 
@@ -39,6 +42,9 @@ public class BossEntity
 
     /// <summary>Fractions of damage (from the bomb's steady light) not yet taken off the health.</summary>
     public float DamageCarry = 0;
+
+    /// <summary>What the attack in progress does besides firing: slashes, a quake, a roar.</summary>
+    public BossSpecials Specials = new BossSpecials();
 
     public BulletEmitterComponent EmitterMain = new BulletEmitterComponent();
     public BulletEmitterComponent EmitterSub = new BulletEmitterComponent();

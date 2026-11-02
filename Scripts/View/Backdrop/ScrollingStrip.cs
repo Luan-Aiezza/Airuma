@@ -24,6 +24,8 @@ public partial class ScrollingStrip : Node2D
     /// <summary>Art rows per second.</summary>
     public double RowsPerSecond;
     public int Variant;
+    /// <summary>How many pictures it has to change between.</summary>
+    public int VariantCount => _variants.Length;
 
     public ScrollingStrip(Texture2D[] variants, int tileRows, int visibleRows, float pixel, double speed, Vector2 origin)
     {

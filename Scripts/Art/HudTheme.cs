@@ -100,6 +100,206 @@ public sealed class HudTheme
         };
     }
 
+    /// <summary>
+    /// Stage 3, the storm of the cat of the stars: a night-blue panel with stars scattered over it and faint streaks of rain, a column of lightning
+    /// bolts and little stars along its edge, and a constellation, struck through by a bolt, at the bottom.
+    /// </summary>
+    public static HudTheme Storm()
+    {
+        P night = P.Hex(0x0B1224), nightLight = P.Hex(0x131D38), streak = P.Hex(0x1C2A4C), cloud = P.Hex(0x080D1A);
+        return new HudTheme
+        {
+            Name = "storm",
+            // Dark clouds, rain slanting through them, and here and there a star.
+            Background = (x, y) =>
+            {
+                int hash = (x * 73 + y * 151 + (x / 7) * 29) % 113;
+                if (hash == 0) return P.Hex(0xFFF6C8);
+                if (hash == 1 && (x + y) % 2 == 0) return P.Hex(0x9AB4E8);
+                if ((x * 3 + y) % 23 == 0 || (x * 3 + y) % 23 == 1 && y % 3 != 0) return streak;
+                return (x / 6 + y / 5) % 5 == 0 ? nightLight : ((x + y * 2) % 9 == 0 ? cloud : night);
+            },
+            // Lightning along the edge: a bolt of white zigzagging down a dark column, with a star between the bolts.
+            Band = (x, y) =>
+            {
+                int v = y % 32;
+                float centre = v < 6 ? 2 + v * 0.55f : (v < 12 ? 5.3f - (v - 6) * 0.9f : (v < 18 ? 0 + (v - 12) * 0.7f : 4.2f));
+                if (v < 20 && MathF.Abs(x - 3.5f - (centre - 3)) < 1.1f) return v % 2 == 0 ? P.Hex(0xFFFFFF) : P.Hex(0xDCE8FF);
+                if (v < 20 && MathF.Abs(x - 3.5f - (centre - 3)) < 2.1f) return P.Hex(0x3A4E88);
+                if (v == 26 && (x == 3 || x == 4)) return P.Hex(0xFFF2B0);
+                if ((v == 25 || v == 27) && (x == 3 || x == 4)) return P.Hex(0xB8A868);
+                return P.Hex(0x0A1020);
+            },
+            Ink = P.Hex(0x070A14), RimInner = P.Hex(0x6A8ADC), BeadLight = P.Hex(0xDCE8FF), BeadDark = P.Hex(0x5A6EA8),
+            PlaqueEdgeA = P.Hex(0xA8C0F0), PlaqueEdgeB = P.Hex(0x2A3A6A), PlaqueFill = P.Hex(0x080C18),
+            RuleA = P.Hex(0xDCE8FF), RuleB = P.Hex(0x6A8ADC),
+            FrameDot = P.Hex(0xFFF2B0), FrameBase = P.Hex(0x5A6EA8), FrameLine = P.Hex(0x070A14),
+            Ornament = ConstellationOrnament,
+        };
+    }
+
+    /// <summary>
+    /// Stage 4, the hunt and the beast: the panel is the hide of a bear, in short strokes of fur, with the scratches of claws torn across it (three lines, with a red edge);
+    /// the bark of a tree along its edge, raked by the claw marks of a bear; plaques framed in leather and bone; and, at the bottom, a bear-skin rug, its head pointing down.
+    /// </summary>
+    public static HudTheme Cave()
+    {
+        P fur = P.Hex(0x2A1A10), furLight = P.Hex(0x3C2616), furDark = P.Hex(0x1C110A);
+        return new HudTheme
+        {
+            Name = "hunt",
+            // Short strokes of fur, and here and there the scratches of a claw: three parallel lines torn across the hide, dark with a raw edge.
+            Background = (x, y) =>
+            {
+                int cell = 56, cx = x / cell, cy = y / cell, lx = x % cell, ly = y % cell;
+                if (((cx * 7 + cy * 13) % 5) == 0)
+                {
+                    for (int k = 0; k < 3; k++)
+                    {
+                        float line = 12 + k * 9 + ly * 0.55f;
+                        if (ly >= 6 && ly <= 46 && MathF.Abs(lx - line) < 0.9f) return P.Hex(0x0E0804);
+                        if (ly >= 6 && ly <= 46 && MathF.Abs(lx - line - 1.6f) < 0.8f) return P.Hex(0x8A2E1E);
+                    }
+                }
+                int stroke = (x * 5 + (y / 2) * 11 + (x / 3) * 7) % 17;
+                if (stroke == 0 && y % 2 == 0) return furLight;
+                if (stroke == 1 && y % 2 == 1) return furLight;
+                if ((x * 3 + y * 5) % 19 == 0) return furDark;
+                return fur;
+            },
+            // The bark of a tree torn by a bear: dark bark in vertical streaks, and long claw marks, three or four gouges side by side that show the pale wood and have
+            // splinters of bark at their ends.
+            Band = (x, y) =>
+            {
+                int period = 52, block = y / period, v = y % period;
+                int shift = new[] { 0, 1, 0, 2, 1 }[block % 5];              // the marks do not repeat exactly
+                int lean = v * 3 / 40;                                         // the gouges lean a little as they go down
+                for (int k = 0; k < 3 + (block % 2); k++)
+                {
+                    int gx = 1 + k * 2 + shift - lean / 2;
+                    int top = 5 + k * 2 + (k % 2), len = 30 - k * 2 - (block % 3);
+                    if (v >= top && v < top + len && x == gx + (v - top) / 14)
+                    {
+                        if (v < top + 2 || v >= top + len - 3) return P.Hex(0xA8764A);                      // the ends, where the bark is lifted
+                        return (v + k) % 3 == 0 ? P.Hex(0xF0D098) : P.Hex(0xD9AC70);                       // the wood, pale and raw
+                    }
+                    if (v >= top && v < top + len && (x == gx + (v - top) / 14 + 1)) return P.Hex(0x4A2A14);     // the lip of the gouge, in shadow
+                }
+                // splinters of bark curling out beside the marks
+                if ((v == 4 || v == 38) && x == 6 - shift) return P.Hex(0x7A5230);
+                int streak = (x * 7 + (y / 6) * 5) % 9;
+                if (streak == 0) return P.Hex(0x1C100A);
+                if (streak == 4 || (x == 7 && y % 3 == 0)) return P.Hex(0x4A3220);
+                return (x + y / 2) % 7 == 0 ? P.Hex(0x3E281A) : P.Hex(0x2E1D12);
+            },
+            Ink = P.Hex(0x0E0805), RimInner = P.Hex(0x9A3A22), BeadLight = P.Hex(0xE8DCC0), BeadDark = P.Hex(0x9A8A6A),
+            PlaqueEdgeA = P.Hex(0xB88A58), PlaqueEdgeB = P.Hex(0x4A2E1A), PlaqueFill = P.Hex(0x120C08),
+            RuleA = P.Hex(0xD8CAA8), RuleB = P.Hex(0x9A2A1E),
+            FrameDot = P.Hex(0xE8DCC0), FrameBase = P.Hex(0x8A5A32), FrameLine = P.Hex(0x0E0805),
+            Ornament = BearRugOrnament,
+        };
+    }
+
+    /// <summary>
+    /// At the bottom of the panel, a bear-skin rug laid flat, seen from above, with its head pointing down: only the head (the ears, the shut eyes, the snout and the
+    /// nose) and the two front paws, with their claws, on either side of it, are in the picture; the body goes on above, out of it. Brown fur on a border of red felt.
+    /// </summary>
+    public static PixelCanvas BearRugOrnament()
+    {
+        var c = new PixelCanvas(OrnamentWidth, OrnamentHeight);
+        P[] fur = { P.Hex(0x9A6A3A), P.Hex(0x7A4E28), P.Hex(0x57361C), P.Hex(0x3A2412) };
+        P felt = P.Hex(0x8A2218), feltDark = P.Hex(0x5A140E), claw = P.Hex(0xEFE4C8), clawDark = P.Hex(0xB8A888), dark = P.Hex(0x120A06);
+        P snout = P.Hex(0xC8A070), snoutDark = P.Hex(0x9A7448), earInside = P.Hex(0x3E2616);
+        const float mid = OrnamentWidth / 2f;
+        var shape = new PixelCanvas(OrnamentWidth, OrnamentHeight);
+        void Blob(float cx, float cy, float rx, float ry)
+        {
+            for (int y = 0; y < shape.Height; y++)
+                for (int x = 0; x < shape.Width; x++)
+                {
+                    float dx = (x + 0.5f - cx) / rx, dy = (y + 0.5f - cy) / ry;
+                    if (dx * dx + dy * dy <= 1) shape[x, y] = fur[1];
+                }
+        }
+        // the skin: the shoulders (going up out of the picture), the front legs, the head, the ears and the snout
+        Blob(mid, -5f, 27f, 12f);
+        Blob(mid - 21f, 6.5f, 8f, 5.4f); Blob(mid + 21f, 6.5f, 8f, 5.4f);
+        Blob(mid, 8.2f, 7f, 5.6f);
+        Blob(mid - 6.4f, 3.6f, 2.9f, 2.9f); Blob(mid + 6.4f, 3.6f, 2.9f, 2.9f);
+        Blob(mid, 12.8f, 3.6f, 3.0f);
+        // the felt border, all round the skin (the skin goes on above, so there is none on top)
+        for (int y = 0; y < c.Height; y++)
+            for (int x = 0; x < c.Width; x++)
+            {
+                if (shape[x, y].A > 0) continue;
+                for (int dy = -1; dy <= 1; dy++)
+                    for (int dx = -1; dx <= 1; dx++)
+                        if (shape.Contains(x + dx, y + dy) && shape[x + dx, y + dy].A > 0) { c[x, y] = (x + y) % 2 == 0 ? felt : feltDark; goto next; }
+                next:;
+            }
+        // the fur: lit from the upper left, in strokes
+        for (int y = 0; y < c.Height; y++)
+            for (int x = 0; x < c.Width; x++)
+            {
+                if (shape[x, y].A == 0) continue;
+                float light = 0.6f - (x / 74f) * 0.25f - y / 40f + ((x * 3 + y * 5) % 7 == 0 ? 0.25f : 0) - ((x + y * 2) % 11 == 0 ? 0.25f : 0);
+                c[x, y] = Heightfield.Pick(fur, light, x, y);
+            }
+        // the face: the ears (inside darker), the shut eyes, the lighter snout and the nose
+        foreach (int side in new[] { -1, 1 })
+        {
+            int ex = (int)(mid + side * 6.4f);
+            for (int dy = 0; dy < 2; dy++) for (int dx = 0; dx < 2; dx++) if (c.Contains(ex + dx - 1, 3 + dy)) c[ex + dx - 1, 3 + dy] = earInside;
+            int eyeX = (int)(mid + side * 3.2f);
+            c[eyeX, 8] = dark; c[eyeX + (side > 0 ? 1 : -1), 8] = dark; c[eyeX, 7] = fur[3];
+        }
+        for (int y = 0; y < c.Height; y++)
+            for (int x = 0; x < c.Width; x++)
+            {
+                float dx = (x + 0.5f - mid) / 3.3f, dy = (y + 0.5f - 12.4f) / 2.7f;
+                if (dx * dx + dy * dy <= 1) c[x, y] = dy < -0.25f ? snoutDark : snout;
+            }
+        c[(int)mid - 1, 13] = dark; c[(int)mid, 13] = dark; c[(int)mid - 1, 14] = dark; c[(int)mid, 14] = dark;
+        c[(int)mid, 15] = dark;
+        // the claws of the front paws, pointing down
+        foreach (int side in new[] { -1, 1 })
+            for (int i = -1; i <= 1; i++)
+            {
+                int x = (int)(mid + side * 21 + i * 3);
+                if (c.Contains(x, 11)) c[x, 11] = claw;
+                if (c.Contains(x, 12)) c[x, 12] = clawDark;
+            }
+        return c;
+    }
+
+    /// <summary>A constellation across the bottom of the panel: stars joined by thin lines, and a bolt of lightning striking through it.</summary>
+    public static PixelCanvas ConstellationOrnament()
+    {
+        var c = new PixelCanvas(OrnamentWidth, OrnamentHeight);
+        var stars = new[] { (6, 15), (16, 7), (29, 13), (41, 5), (53, 12), (66, 8) };
+        void Line(int x0, int y0, int x1, int y1, P colour)
+        {
+            int n = Math.Max(Math.Abs(x1 - x0), Math.Abs(y1 - y0));
+            for (int i = 0; i <= n; i++) { int x = x0 + (x1 - x0) * i / Math.Max(1, n), y = y0 + (y1 - y0) * i / Math.Max(1, n); if (c.Contains(x, y)) c[x, y] = colour; }
+        }
+        for (int i = 0; i + 1 < stars.Length; i++) Line(stars[i].Item1, stars[i].Item2, stars[i + 1].Item1, stars[i + 1].Item2, P.Hex(0x5A74B8));
+        // a bolt of lightning from the top, zigzagging through the constellation
+        int bx = 35;
+        for (int y = 0; y < OrnamentHeight; y++)
+        {
+            int leg = (y / 4) % 2 == 0 ? 1 : -1;
+            bx += leg;
+            if (c.Contains(bx, y)) { c[bx, y] = P.Hex(0xFFFFFF); if (c.Contains(bx + 1, y)) c[bx + 1, y] = P.Hex(0x9AB4E8); }
+        }
+        foreach (var (sx, sy) in stars)
+        {
+            c[sx, sy] = P.Hex(0xFFFFFF);
+            foreach (var (dx, dy) in new[] { (1, 0), (-1, 0), (0, 1), (0, -1) }) if (c.Contains(sx + dx, sy + dy)) c[sx + dx, sy + dy] = P.Hex(0xFFF2B0);
+            foreach (var (dx, dy) in new[] { (2, 0), (-2, 0), (0, 2), (0, -2) }) if (c.Contains(sx + dx, sy + dy)) c[sx + dx, sy + dy] = P.Hex(0xB8A868);
+        }
+        return c;
+    }
+
     /// <summary>A string of paper lanterns across the bottom of the panel, in the colours of the festival.</summary>
     public static PixelCanvas LanternOrnament()
     {

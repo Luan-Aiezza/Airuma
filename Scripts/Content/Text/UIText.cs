@@ -26,6 +26,7 @@ public static class UIText
     public static string MenuBossPractice => Loc.Get(nameof(MenuBossPractice));
     public static string MenuScores => Loc.Get(nameof(MenuScores));
     public static string MenuMusicRoom => Loc.Get(nameof(MenuMusicRoom));
+    public static string MenuQuit => Loc.Get(nameof(MenuQuit));
     public static string MenuConfig => Loc.Get(nameof(MenuConfig));
     public static string Back => Loc.Get(nameof(Back));
     public static string Menu => Loc.Get(nameof(Menu));
@@ -100,6 +101,10 @@ public static class UIText
     public static readonly CardText CardHungryLantern = new CardText(nameof(CardHungryLantern));
     public static readonly CardText CardWideNet = new CardText(nameof(CardWideNet));
     public static readonly CardText CardGoldenSpirits = new CardText(nameof(CardGoldenSpirits));
+    public static readonly CardText CardSerpentFlame = new CardText(nameof(CardSerpentFlame));
+    public static readonly CardText CardPartyFever = new CardText(nameof(CardPartyFever));
+    public static readonly CardText CardBearCloak = new CardText(nameof(CardBearCloak));
+    public static readonly CardText CardStormBolt = new CardText(nameof(CardStormBolt));
     public static string ChooseCard => Loc.Get(nameof(ChooseCard));
     public static string ChooseCardStart => Loc.Get(nameof(ChooseCardStart));
     public static string ChooseCardBoss => Loc.Get(nameof(ChooseCardBoss));
@@ -128,6 +133,14 @@ public static class UIText
     public static string DifficultyHard => Loc.Get(nameof(DifficultyHard));
 
     // Stage 2: the river of the parties, and Baylo
+    public static string Stage3Title => Loc.Get(nameof(Stage3Title));
+    public static string Stage4Title => Loc.Get(nameof(Stage4Title));
+    public static string Stage5Title => Loc.Get(nameof(Stage5Title));
+    public static string KuychuName => Loc.Get(nameof(KuychuName));
+    public static string SerpentLeftName => Loc.Get(nameof(SerpentLeftName));
+    public static string SerpentRightName => Loc.Get(nameof(SerpentRightName));
+    public static string UkhumoName => Loc.Get(nameof(UkhumoName));
+    public static string ThaqaiName => Loc.Get(nameof(ThaqaiName));
     public static string Stage2Title => Loc.Get(nameof(Stage2Title));
     public static string BayloName => Loc.Get(nameof(BayloName));
     public static string AttackDoubleStep => Loc.Get(nameof(AttackDoubleStep));

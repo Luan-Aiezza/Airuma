@@ -43,6 +43,10 @@ public static partial class SelfTest
         RegisterBomb(T);
         RegisterCards(T);
         RegisterStage2(T);
+        RegisterStage3(T);
+        RegisterStage4(T);
+        RegisterStage5(T);
+        RegisterField(T);
         RegisterArchitecture(T);
 
         int failed = 0;

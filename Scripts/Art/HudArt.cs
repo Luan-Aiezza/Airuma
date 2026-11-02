@@ -122,7 +122,7 @@ public static class HudArt
     {
         const int size = 16;
         var c = new PixelCanvas(size, size, Colors.DeepInk);
-        PixelColor border = card is Card taken ? CardArt.RarityColor(CardInfo.Rarity(taken)) : Colors.Dim;
+        PixelColor border = card is Card taken ? CardArt.AccentColor(taken) : Colors.Dim;
         for (int i = 0; i < size; i++) { c[i, 0] = border; c[i, size - 1] = border; c[0, i] = border; c[size - 1, i] = border; }
         c[0, 0] = c[size - 1, 0] = c[0, size - 1] = c[size - 1, size - 1] = Colors.DeepInk;
         if (card is Card shown)

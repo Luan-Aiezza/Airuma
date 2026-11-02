@@ -15,7 +15,7 @@ public static class CombatSystem
     /// shots hit the boss.
     /// </summary>
     public static int ProcessCollisions(BulletData[] pool, PlayerEntity player, BossEntity boss, bool bossActive = true,
-                                        IList<EnemyEntity> enemies = null)
+                                        IList<EnemyEntity> enemies = null, BossEntity twin = null)
     {
         int bossHits = 0;
         if (player.Health.InvincibilityTimer <= 0 && !player.Bomb.IsActive)
@@ -23,6 +23,7 @@ public static class CombatSystem
             // Body contact with the boss, or with a spirit.
             bool touchesBoss = bossActive && !boss.Dive.Submerged
                 && player.Transform.Position.DistanceTo(boss.Transform.Position) < player.Hitbox.Radius + boss.Hitbox.Radius;
+            if (bossActive && twin != null && player.Transform.Position.DistanceTo(twin.Transform.Position) < player.Hitbox.Radius + twin.Hitbox.Radius) touchesBoss = true;
             bool touchesSpirit = false;
             if (enemies != null)
                 foreach (var e in enemies)
@@ -32,7 +33,12 @@ public static class CombatSystem
             bool hitByBeam = bossActive && boss.Sweep.BeamOn
                 && MathF.Abs(player.Transform.Position.X - boss.Transform.Position.X) < SweepBrain.BeamHalfWidth + player.Hitbox.Radius
                 && player.Transform.Position.Y > boss.Transform.Position.Y;
-            if (touchesBoss || touchesSpirit || hitByBeam)
+            // The thin lines of a constellation that hangs still.
+            bool hitByLine = false;
+            foreach (var (a, b, still) in BulletSystem.Links(pool))
+                if (still && Mathx.DistanceToSegment(player.Transform.Position, a, b) < BulletSystem.LineHalfWidth + player.Hitbox.Radius) { hitByLine = true; break; }
+            if (hitByLine && !(touchesBoss || touchesSpirit || hitByBeam)) Hurt(player, 1, 0);
+            else if (touchesBoss || touchesSpirit || hitByBeam)
                 Hurt(player, 1, ContactGrace);
         }
 
@@ -50,7 +56,9 @@ public static class CombatSystem
             }
             else if (bossActive && !boss.Dive.Submerged && b.Faction == Faction.Player && boss.Health.CurrentHealth > 0 && b.LastHit != boss.Id)
             {
-                if (b.Position.DistanceTo(boss.Transform.Position) < b.HitboxRadius + boss.Hitbox.Radius)
+                bool onBoss = b.Position.DistanceTo(boss.Transform.Position) < b.HitboxRadius + boss.Hitbox.Radius;
+                bool onTwin = twin != null && b.Position.DistanceTo(twin.Transform.Position) < b.HitboxRadius + twin.Hitbox.Radius;
+                if (onBoss || onTwin)
                 {
                     boss.DamageCarry += b.Damage * b.Power;
                     int whole = (int)boss.DamageCarry;
@@ -153,7 +161,7 @@ public static class CombatSystem
     /// spirits it finished off.
     /// </summary>
     public static List<(SpiritKind kind, Vector2 position)> ProcessBombDamage(PlayerEntity player, IList<EnemyEntity> enemies, BossEntity boss,
-        bool bossActive, float delta, float damageMultiplier = 1)
+        bool bossActive, float delta, float damageMultiplier = 1, BossEntity twin = null)
     {
         var defeated = new List<(SpiritKind kind, Vector2 position)>();
         if (!player.Bomb.IsActive) return defeated;
@@ -163,8 +171,9 @@ public static class CombatSystem
             if (!(player.Transform.Position.DistanceTo(enemy.Position) <= player.Bomb.Radius)) continue;
             if (Damage(enemy, BombSystem.SpiritDamagePerSecond * damageMultiplier * delta)) defeated.Add((enemy.Kind, enemy.Position));
         }
+        bool bombOnTwin = twin != null && player.Transform.Position.DistanceTo(twin.Transform.Position) <= player.Bomb.Radius + twin.Hitbox.Radius;
         if (bossActive && !boss.Dive.Submerged && boss.Health.CurrentHealth > 0
-            && player.Transform.Position.DistanceTo(boss.Transform.Position) <= player.Bomb.Radius + boss.Hitbox.Radius)
+            && (player.Transform.Position.DistanceTo(boss.Transform.Position) <= player.Bomb.Radius + boss.Hitbox.Radius || bombOnTwin))
         {
             boss.DamageCarry += BombSystem.BossDamagePerSecond * damageMultiplier * delta;
             int whole = (int)boss.DamageCarry;

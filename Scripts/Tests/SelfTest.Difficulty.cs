@@ -113,7 +113,7 @@ public static partial class SelfTest
         var run = new RunState();
         run.Add(Card.Fervor); run.Add(Card.SlimWake); run.Add(Card.Fervor); run.Add(Card.SlimWake);
         True(run.History.SequenceEqual(new[] { Card.Fervor, Card.SlimWake, Card.Fervor }), "a card at its limit is not counted twice: " + string.Join(",", run.History));
-        Eq(RunState.MaxCards, 12);
+        Eq(RunState.MaxCards, 6);
         Eq(new World().Run.History.Count, 0);
         var world = new World(seed: 3);
         world.Choose(0);
@@ -121,7 +121,7 @@ public static partial class SelfTest
         world.Reset();
         Eq(world.Run.History.Count, 0, "lost with the run");
         True(Stages.One.Hud().Name != HudTheme.Original().Name, "stage 1 has a look of its own");
-        True(Stages.Two.Hud().Name != Stages.One.Hud().Name, "and so does stage 2");
+        True(Stages.Two.Hud().Name != Stages.One.Hud().Name && Stages.Three.Hud().Name != Stages.Two.Hud().Name && Stages.Three.Hud().Name != Stages.One.Hud().Name, "and so do the others");
     }
 
     private static void ShotsThatDoNotKillAreReportedForTheirSound()

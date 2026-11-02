@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Godot;
 
@@ -46,8 +47,13 @@ public partial class RiverBackground : Node2D
     public SubViewport WaterViewport { get; }
 
     private readonly List<ScrollingStrip> _strips = new List<ScrollingStrip>();
+    /// <summary>The speed of each strip when the water does not rush (the waterfall makes the rocks pass faster).</summary>
+    private readonly Dictionary<ScrollingStrip, double> _baseSpeed = new Dictionary<ScrollingStrip, double>();
+    private double _bedOffset;
+    private FlowStreaks _streaks;
+    private SnowFall _snow;
     // Everything that belongs to a bank and slides away when the river opens into the sea: the node, its place, and which side.
-    private readonly List<(Node2D node, float baseX, int side)> _banks = new List<(Node2D, float, int)>();
+    private readonly List<(Node2D node, float baseX, int side, float sway)> _banks = new List<(Node2D, float, int, float)>();
     private Sprite2D _sky, _horizonReflection, _deepReflection, _horizonSky, _haze;
     private ColorRect _horizonLine;
     private readonly List<CanvasItem> _crownNodes = new List<CanvasItem>();
@@ -87,9 +93,48 @@ public partial class RiverBackground : Node2D
         }
     }
 
+    // The cave: fish and fireflies, and the platform of the boss with its shaft of moonlight (which come in with the opening of the cave).
+    private CaveLife _life;
+    private Sprite2D _platform, _beam;
+    private static readonly Vector2 PlatformCentre = new Vector2(Layout.FieldInset + Layout.PlayWidth / 2, Layout.Horizon);
+
+    private void BuildPlatform()
+    {
+        const float pixel = 4;
+        _platform = new Sprite2D { Texture = CaveArt.MakePlatform().ToTexture(), Centered = false, Scale = new Vector2(pixel, pixel), ZIndex = -90, TextureFilter = TextureFilterEnum.Nearest, Visible = false };
+        var beam = CaveArt.MakeMoonbeam();
+        _beam = new Sprite2D
+        {
+            Texture = beam.ToTexture(), Centered = false, Scale = new Vector2(pixel, pixel), ZIndex = -89, TextureFilter = TextureFilterEnum.Nearest, Visible = false,
+            Material = new CanvasItemMaterial { BlendMode = CanvasItemMaterial.BlendModeEnum.Add },
+        };
+        AddChild(_platform);
+        AddChild(_beam);
+    }
+
+    /// <summary>The platform comes down from above the picture as the cave opens; its light fades in once it is in place.</summary>
+    private void PlacePlatform(float e)
+    {
+        if (_platform == null) return;
+        const float pixel = 4;
+        float top = PlatformCentre.Y - CaveArt.PlatformTopCentreY * pixel;
+        _platform.Visible = e > 0.001f;
+        _platform.Position = new Vector2(PlatformCentre.X - CaveArt.PlatformWidth * pixel / 2, Mathf.Lerp(-CaveArt.PlatformHeight * pixel - 20, top, e));
+        _beam.Visible = e > 0.5f;
+        _beam.Modulate = new Color(1, 1, 1, Mathf.Clamp((e - 0.5f) * 2, 0, 1));
+        _beam.Position = new Vector2(PlatformCentre.X - 64 * pixel / 2, PlatformCentre.Y - 50 * pixel + 16);
+    }
+
     private readonly Scenery _look;
+    private StormWeather _weather;
+    /// <summary>The sky of the boss fight (the clouds parted, with the moon), faded in over the stormy one; and how far it has faded in (0...1).</summary>
+    private Sprite2D _clearSky;
+    private float _clear;
+    /// <summary>How agitated the water is now (it moves towards what the scenery says for the moment: the boss fight is rougher).</summary>
+    private float _agitation;
+    private bool _bossFight;
     /// <summary>Where the water's glitter path starts: at the moon, or nowhere (far off the picture) when there is no moon.</summary>
-    private Vector2 MoonSpot => _look.OpensToSea ? MoonGridPosition : new Vector2(-1000, -1000);
+    private Vector2 MoonSpot => _look.OpensToSea && !_look.Moonless ? MoonGridPosition : new Vector2(-1000, -1000);
 
     public RiverBackground() : this(new Vector2(Layout.RiverWidth, Layout.Height)) { }
 
@@ -131,12 +176,22 @@ public partial class RiverBackground : Node2D
         };
         WaterViewport.AddChild(sky);
         _sky = sky;
+        if (_look.ClearsForBoss)
+        {
+            var clear = StormArt.MakeClearSky();
+            _clearSky = new Sprite2D
+            {
+                Texture = clear.ToTexture(), Centered = false, Scale = size / new Vector2(clear.Width, clear.Height),
+                ZIndex = ReflectionLayer.Sky + 1, Modulate = new Color(1, 1, 1, 0),
+            };
+            WaterViewport.AddChild(_clearSky);
+        }
 
         // For the open water: the horizon sky, flipped, is what the sea reflects (its first row, the horizon, at the top).
-        var horizonTexture = HorizonSkyArt.MakeCanvas().ToTexture();
+        var horizonTexture = (_look.MakeHorizon ?? HorizonSkyArt.MakeCanvas)().ToTexture();
         _horizonReflection = new Sprite2D
         {
-            Texture = horizonTexture, Centered = false, Scale = new Vector2(pixel, -pixel * 2), ZIndex = ReflectionLayer.Sky + 1, Visible = false,
+            Texture = horizonTexture, Centered = false, Scale = new Vector2(pixel, -pixel * (_look.MirrorLake ? 1 : 2)), ZIndex = ReflectionLayer.Sky + 1, Visible = false,
         };
         WaterViewport.AddChild(_horizonReflection);
         // ... and below it, the high sky, so that the far water goes on being a surface that reflects the stars.
@@ -157,8 +212,8 @@ public partial class RiverBackground : Node2D
             var strip = new ScrollingStrip(new Texture2D[] { texture }, BankArt.Height, rows, pixel, speed * 0.8, new Vector2(x, 0))
             { ZIndex = ReflectionLayer.Crowns };
             WaterViewport.AddChild(strip);
-            _strips.Add(strip);
-            _banks.Add((strip, x, i == 0 ? -1 : 1));
+            _strips.Add(strip); _baseSpeed[strip] = speed * 0.8;
+            _banks.Add((strip, x, i == 0 ? -1 : 1, 0.5f));
             _crownNodes.Add(strip);
         }
         MirrorLayer.ZIndex = ReflectionLayer.Actors;
@@ -170,6 +225,7 @@ public partial class RiverBackground : Node2D
         _water.SetShaderParameter("grid", new Vector2(GridWidth, GridHeight));
         _water.SetShaderParameter("bed_size", new Vector2(BedArt.Width, BedArt.Height));
         _water.SetShaderParameter("scroll_rows", ScrollRowsPerSecond * 0.65f);
+        _water.SetShaderParameter("refl_strength", _look.RiverReflection);
         var water = new Sprite2D
         {
             Texture = WaterViewport.GetTexture(), Centered = false, ZIndex = -100,
@@ -189,21 +245,24 @@ public partial class RiverBackground : Node2D
             for (int k = 0; k < rippleTex.Length; k++) rippleTex[k] = rippleCanvases[k].ToTexture();
             var ripple = new ScrollingStrip(rippleTex, BankArt.Height, rows, pixel, speed, origin) { ZIndex = -47 };
             AddChild(ripple);
-            _ripples.Add(ripple);
-            _banks.Add((ripple, x, side == BankArt.Side.Left ? -1 : 1));
+            _ripples.Add(ripple); _baseSpeed[ripple] = speed;
+            _banks.Add((ripple, x, side == BankArt.Side.Left ? -1 : 1, 0.25f));
 
             var roots = new ScrollingStrip(new Texture2D[] { _look.MakeGround(side).ToTexture() }, BankArt.Height, rows, pixel, speed, origin)
             { ZIndex = 30 }; // over the boat and the boss: they pass under the trees
             AddChild(roots);
-            _strips.Add(roots);
-            _banks.Add((roots, x, side == BankArt.Side.Left ? -1 : 1));
+            _strips.Add(roots); _baseSpeed[roots] = speed;
+            _banks.Add((roots, x, side == BankArt.Side.Left ? -1 : 1, 0.25f));
 
             // Branches hang closer to the camera, so they move a little faster.
-            var branches = new ScrollingStrip(new Texture2D[] { _look.MakeOverhead(side).ToTexture() }, BankArt.Height, rows, pixel, speed * 1.35, origin)
-            { ZIndex = 32 };
-            AddChild(branches);
-            _strips.Add(branches);
-            _banks.Add((branches, x, side == BankArt.Side.Left ? -1 : 1));
+            if (_look.MakeOverhead != null)
+            {
+                var branches = new ScrollingStrip(new Texture2D[] { _look.MakeOverhead(side).ToTexture() }, BankArt.Height, rows, pixel, speed * 1.35, origin)
+                { ZIndex = 32 };
+                AddChild(branches);
+                _strips.Add(branches); _baseSpeed[branches] = speed * 1.35;
+                _banks.Add((branches, x, side == BankArt.Side.Left ? -1 : 1, 1f));
+            }
         }
 
         // The real sky over the open water (above the horizon), a haze and a thin bright line on the horizon.
@@ -222,6 +281,19 @@ public partial class RiverBackground : Node2D
         };
         AddChild(_haze);
         if (_look.FloatingLanterns) BuildFloaters();
+        if (_look.Platform) BuildPlatform();
+        if (_look.CaveLife) { _life = new CaveLife(size); AddChild(_life); }
+        if (_look.WaterfallRush)
+        {
+            // fish swept up the fall, and the streaks of the water rushing up
+            _life = new CaveLife(size, fireflies: false, fishSpeed: 5.5f, upward: true); AddChild(_life);
+            _streaks = new FlowStreaks(size) { ZIndex = -97 }; AddChild(_streaks);
+        }
+        if (_look.Snow) { _snow = new SnowFall(size) { ZIndex = 18 }; AddChild(_snow); }
+        if (_look.Rains) { _weather = new StormWeather(size); AddChild(_weather); }
+        _water.SetShaderParameter("grade", new Vector3(_look.WaterGrade.R, _look.WaterGrade.G, _look.WaterGrade.B));
+        _agitation = _look.Agitation;
+        foreach (var (node, _, _, _) in _banks) node.Modulate = _look.BankTint;
         _horizonLine = new ColorRect { Color = new Color(0.72f, 0.88f, 0.95f, 0.55f), Size = new Vector2(size.X, 2), ZIndex = -93, Visible = false };
         AddChild(_horizonLine);
     }
@@ -231,6 +303,8 @@ public partial class RiverBackground : Node2D
     {
         // At the festival the banks still slide away, but there is no horizon: the river stays as it is, with a few lanterns afloat on the water.
         if (_look.FloatingLanterns) _floatersWanted = true;
+        _bossFight = true;
+        _weather?.SetFight(true);
         _openTime = 0;
         _openDuration = seconds;
     }
@@ -239,6 +313,8 @@ public partial class RiverBackground : Node2D
     public void CloseWater()
     {
         _floatersWanted = false;
+        _bossFight = false;
+        _weather?.SetFight(false);
         _openTime = -1;
         _open = 0;
         ApplyOpen();
@@ -248,10 +324,10 @@ public partial class RiverBackground : Node2D
     {
         float e = _open;
         bool open = e > 0.001f;
-        float span = BankArt.Width * 4 + 80;
-        foreach (var (node, baseX, side) in _banks) node.Position = new Vector2(baseX + side * e * span, node.Position.Y);
+        PlaceBanks();
+        PlacePlatform(e);
         _sky.Modulate = new Color(1, 1, 1, _look.OpensToSea ? 1 - e : 1);
-        foreach (var c in _crownNodes) c.Modulate = new Color(1, 1, 1, 1 - e);
+        foreach (var c in _crownNodes) c.Modulate = new Color(_look.BankTint.R, _look.BankTint.G, _look.BankTint.B, 1 - e);
         _horizonSky.Visible = _haze.Visible = _horizonLine.Visible = _horizonReflection.Visible = _deepReflection.Visible = open && _look.OpensToSea;
         if (!_look.OpensToSea) return;
         if (!open)
@@ -268,17 +344,63 @@ public partial class RiverBackground : Node2D
         _haze.Modulate = new Color(1, 1, 1, e);
         _horizonLine.Position = new Vector2(0, horizon - 1);
         _horizonLine.Modulate = new Color(1, 1, 1, e);
-        _horizonReflection.Position = new Vector2(0, horizon + band * 2);
+        float reach = _look.MirrorLake ? 1 : 2;            // the sea stretches the sky in its reflection; a lake mirrors it as it is
+        _horizonReflection.Position = new Vector2(0, horizon + band * reach);
         _horizonReflection.Modulate = new Color(1, 1, 1, e);
-        _deepReflection.Position = new Vector2(0, horizon + band * 2);
+        _deepReflection.Position = new Vector2(0, horizon + band * reach);
         _deepReflection.Modulate = new Color(1, 1, 1, e);
         // the water's glitter path starts at the moon, on the horizon
-        _water.SetShaderParameter("moon", new Vector2(HorizonSkyArt.Moon.x, horizon / 4f));
+        // (a lake has no path of light under the moon: the moon is simply mirrored in it)
+        _water.SetShaderParameter("moon", _look.MirrorLake ? new Vector2(-1000, -1000) : new Vector2(HorizonSkyArt.Moon.x, horizon / 4f));
     }
+
+    /// <summary>Puts the banks where they are: slid out as far as the river is open, and bent by the wind (the branches more than the roots).</summary>
+    private void PlaceBanks()
+    {
+        float span = BankArt.Width * 4 + 80;
+        float t = (float)_time;
+        // The wind comes in gusts: the trees bend a good way and spring back, a little more every few seconds.
+        float gust = 0.65f + 0.35f * Mathf.Sin(t * 0.45f);
+        float bend = _look.BankSway * gust * (0.6f + 0.4f * Mathf.Sin(t * 1.7f) + 0.25f * Mathf.Sin(t * 3.1f + 1)) + _look.BankSway * 0.35f;
+        foreach (var (node, baseX, side, sway) in _banks)
+            node.Position = new Vector2(baseX + side * _open * span + bend * sway, node.Position.Y);
+    }
+
+    /// <summary>How far the banks have slid out of the river (0: not at all, 1: gone): the boat has that much more room.</summary>
+    public float OpenAmount => _open;
 
     public void Update(float dt)
     {
+        // The bed of the river scrolls with the boat, down the picture; in the waterfall the water rushes up, until the lake calms it.
+        double bedSpeed = ScrollRowsPerSecond * 0.65;
+        float rush = _look.WaterfallRush ? 1 - _open : 0;
+        bedSpeed = bedSpeed * (1 - rush) - rush * ScrollRowsPerSecond * 2.4;
+        _bedOffset += bedSpeed * dt;
+        _water.SetShaderParameter("bed_offset", (float)_bedOffset);
+        if (_look.WaterfallRush)
+        {
+            // the rocks pass quickly, and slowly again once the fight begins
+            float factor = Mathf.Lerp(_look.RockSpeedFactor, 1f, _open);
+            foreach (var pair in _baseSpeed) pair.Key.RowsPerSecond = pair.Value * factor;
+            _water.SetShaderParameter("refl_strength", Mathf.Lerp(_look.RiverReflection, _look.LakeReflection, _open));
+            _streaks?.Update(dt, rush);
+        }
+        _snow?.Update(dt, _open);
         UpdateFloaters(dt);
+        _life?.Update(dt, _open);
+        _weather?.Update(dt, _open);
+        _agitation = Mathf.MoveToward(_agitation, _bossFight ? _look.BossAgitation : _look.Agitation, dt * 0.7f);
+        _water.SetShaderParameter("agitation", _agitation);
+        if (_clearSky != null)
+        {
+            // The clouds part: the moon fades in, in the middle of the water, and its glitter goes up as well as down.
+            _clear = Mathf.MoveToward(_clear, _bossFight ? 1 : 0, dt / 2.2f);
+            _clearSky.Modulate = new Color(1, 1, 1, _clear);
+            _water.SetShaderParameter("moon", new Vector2(StormArt.Moon.x, StormArt.Moon.y));
+            _water.SetShaderParameter("moon_strength", _clear);
+            _water.SetShaderParameter("glitter_both", 1f);
+        }
+        if (_look.BankSway > 0) PlaceBanks();
         if (_openTime >= 0)
         {
             _openTime += dt;
@@ -291,7 +413,7 @@ public partial class RiverBackground : Node2D
         _rippleClock += dt;
         foreach (var ripple in _ripples)
         {
-            ripple.Variant = (int)(_rippleClock / 0.5) % 2;
+            ripple.Variant = (int)(_rippleClock / _look.RipplePeriod) % Math.Max(1, ripple.VariantCount);
             ripple.Advance(dt);
         }
         _time += dt;

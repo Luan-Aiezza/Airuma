@@ -111,6 +111,7 @@ public partial class Main : Node2D
     {
         MusicPlayer.Instance?.Play(MusicPlayer.Theme.Menu);
         var menu = new MenuScene();
+        menu.Quit += () => GetTree().Quit();
         menu.StartGame += level => CallDeferred(nameof(StartGameDeferred), -1, (int)level, 0);
         menu.StartPractice += (stage, phase) => CallDeferred(nameof(StartGameDeferred), phase, (int)Difficulty.Normal, stage);
         Swap(menu);

@@ -27,6 +27,8 @@ public struct FirePattern
 
     /// <summary>The bullets of the pattern in another style.</summary>
     public FirePattern Styled(BulletStyle style, float scale = 0) { var p = this; p.Style = style; p.Scale = scale; return p; }
+    /// <summary>Bullets that zigzag like lightning: they turn by `curve` degrees every fraction of a second, one way and the other.</summary>
+    public FirePattern Zigzag(float curve) { var p = this; p.Behavior = BulletBehavior.Zigzag; p.Curve = curve; p.AlternateCurve = false; return p; }
     /// <summary>Bullets that dance (see <see cref="BulletBehavior.Dance"/>): they sway on the beat, and with `alternate` neighbours sway against each other.</summary>
     public FirePattern Dancing(float curve, bool alternate = true) { var p = this; p.Behavior = BulletBehavior.Dance; p.Curve = curve; p.AlternateCurve = alternate; return p; }
 

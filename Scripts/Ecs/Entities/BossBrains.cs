@@ -58,3 +58,14 @@ public sealed class SweepBrain
         SpeedScale = difficulty == Difficulty.Easy ? 0.85f : (difficulty == Difficulty.Hard ? 1.15f : 1);
     }
 }
+
+/// <summary>The cross: fast legs from corner to corner of the field (diagonal and straight, in turn), with a rest at the end of each.</summary>
+public sealed class CrossBrain
+{
+    /// <summary>The corners it goes to, in order: top left, bottom right (a diagonal), top right (straight up), bottom left (a diagonal), back to the top left.</summary>
+    public static readonly Vector2[] Corners = { new Vector2(90, 120), new Vector2(510, 420), new Vector2(510, 120), new Vector2(90, 420) };
+
+    public int Next;
+    public float Rest;
+    public void Reset() { Next = 0; Rest = 0.6f; }
+}

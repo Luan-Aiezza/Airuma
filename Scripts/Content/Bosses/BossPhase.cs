@@ -29,11 +29,22 @@ public sealed class BossPhase
     /// <summary>The attack begins with her already at the target (the dash enters from above the screen on its own).</summary>
     public bool StartsAtTarget;
 
+    /// <summary>Where the second body goes and how it moves, for a boss that is two (see <see cref="BossDefinition.HasTwin"/>).</summary>
+    /// <summary>In this attack the two bodies of a boss that is two are ONE: the second glides to the first and they fuse (the fused style is shown, and the twin is gone).</summary>
+    public bool Fused;
+    public BossMovementType TwinMovement = BossMovementType.Stationary;
+    public Vector2 TwinTarget;
+
     /// <summary>The bullets: the main emitter, and a second one for the attacks that weave two patterns together.</summary>
     public BulletEmitterComponent Main;
     public BulletEmitterComponent Sub;
     /// <summary>On hard difficulty, a second pattern woven into an attack that has no <see cref="Sub"/>; unused if not active.</summary>
     public BulletEmitterComponent HardExtra;
+
+    /// <summary>What the attack does besides firing bullets: slashes of claws, a quake of the screen, a roar that pushes the boat (see <see cref="BossSpecials"/>).</summary>
+    public SlashSpec Slashes;
+    public QuakeSpec Quake;
+    public RoarSpec Roar;
 
     /// <summary>The attack is a lunge that only drops embers in its wake: easy has none, normal has what easy would have, hard what normal would.</summary>
     public bool EmbersOneStepDown;

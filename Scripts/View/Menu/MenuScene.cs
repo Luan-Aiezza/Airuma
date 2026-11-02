@@ -12,7 +12,7 @@ public partial class MenuScene : Node2D
 {
     public enum Screen { Main, Difficulty, PracticeKind, PracticeStages, Practice, Scores }
 
-    public enum ActionKind { Start, Practice, PracticeStages, PracticeBosses, Scores, MusicRoom, Config, Rehearse, RehearseStage, Back, Choose }
+    public enum ActionKind { Start, Practice, PracticeStages, PracticeBosses, Scores, MusicRoom, Config, Quit, Rehearse, RehearseStage, Back, Choose }
 
     public struct Entry
     {
@@ -33,6 +33,8 @@ public partial class MenuScene : Node2D
 
     /// <summary>Raised to begin a full run on the chosen difficulty.</summary>
     public event Action<Difficulty> StartGame;
+    /// <summary>Raised when the player chooses to close the game.</summary>
+    public event Action Quit;
     /// <summary>Raised to begin practising: the stage (0...) and the attack (1..6) of its boss, or 0 for the whole stage from the start.</summary>
     public event Action<int, int> StartPractice;
 
@@ -134,7 +136,7 @@ public partial class MenuScene : Node2D
                 {
                     new(UIText.MenuStart, ActionKind.Start), new(UIText.MenuBossPractice, ActionKind.Practice),
                     new(UIText.MenuScores, ActionKind.Scores), new(UIText.MenuMusicRoom, ActionKind.MusicRoom),
-                    new(UIText.MenuConfig, ActionKind.Config),
+                    new(UIText.MenuConfig, ActionKind.Config), new(UIText.MenuQuit, ActionKind.Quit),
                 };
                 break;
             case Screen.Difficulty:
@@ -334,6 +336,7 @@ public partial class MenuScene : Node2D
             case ActionKind.Scores: Show(Screen.Scores); break;
             case ActionKind.MusicRoom:
             case ActionKind.Config: ShowNotice(UIText.ComingSoon); break;
+            case ActionKind.Quit: Quit?.Invoke(); break;
             case ActionKind.Rehearse:
             case ActionKind.RehearseStage: StartPractice?.Invoke(entry.Stage, entry.Phase); break;
             case ActionKind.Back: Back(); break;

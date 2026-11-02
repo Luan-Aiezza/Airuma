@@ -328,6 +328,78 @@ public static class CardArt
                     "..............",
                     "..............",
                 };
+            case Card.SerpentFlame:
+                return new[]
+                {
+                    "......r.......",
+                    ".....ror......",
+                    "....roor..r...",
+                    "....rooor.ro..",
+                    "...roooyor.o..",
+                    "..roooyyyor...",
+                    "..rooyywyor...",
+                    "..rooywwyor...",
+                    "..rooyywyor...",
+                    "..roooyyyor...",
+                    "...rooyyor....",
+                    "....roooor....",
+                    ".....rrrr.....",
+                    "..............",
+                };
+            case Card.PartyFever:
+                return new[]
+                {
+                    "...y......p...",
+                    ".....r...b....",
+                    "....ror.......",
+                    "....rwr...y...",
+                    "...rwrwr......",
+                    "...rrwrr..g...",
+                    "..rwrrrwr.....",
+                    "..rrwrwrr.....",
+                    ".rwrrrrrwr.p..",
+                    "iiiiiiiiiii...",
+                    "..y.....b...r.",
+                    "....g....y....",
+                    "...........b..",
+                    "..............",
+                };
+            case Card.StormBolt:
+                return new[]
+                {
+                    "...........i..",
+                    "..........iyi.",
+                    "........iyyi..",
+                    "......iyyyi...",
+                    ".....iyyyi....",
+                    "....iyyyyyi...",
+                    "......iyyyi...",
+                    ".....iyyyi....",
+                    "....iyyi......",
+                    "...iyyi.......",
+                    "...iyi........",
+                    "...ii.........",
+                    "..............",
+                    "..............",
+                };
+            case Card.BearCloak:
+                return new[]
+                {
+                    "..............",
+                    ".kk........kk.",
+                    "kook......kook",
+                    "kokk......kkok",
+                    ".kkkkkkkkkkkk.",
+                    "..kkkkkkkkkk..",
+                    ".kkkiwkkwikkk.",
+                    ".kkkiikkiikkk.",
+                    ".kkkkkssskkkk.",
+                    ".kkkkssiisskk.",
+                    ".kkkkkkiikkkk.",
+                    "..kkkkrrkkkk..",
+                    "...kkkkkkkk...",
+                    "..............",
+                };
             default:
                 return new string[0];
         }
@@ -346,12 +418,23 @@ public static class CardArt
         return c;
     }
 
+    /// <summary>The colour of a card's band and frame: its rarity's, or, for a boss's special card, one of the boss's theme (fire, party, storm).</summary>
+    public static PixelColor AccentColor(Card card) => card switch
+    {
+        Card.SerpentFlame => PixelColor.Hex(0xFF6A1A),
+        Card.PartyFever => PixelColor.Hex(0xE84AA8),
+        Card.StormBolt => PixelColor.Hex(0x6FD0FF),
+        Card.BearCloak => PixelColor.Hex(0xC8905A),
+        _ => RarityColor(CardInfo.Rarity(card)),
+    };
+
     public static PixelColor RarityColor(CardRarity rarity)
     {
         switch (rarity)
         {
             case CardRarity.Common: return PixelColor.Hex(0xB9C4D0);
             case CardRarity.Uncommon: return PixelColor.Hex(0x4FC3E8);
+            case CardRarity.Special: return PixelColor.Hex(0xE8503A);
             default: return PixelColor.Hex(0xF2C14E);
         }
     }
@@ -360,7 +443,8 @@ public static class CardArt
     public static PixelCanvas Face(Card card)
     {
         var c = HudArt.Box(Width, Height);
-        var band = RarityColor(CardInfo.Rarity(card));
+        var band = AccentColor(card);
+        bool special = CardInfo.Rarity(card) == CardRarity.Special;
         for (int x = 5; x < Width - 5; x++)
         {
             c[x, 5] = band;
@@ -373,8 +457,15 @@ public static class CardArt
             for (int x = left; x < left + windowSize; x++)
             {
                 bool edge = x == left || x == left + windowSize - 1 || y == windowTop || y == windowTop + windowSize - 1;
-                c[x, y] = edge ? HudArt.Colors.Ink : HudArt.Colors.DeepInk.Mixed(band, 0.12f);
+                c[x, y] = edge ? HudArt.Colors.Ink : HudArt.Colors.DeepInk.Mixed(band, special ? 0.30f + 0.18f * ((x + y) % 6 < 2 ? 1 : 0) : 0.12f);
             }
+        }
+        if (special)
+        {
+            // A double band, and sparks at the corners of the window: the card of a boss is not an ordinary one.
+            for (int x = 5; x < Width - 5; x++) { c[x, 8] = band.Scaled(0.5f); c[x, Height - 8] = band; c[x, Height - 7] = band.Scaled(0.7f); }
+            foreach (var (sx, sy) in new[] { (left - 3, windowTop - 3), (left + windowSize + 2, windowTop - 3), (left - 3, windowTop + windowSize + 2), (left + windowSize + 2, windowTop + windowSize + 2) })
+                foreach (var (dx, dy) in new[] { (0, 0), (-1, 0), (1, 0), (0, -1), (0, 1) }) if (c.Contains(sx + dx, sy + dy)) c[sx + dx, sy + dy] = band;
         }
         var art = Icon(card);
         for (int y = 0; y < IconSize; y++)

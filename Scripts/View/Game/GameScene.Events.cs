@@ -32,6 +32,12 @@ public partial class GameScene : Node2D
                     SfxPlayer.Instance?.Play(e.Spirit == SpiritKind.Heavy ? SfxBank.Sound.HitHeavy : SfxBank.Sound.HitGunner);
                     break;
                 case WorldEventKind.BossHit: SfxPlayer.Instance?.Play(SfxBank.Sound.HitBoss); break;
+                case WorldEventKind.SlashStruck: SfxPlayer.Instance?.Play(SfxBank.Sound.Slash); break;
+                case WorldEventKind.QuakeStarted: SfxPlayer.Instance?.Play(SfxBank.Sound.Quake); break;
+                case WorldEventKind.Roared:
+                    SfxPlayer.Instance?.Play(SfxBank.Sound.Roar);
+                    AddChild(new RoarWave { Position = Point(e.Position), ZIndex = Z(4.2f) });
+                    break;
                 case WorldEventKind.BombFired: SfxPlayer.Instance?.Play(SfxBank.Sound.Bomb); break;
                 case WorldEventKind.LightGathered: SfxPlayer.Instance?.Play(SfxBank.Sound.Pickup); break;
                 case WorldEventKind.WaveStarted: break;

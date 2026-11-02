@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 
-/// <summary>Who speaks. `Boss` is the boss of the stage (the name is the stage's boss's).</summary>
-public enum DialogueSpeaker { Atli, Airu, Boss }
+/// <summary>Who speaks. `Boss` is the boss of the stage (the name is the stage's boss's); the others are friends and foes who speak in one stage only.</summary>
+public enum DialogueSpeaker { Atli, Airu, Boss, Ukhumo, LeftSerpent, RightSerpent }
 
 /// <summary>How a speaker looks while saying a line (named Emotion because Godot already has a class called Expression).</summary>
 public enum Emotion { Neutral, Annoyed, Sheepish, Surprised, Happy, Worried }
@@ -118,5 +118,129 @@ public static class Dialogues
         new DialogueLine(DialogueSpeaker.Boss, Emotion.Happy, "S2End08"),
         new DialogueLine(DialogueSpeaker.Boss, Emotion.Happy, "S2End09"),
         new DialogueLine(DialogueSpeaker.Atli, Emotion.Sheepish, "S2End10"),
+    };
+
+    // MARK: Stage 3, the lake of the hail
+
+    /// <summary>Stage 3, at the start: the hail begins, and Atli has no hat.</summary>
+    public static IReadOnlyList<DialogueLine> StageThreeIntro => new[]
+    {
+        new DialogueLine(DialogueSpeaker.Atli, Emotion.Worried, "S3Intro01"),
+        new DialogueLine(DialogueSpeaker.Airu, Emotion.Surprised, "S3Intro02"),
+        new DialogueLine(DialogueSpeaker.Atli, Emotion.Surprised, "S3Intro03", shout: true),
+        new DialogueLine(DialogueSpeaker.Airu, Emotion.Annoyed, "S3Intro04"),
+        new DialogueLine(DialogueSpeaker.Atli, Emotion.Sheepish, "S3Intro05"),
+    };
+
+    /// <summary>Before Thaqai: she bars the way, on orders she will not tell.</summary>
+    public static IReadOnlyList<DialogueLine> StageThreeMeeting => new[]
+    {
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Annoyed, "S3Meet01"),
+        new DialogueLine(DialogueSpeaker.Atli, Emotion.Neutral, "S3Meet02"),
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Annoyed, "S3Meet03"),
+        new DialogueLine(DialogueSpeaker.Airu, Emotion.Worried, "S3Meet04"),
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Annoyed, "S3Meet05", shout: true),
+    };
+
+    /// <summary>After Thaqai: she lets "she" slip, and Airu works out that it must be a god, and that the great serpent may know.</summary>
+    public static IReadOnlyList<DialogueLine> StageThreeEnding => new[]
+    {
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Worried, "S3End01"),
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Worried, "S3End02", shout: true),
+        new DialogueLine(DialogueSpeaker.Atli, Emotion.Surprised, "S3End03"),
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Surprised, "S3End04", shout: true),
+        new DialogueLine(DialogueSpeaker.Atli, Emotion.Neutral, "S3End05"),
+        new DialogueLine(DialogueSpeaker.Airu, Emotion.Worried, "S3End06"),
+        new DialogueLine(DialogueSpeaker.Airu, Emotion.Worried, "S3End07"),
+        new DialogueLine(DialogueSpeaker.Atli, Emotion.Surprised, "S3End08"),
+        new DialogueLine(DialogueSpeaker.Airu, Emotion.Annoyed, "S3End09"),
+        new DialogueLine(DialogueSpeaker.Airu, Emotion.Neutral, "S3End10"),
+        new DialogueLine(DialogueSpeaker.Atli, Emotion.Neutral, "S3End11"),
+        new DialogueLine(DialogueSpeaker.Airu, Emotion.Neutral, "S3End12"),
+    };
+
+    // MARK: Stage 4, the river of the cave
+
+    /// <summary>Stage 4, at the start: the dark of the cave, and Atli's stomach.</summary>
+    public static IReadOnlyList<DialogueLine> StageFourIntro => new[]
+    {
+        new DialogueLine(DialogueSpeaker.Atli, Emotion.Worried, "S4Intro01"),
+        new DialogueLine(DialogueSpeaker.Airu, Emotion.Worried, "S4Intro02"),
+        new DialogueLine(DialogueSpeaker.Atli, Emotion.Sheepish, "S4Intro03"),
+        new DialogueLine(DialogueSpeaker.Airu, Emotion.Annoyed, "S4Intro04"),
+        new DialogueLine(DialogueSpeaker.Atli, Emotion.Happy, "S4Intro05"),
+    };
+
+    /// <summary>Before Ukhumo: she smells the toasted corn, and she is hungry.</summary>
+    public static IReadOnlyList<DialogueLine> StageFourMeeting => new[]
+    {
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Neutral, "S4Meet01"),
+        new DialogueLine(DialogueSpeaker.Atli, Emotion.Surprised, "S4Meet02"),
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Annoyed, "S4Meet03"),
+        new DialogueLine(DialogueSpeaker.Airu, Emotion.Worried, "S4Meet04"),
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Annoyed, "S4Meet05", shout: true),
+    };
+
+    /// <summary>After Ukhumo: Atli gives her his snack, and she will guide them through the tunnels to the great serpent.</summary>
+    public static IReadOnlyList<DialogueLine> StageFourEnding => new[]
+    {
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Worried, "S4End01"),
+        new DialogueLine(DialogueSpeaker.Atli, Emotion.Sheepish, "S4End02"),
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Surprised, "S4End03"),
+        new DialogueLine(DialogueSpeaker.Atli, Emotion.Neutral, "S4End04"),
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Happy, "S4End05"),
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Happy, "S4End06"),
+        new DialogueLine(DialogueSpeaker.Atli, Emotion.Neutral, "S4End07"),
+        new DialogueLine(DialogueSpeaker.Airu, Emotion.Neutral, "S4End08"),
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Surprised, "S4End09"),
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Neutral, "S4End10"),
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Neutral, "S4End11"),
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Neutral, "S4End12"),
+    };
+
+    // MARK: Stage 5, the waterfall of the seven colours
+
+    /// <summary>Stage 5, at the start: Ukhumo leaves them at the foot of the fall, and warns them about the two heads.</summary>
+    public static IReadOnlyList<DialogueLine> StageFiveIntro => new[]
+    {
+        new DialogueLine(DialogueSpeaker.Ukhumo, Emotion.Neutral, "S5Intro01"),
+        new DialogueLine(DialogueSpeaker.Atli, Emotion.Happy, "S5Intro02"),
+        new DialogueLine(DialogueSpeaker.Ukhumo, Emotion.Happy, "S5Intro03"),
+        new DialogueLine(DialogueSpeaker.Ukhumo, Emotion.Worried, "S5Intro04"),
+        new DialogueLine(DialogueSpeaker.Airu, Emotion.Annoyed, "S5Intro05"),
+    };
+
+    /// <summary>Before Kuychu: the two serpents that he wears speak first, and he asks for proof of their worth, which is a fight.</summary>
+    public static IReadOnlyList<DialogueLine> StageFiveMeeting => new[]
+    {
+        new DialogueLine(DialogueSpeaker.LeftSerpent, Emotion.Neutral, "S5Meet01"),
+        new DialogueLine(DialogueSpeaker.RightSerpent, Emotion.Annoyed, "S5Meet02"),
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Annoyed, "S5Meet03"),
+        new DialogueLine(DialogueSpeaker.Atli, Emotion.Neutral, "S5Meet04"),
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Neutral, "S5Meet05"),
+        new DialogueLine(DialogueSpeaker.Airu, Emotion.Worried, "S5Meet06"),
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Annoyed, "S5Meet07", shout: true),
+    };
+
+    /// <summary>After Kuychu: he knows who took Illari and will not say, but he will carry them to her, up the fall, by a bridge of water.</summary>
+    public static IReadOnlyList<DialogueLine> StageFiveEnding => new[]
+    {
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Annoyed, "S5End01"),
+        new DialogueLine(DialogueSpeaker.LeftSerpent, Emotion.Happy, "S5End02"),
+        new DialogueLine(DialogueSpeaker.RightSerpent, Emotion.Annoyed, "S5End03"),
+        new DialogueLine(DialogueSpeaker.LeftSerpent, Emotion.Annoyed, "S5End04"),
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Annoyed, "S5End05"),
+        new DialogueLine(DialogueSpeaker.Atli, Emotion.Neutral, "S5End06"),
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Neutral, "S5End07"),
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Annoyed, "S5End08"),
+        new DialogueLine(DialogueSpeaker.Atli, Emotion.Surprised, "S5End09"),
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Neutral, "S5End10"),
+        new DialogueLine(DialogueSpeaker.Airu, Emotion.Worried, "S5End11"),
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Neutral, "S5End12"),
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Neutral, "S5End13"),
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Neutral, "S5End14"),
+        new DialogueLine(DialogueSpeaker.Atli, Emotion.Worried, "S5End15"),
+        new DialogueLine(DialogueSpeaker.Atli, Emotion.Happy, "S5End16"),
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Happy, "S5End17"),
     };
 }

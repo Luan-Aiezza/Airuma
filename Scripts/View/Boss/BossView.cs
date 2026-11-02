@@ -14,6 +14,10 @@ public struct BossFrame
     public bool Over;
     /// <summary>A scripted moment (the boss coming down, a talk) is going on: the boss does not spin or show its rage.</summary>
     public bool Scripted;
+    /// <summary>The boss that is two has fused into one: its fused style is shown (if it has one).</summary>
+    public bool Fused;
+    /// <summary>This body is not to be seen (it has fused into the other).</summary>
+    public bool Hidden;
 }
 
 /// <summary>
@@ -23,11 +27,14 @@ public struct BossFrame
 /// </summary>
 public partial class BossView : Node2D
 {
-    private readonly BossStyle _style;
+    private BossStyle _style;
+    private readonly BossStyle _baseStyle;
+    private bool _showingFused;
+    private Texture2D[] _fusedFrames, _fusedGlowFrames, _baseFrames, _baseGlowFrames;
     private readonly Node2D _body = new();
     private readonly Sprite2D _sprite = new() { Centered = false };
     private readonly Sprite2D _glow = new();
-    private readonly Texture2D[] _frames, _glowFrames;
+    private Texture2D[] _frames, _glowFrames;
     private float _anim, _glowTimer, _glowWait = 0.3f, _flash = -1;
     private int _glowFrame;
 
@@ -58,10 +65,13 @@ public partial class BossView : Node2D
     public BossView(BossStyle style, Node mirrorParent)
     {
         _style = style;
+        _baseStyle = style;
         _mirrorParent = mirrorParent;
         _rng.Randomize();
         _frames = style.MakeFrames();
         _glowFrames = style.MakeGlowFrames();
+        _baseFrames = _frames; _baseGlowFrames = _glowFrames;
+        if (style.Fused != null) { _fusedFrames = style.Fused.MakeFrames(); _fusedGlowFrames = style.Fused.MakeGlowFrames(); }
         ZIndex = 0;
 
         _body.ZIndex = Z(2);                    // sprites draw above bullets, as in the original
@@ -110,6 +120,7 @@ public partial class BossView : Node2D
     /// <summary>Back to the start (the run begins again).</summary>
     public void Reset()
     {
+        if (_showingFused && _baseStyle.Fused != null) ShowFused(false);
         _enrage.Reset();
         _enragedFor = 0;
         _rageClock = 0;
@@ -119,9 +130,25 @@ public partial class BossView : Node2D
         SetBlend(_sprite, 0);
     }
 
+    /// <summary>Takes the look of the fused boss, or goes back to the look of the one: its sprite, its size and its glow, with a flash and a roar.</summary>
+    private void ShowFused(bool fused)
+    {
+        _showingFused = fused;
+        _style = fused ? _baseStyle.Fused : _baseStyle;
+        _frames = fused ? _fusedFrames : _baseFrames;
+        _glowFrames = fused ? _fusedGlowFrames : _baseGlowFrames;
+        _sprite.Scale = new Vector2(_style.Scale, _style.Scale);
+        _sprite.Offset = -_frames[0].GetSize() * _style.Anchor;
+        _glow.Texture = _glowFrames[0];
+        float glowSide = _style.GlowSize * _style.Scale;
+        FitTo(_glow, new Vector2(glowSide, glowSide));
+        if (fused) { Flash(); SfxPlayer.Instance?.Play(SfxBank.Sound.Rage); }
+    }
+
     public void Update(in BossFrame f)
     {
         var boss = f.Boss;
+        if (_baseStyle.Fused != null && f.Fused != _showingFused) ShowFused(f.Fused);
         _body.Position = Point(boss.Transform.Position);
 
         // The sprite and its glow.
@@ -148,6 +175,7 @@ public partial class BossView : Node2D
         UpdateRage(f);
         UpdateDive(f);
         UpdateJet(f);
+        if (f.Hidden) _body.Visible = false;
         UpdateMirror(f);
     }
 
@@ -225,7 +253,7 @@ public partial class BossView : Node2D
     /// <summary>The boss is mirrored about the water line at its feet, as long as it is on the field.</summary>
     private void UpdateMirror(in BossFrame f)
     {
-        Attach(_mirror, _mirrorParent, f.Fighting && f.Boss.Health.Lives > 0 && CanReflect(_body.Position));
+        Attach(_mirror, _mirrorParent, f.Fighting && f.Boss.Health.Lives > 0 && _style.Reflects && !f.Hidden && CanReflect(_body.Position));
         _mirror.Position = new Vector2(_body.Position.X, _body.Position.Y + 2 * _style.Waterline);
         _mirrorSprite.Texture = _sprite.Texture;
         _mirrorSprite.Scale = _sprite.Scale;

@@ -14,6 +14,24 @@ public enum StagePart { Waves, Boss }
 public partial class World
 {
     public static readonly Rect2 PlayArea = new Rect2(0, 0, 600, 775);
+
+    /// <summary>
+    /// How much room the boat has at each side, in the boss fight, where the banks that took up the sides have gone: up to `FieldExtraMax` px beyond
+    /// the play area each way. The scene says how far the banks have slid out (0...1) by setting <see cref="FieldOpen"/>.
+    /// </summary>
+    public const float FieldExtraMax = 68;
+    private float _fieldOpen;
+    public float FieldOpen { get => _fieldOpen; set => _fieldOpen = Math.Clamp(value, 0, 1); }
+    /// <summary>The space the boat (and the boss) can move in: the play area, wider at the sides once the banks have gone.</summary>
+    public Rect2 Field => new Rect2(-FieldExtraMax * _fieldOpen, 0, PlayArea.Size.X + 2 * FieldExtraMax * _fieldOpen, PlayArea.Size.Y);
+
+    /// <summary>
+    /// Above this line (px from the top) the boat, at full power, draws every light to itself (the point of collection of the Touhou games). It is a secret
+    /// for the players who find it: nothing in the picture or the sound shows the line or says that it works.
+    /// </summary>
+    public const float CollectLine = 190;
+    /// <summary>The boat is drawing every light to itself: it is high in the picture and its power is at the top.</summary>
+    public bool Collecting => Player.Transform.Position.Y < CollectLine && PowerCurve.Level(Player.Energy) >= PowerCurve.MaxLevel;
     public const int MaxLives = 3;
 
     // The stage
@@ -34,6 +52,10 @@ public partial class World
     // Entities and pools
     public PlayerEntity Player { get; private set; }
     public BossEntity Boss { get; private set; }
+    /// <summary>The second body of a boss that is two persons who share one life (null for the others): hitting either hurts the same boss.</summary>
+    public BossEntity Twin { get; private set; }
+    /// <summary>The second body while it is a body of its own (not after it has fused into the first); null if there is none.</summary>
+    private BossEntity TwinBody => Twin != null && !Twin.Merged ? Twin : null;
     public List<EnemyEntity> Enemies { get; private set; } = new List<EnemyEntity>();
     public BulletData[] Bullets { get; private set; } = BulletSystem.NewPool();
     /// <summary>Little lights falling through the picture, for the player to gather.</summary>
@@ -48,6 +70,12 @@ public partial class World
     /// <summary>Index of the wave in progress, or the number of waves once every wave is done.</summary>
     public int WaveIndex => _waves.Index;
     private List<WorldEvent> _events = new List<WorldEvent>();
+
+    // The claws, the quake and the roar of the boss (see SpecialsSystem)
+    /// <summary>The slashes of the boss's claws that are on the field (a warning, then a strike, then a fading scar).</summary>
+    public List<SlashData> Slashes { get; } = new List<SlashData>();
+    /// <summary>How hard the screen shakes now (0: not at all).</summary>
+    public float Shake { get; private set; }
 
     // Cards
     /// <summary>The cards taken so far in this run. Lost with the run: a new run starts empty.</summary>
@@ -84,12 +112,16 @@ public partial class World
     {
         Player = PlayerEntity.Create();
         Boss = BossEntity.Create(Definition.Boss);
+        Twin = Definition.Boss.HasTwin ? BossEntity.Create(Definition.Boss) : null;
         Boss.Health.Lives = StartingBossLives;
         Bullets = BulletSystem.NewPool();
         Enemies = new List<EnemyEntity>();
         Lights = LightSystem.NewPool();
         Result = null;
         _score = new ScoreBoard();
+        Slashes.Clear();
+        Shake = 0;
+        _fieldOpen = 0;
         _waves = new WaveProgress();
         _events = new List<WorldEvent>();
         Run = new RunState();
@@ -106,15 +138,27 @@ public partial class World
             Part = StagePart.Waves;
             Boss.Transform.Position = new Vector2(300, -400);
             Boss.MovementType = BossMovementType.Stationary;
+            if (Twin != null) { Twin.Transform.Position = new Vector2(300, -400); Twin.MovementType = BossMovementType.Stationary; }
         }
         else
         {
             Part = StagePart.Boss;
-            PhaseManagerSystem.ChangePhase(Boss, Boss.Health.Lives, Difficulty);
-            PhaseManagerSystem.BeginEntrance(Boss);
+            StartBossPhase();
+            BeginBossEntrance();
         }
         RandomizeWind();
-        if (UsesCards) Draft = CardSystem.MakeDraft(DraftMoment.StageStart, Run, Player.Bomb.BombsLeft, _cardRandom);
+        // One choice opens the run (the first stage); the others come after each boss.
+        if (UsesCards && Carry == null) Draft = CardSystem.MakeDraft(DraftMoment.StageStart, Run, Player.Bomb.BombsLeft, _cardRandom);
+    }
+
+    /// <summary>The points made in this stage so far.</summary>
+    public int StageScore => Score - (Carry?.Score ?? 0);
+
+    /// <summary>The choice after the boss is beaten (and has had its say): a special card of the boss may be among the three.</summary>
+    public void OfferAfterBoss()
+    {
+        if (!UsesCards || Draft != null) return;
+        Draft = CardSystem.MakeDraft(DraftMoment.AfterBoss, Run, Player.Bomb.BombsLeft, _cardRandom, Definition.BossCard, StageScore);
     }
 
     private void ApplyCarry(RunCarry carry)
@@ -138,13 +182,38 @@ public partial class World
 
     private void AddScore(int points) => ScoreSystem.Add(ref _score, points, Effects.ScoreMultiplier, Lights);
 
+    /// <summary>The boss's attack for the lives it has left begins (for a boss that is two, both bodies go to their places).</summary>
+    private void StartBossPhase()
+    {
+        PhaseManagerSystem.ChangePhase(Boss, Boss.Health.Lives, Difficulty);
+        if (Twin != null) PhaseManagerSystem.ChangeTwinPhase(Twin, Boss);
+    }
+
+    private void BeginBossEntrance()
+    {
+        PhaseManagerSystem.BeginEntrance(Boss);
+        if (Twin != null) PhaseManagerSystem.BeginEntrance(Twin);
+    }
+
+    /// <summary>How far, at the start of a fight, the two bodies of a boss that is two are from each other (px), either side of the point where she is placed.</summary>
+    public const float TwinGap = 70;
+
+    /// <summary>Puts the boss at a point (a boss that is two: its bodies either side of it).</summary>
+    public void PlaceBoss(Vector2 at)
+    {
+        if (Twin == null) { Boss.Transform.Position = at; return; }
+        Boss.Transform.Position = at + new Vector2(-TwinGap, 0);
+        Twin.Transform.Position = at + new Vector2(TwinGap, 0);
+    }
+
     private void StartBoss()
     {
         Part = StagePart.Boss;
+        Slashes.Clear();
         BulletSystem.ClearBossBullets(Bullets);
-        Boss.Transform.Position = new Vector2(300, -160);
-        PhaseManagerSystem.ChangePhase(Boss, Boss.Health.Lives, Difficulty);
-        PhaseManagerSystem.BeginEntrance(Boss);
+        PlaceBoss(new Vector2(300, -160));
+        StartBossPhase();
+        BeginBossEntrance();
         RandomizeWind();
         _events.Add(WorldEvent.BossEntered());
     }
@@ -161,7 +230,6 @@ public partial class World
         CardSystem.Apply(Player, Effects);
         _events.Add(WorldEvent.CardTaken(card));
         Draft = null;
-        if (current.Moment == DraftMoment.BeforeBoss) StartBoss();
     }
 
     /// <summary>Advances the simulation by delta seconds. Does nothing once the game has ended.</summary>
@@ -172,25 +240,49 @@ public partial class World
         bool bossActive = Part == StagePart.Boss;
         if (Part == StagePart.Waves && WaveSystem.Update(Definition.Waves, _waves, Enemies, delta, _events))
         {
-            Draft offer = UsesCards ? CardSystem.MakeDraft(DraftMoment.BeforeBoss, Run, Player.Bomb.BombsLeft, _cardRandom) : null;
-            if (offer != null) Draft = offer; else StartBoss();
+            StartBoss();
         }
 
         // 1. Input and spawners
         Player.Input = input;
         BulletSystem.UpdatePlayerWeapons(Player, Bullets, delta, Effects);
-        if (bossActive) BulletSystem.UpdateBossWeapons(Boss, Player, Bullets, delta, Difficulty);
+        if (bossActive) BulletSystem.UpdateBossWeapons(Boss, Player, Bullets, delta, Difficulty, Field, TwinBody);
         foreach (var enemy in Enemies) EnemySystem.Fire(enemy, Player.Transform.Position, Bullets, PlayArea, delta, Difficulty);
 
         // 2. Movement
         Vector2 windVector = Wind.CurrentWindVector * Difficulty.WindFactor();
-        MovementSystem.MovePlayer(Player, PlayArea, delta, windVector);
-        if (bossActive) MovementSystem.MoveBoss(Boss, PlayArea, delta, Player.Transform.Position);
+        MovementSystem.MovePlayer(Player, Field, delta, windVector);
+        // The slashes, the quake and the roar of the boss (nothing of it in the breather between two attacks).
+        Vector2 roarPush = Vector2.Zero;
+        if (bossActive && Boss.MovementType != BossMovementType.Transition && Boss.Health.Lives > 0)
+        {
+            roarPush = SpecialsSystem.Update(Boss, Player, Slashes, delta, _events, _cardRandom);
+            Shake = SpecialsSystem.Shake(Boss.Specials);
+        }
+        else { Slashes.Clear(); Shake = 0; }
+        if (roarPush != Vector2.Zero)
+        {
+            var f = Field;
+            Player.Transform.Position += roarPush * delta;
+            Player.Transform.Position.X = MathF.Min(MathF.Max(Player.Transform.Position.X, f.Position.X), f.End.X);
+            Player.Transform.Position.Y = MathF.Min(MathF.Max(Player.Transform.Position.Y, f.Position.Y), f.End.Y);
+        }
+        if (bossActive) MovementSystem.MoveBoss(Boss, Field, delta, Player.Transform.Position);
+        if (bossActive && Twin != null)
+        {
+            if (!Twin.Merged) MovementSystem.MoveBoss(Twin, Field, delta, Player.Transform.Position);
+            Twin.Health = Boss.Health;
+            // in an attack where the two are one, the second fuses with the first once it has arrived, and then follows it
+            bool fuse = Boss.Health.Lives > 0 && Boss.Definition.PhaseFor(Boss.Health.Lives).Fused;
+            if (fuse && !Twin.Merged && Twin.MovementType != BossMovementType.Transition) Twin.Merged = true;
+            if (!fuse) Twin.Merged = false;
+            if (Twin.Merged) Twin.Transform.Position = Boss.Transform.Position;
+        }
         foreach (var enemy in Enemies) EnemySystem.Move(enemy, delta);
         GatherLights(delta);
         CardSystem.MendWard(Player, Effects, delta);
         Enemies.RemoveAll(e => EnemySystem.IsOffScreen(e, PlayArea));
-        BulletSystem.MoveBullets(Bullets, PlayArea, delta, windVector, Player, BulletSystem.HomingTargets(Effects, Enemies, Boss, bossActive));
+        BulletSystem.MoveBullets(Bullets, PlayArea, delta, windVector, Player, BulletSystem.HomingTargets(Effects, Enemies, Boss, bossActive, TwinBody));
 
         // 3. Bomb, after everything has moved
         bool bombWasLit = Player.Bomb.IsActive;
@@ -199,7 +291,7 @@ public partial class World
 
         // 4. Collisions and health
         DefeatSpirits(delta, bossActive);
-        int bossHits = CombatSystem.ProcessCollisions(Bullets, Player, Boss, bossActive, Enemies);
+        int bossHits = CombatSystem.ProcessCollisions(Bullets, Player, Boss, bossActive, Enemies, TwinBody);
         if (bossHits > 0) _events.Add(WorldEvent.BossHit());
         AddScore(bossHits * ScoreSystem.PointsPerHit);
         if (Player.ShieldBroke)
@@ -208,6 +300,8 @@ public partial class World
             _events.Add(WorldEvent.WardBroke());
         }
         UpdateHealth(delta, bossActive);
+        if (bossActive && Player.Health.InvincibilityTimer <= 0 && !Player.Bomb.IsActive && SpecialsSystem.HitBySlash(Slashes, Player)) CombatSystem.Hurt(Player, 1, 0);
+        if (Twin != null) Twin.Health = Boss.Health;
         BulletSystem.ReportFresh(Bullets, _events);
 
         if (Player.Health.Lives <= 0)
@@ -219,7 +313,7 @@ public partial class World
     /// <summary>The boat gathers the lights that fall to it: energy for the lantern, and the prizes of the score.</summary>
     private void GatherLights(float delta)
     {
-        float gathered = LightSystem.Update(Lights, Player.Transform.Position, PlayArea, delta, out int bombs, out int lives, Effects.MagnetMultiplier);
+        float gathered = LightSystem.Update(Lights, Player.Transform.Position, Field, delta, out int bombs, out int lives, Effects.MagnetMultiplier, Collecting);
         if (gathered > 0) _events.Add(WorldEvent.LightGathered());
         float spare = PowerSystem.AddEnergy(Player, gathered * Effects.LightValueMultiplier, _events);
         if (spare > 0) AddScore((int)spare * ScoreSystem.PointsPerSpareLight);
@@ -238,7 +332,7 @@ public partial class World
     /// <summary>The bomb and the player's shots hurt the spirits; those that fall let go of their lights.</summary>
     private void DefeatSpirits(float delta, bool bossActive)
     {
-        var defeated = CombatSystem.ProcessBombDamage(Player, Enemies, Boss, bossActive, delta, Effects.BombDamageMultiplier);
+        var defeated = CombatSystem.ProcessBombDamage(Player, Enemies, Boss, bossActive, delta, Effects.BombDamageMultiplier, TwinBody);
         var spirits = CombatSystem.ProcessEnemyHits(Bullets, Enemies);
         AddScore(spirits.Hits * ScoreSystem.PointsPerSpiritHit);
         defeated.AddRange(spirits.Defeated);
@@ -272,7 +366,7 @@ public partial class World
             AddScore(ScoreSystem.PointsPerPhase);
             _events.Add(WorldEvent.BossBroken());
             BulletSystem.ClearBossBullets(Bullets);
-            PhaseManagerSystem.ChangePhase(Boss, Boss.Health.Lives, Difficulty);
+            StartBossPhase();
             RandomizeWind();
         }
         if (Player.Health.Lives < livesBefore)

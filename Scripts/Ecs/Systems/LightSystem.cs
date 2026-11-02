@@ -53,8 +53,8 @@ public static class LightSystem
     public static float Update(LightItem[] items, Vector2 player, Rect2 bounds, float delta, out int bombs, float magnetScale = 1) =>
         Update(items, player, bounds, delta, out bombs, out _, magnetScale);
 
-    /// <summary>Moves the lights; returns the energy gathered, how many spare lanterns (bomb refills) and how many spare boats (lives) were picked up.</summary>
-    public static float Update(LightItem[] items, Vector2 player, Rect2 bounds, float delta, out int bombs, out int lives, float magnetScale = 1)
+    /// <summary>Moves the lights; returns the energy gathered, how many spare lanterns (bomb refills) and how many spare boats (lives) were picked up. With `collectAll` every light, bomb and boat in the picture flies to the boat.</summary>
+    public static float Update(LightItem[] items, Vector2 player, Rect2 bounds, float delta, out int bombs, out int lives, float magnetScale = 1, bool collectAll = false)
     {
         float gathered = 0;
         bombs = 0;
@@ -72,7 +72,7 @@ public static class LightSystem
                 items[i].IsActive = false;
                 continue;
             }
-            if (distance < MagnetRadius * magnetScale && items[i].Age > 0.25f)
+            if ((collectAll || distance < MagnetRadius * magnetScale) && items[i].Age > 0.25f)
             {
                 items[i].Velocity = Mathx.Norm(toPlayer) * MagnetSpeed;
             }

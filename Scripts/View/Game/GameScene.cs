@@ -32,6 +32,8 @@ public partial class GameScene : Node2D
     public RiverBackground River { get; private set; }
     private readonly WakeEffect _wake = new();
     private BurstEffect _burst;
+    private readonly ConstellationLines _constellations = new();
+    private readonly SlashEffect _slashes = new();
     private readonly List<Sprite2D> _enemyNodes = new();
     /// <summary>What the water shows of each spirit: a flipped, tinted copy under it.</summary>
     private readonly List<Sprite2D> _enemyMirrors = new();
@@ -54,6 +56,8 @@ public partial class GameScene : Node2D
     private float _auraTimer; private int _auraFrame; private float _auraWait;
     /// <summary>The boss: its sprite, its reflection and everything that goes with how it moves and fights.</summary>
     private BossView _boss;
+    /// <summary>The second body of a boss that is two (null for the others).</summary>
+    private BossView _twin;
     private readonly BombEffect _bombEffect = new();
     private readonly List<Sprite2D> _bulletNodes = new();
     private readonly Dictionary<BulletStyle, Texture2D[]> _bulletFrames = new();
@@ -76,6 +80,7 @@ public partial class GameScene : Node2D
 
     private int _lastLives = 3, _lastBombs = 3, _lastBossLives = 6;
     private bool _exited;
+    private bool _afterBossOffered;
     private readonly RandomNumberGenerator _rng = new();
 
     public readonly Difficulty Difficulty;
@@ -141,7 +146,9 @@ public partial class GameScene : Node2D
         _pendingAttackName = null;
         _bossSequence = BossSequence.None;
         _boss.Reset();
+        _twin?.Reset();
         _endSequence = EndSequence.None;
+        _afterBossOffered = false;
         _dialoguePending = false;
         // The boat waits below the screen.
         World.Player.Transform.Position = new Vector2(CombatSystem.PlayerSpawn.X, OffscreenY);
@@ -184,8 +191,9 @@ public partial class GameScene : Node2D
         {
             if (result == GameResult.Victory && PracticePhase == null && !StagePractice && _endSequence == EndSequence.Done && Stages.After(Stage) != null)
             {
-                // The stage is won and the river goes on.
-                if (!_exited) { _exited = true; _input.EndAll(); NextStage?.Invoke(RunCarry.From(World)); }
+                // The stage is won; the boss leaves a gift (one choice of cards), and then the river goes on.
+                if (!_afterBossOffered) { _afterBossOffered = true; World.OfferAfterBoss(); }
+                if (!_exited && World.Draft == null && !_picker.IsShown) { _exited = true; _input.EndAll(); NextStage?.Invoke(RunCarry.From(World)); }
             }
             else if (result == GameResult.Victory && PracticePhase == null && _endSequence != EndSequence.Done)
             {

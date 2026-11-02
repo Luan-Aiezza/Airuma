@@ -19,6 +19,8 @@ public struct BulletData
 
     public BulletBehavior Behavior;
     public float Timer;
+    /// <summary>The stars of a constellation: the constellation they belong to (0: none) and the star that this one is linked to (-1: none).</summary>
+    public int Chain, Prev;
     public BulletStyle Style;
 
     // The player's shots, as the cards change them.
@@ -37,6 +39,6 @@ public struct BulletData
     {
         IsActive = false; Position = Vector2.Zero; Velocity = Vector2.Zero; Faction = Faction.Player; HitboxRadius = 0;
         Damage = 0; WindModifier = 1; Acceleration = 0; CurveRate = 0; Scale = 1; Behavior = BulletBehavior.Normal;
-        Timer = 0; Style = BulletStyle.Fireball; Power = 1; Pierce = 0; BurstRadius = 0; BurstScale = 1; LastHit = -1;
+        Timer = 0; Chain = 0; Prev = -1; Style = BulletStyle.Fireball; Power = 1; Pierce = 0; BurstRadius = 0; BurstScale = 1; LastHit = -1;
     }
 }

@@ -16,7 +16,7 @@ public static class SfxBank
         DefeatSwarm, DefeatGunner, DefeatHeavy, BossBroken,
         OrbGreen, OrbRed, RiceRed, Fireball, FlameDart, Spark, VenomOrb, LotusPetal, MagmaOrb, FireSerpent, Ember,
         Bomb, Pickup, LevelUp, MenuMove, MenuSelect, MenuBack, DialogueNext,
-        HitGunner, HitHeavy, HitBoss, Twirl, Splash, Jet, Rage, RagePulse,
+        HitGunner, HitHeavy, HitBoss, Twirl, Splash, Jet, Rage, RagePulse, Thunder, Slash, Roar, Quake, Rock,
     }
 
     /// <summary>Volume in dB, and the least time in seconds between two plays (so volleys do not pile up into noise).</summary>
@@ -30,7 +30,7 @@ public static class SfxBank
         Sound.LotusPetal => (-14f, 0.15f), Sound.MagmaOrb => (-9f, 0.2f), Sound.FireSerpent => (-25f, 0.05f), Sound.Ember => (-24f, 0.05f),
         Sound.Bomb => (-5f, 0.5f), Sound.Pickup => (-19f, 0.035f), Sound.LevelUp => (-8f, 0.3f),
         Sound.MenuMove => (-15f, 0.03f), Sound.MenuSelect => (-11f, 0.1f), Sound.MenuBack => (-13f, 0.1f), Sound.DialogueNext => (-16f, 0.05f),
-        Sound.HitGunner => (-18f, 0.05f), Sound.HitHeavy => (-16f, 0.05f), Sound.HitBoss => (-14f, 0.06f), Sound.Twirl => (-12f, 0.3f), Sound.Splash => (-9f, 0.15f), Sound.Jet => (-8f, 0.5f), Sound.Rage => (-3f, 1.0f), Sound.RagePulse => (-17f, 0.5f),
+        Sound.HitGunner => (-18f, 0.05f), Sound.HitHeavy => (-16f, 0.05f), Sound.HitBoss => (-14f, 0.06f), Sound.Twirl => (-12f, 0.3f), Sound.Splash => (-9f, 0.15f), Sound.Jet => (-8f, 0.5f), Sound.Rage => (-3f, 1.0f), Sound.Thunder => (-6f, 1.0f), Sound.RagePulse => (-17f, 0.5f), Sound.Slash => (-7f, 0.2f), Sound.Roar => (-3f, 1.0f), Sound.Quake => (-4f, 1.0f), Sound.Rock => (-19f, 0.07f),
         _ => (-12f, 0.05f),
     };
 
@@ -46,6 +46,11 @@ public static class SfxBank
         BulletStyle.Fireball => Sound.Fireball,
         BulletStyle.FlameDart => Sound.FlameDart,
         BulletStyle.Spark => Sound.Spark,
+        BulletStyle.Star => Sound.Spark,
+        BulletStyle.Hail => Sound.RiceRed,
+        BulletStyle.Claw => Sound.Spark,
+        BulletStyle.Rock or BulletStyle.Stalactite => Sound.Rock,
+        BulletStyle.Shard => Sound.RiceRed,
         BulletStyle.VenomOrb => Sound.VenomOrb,
         BulletStyle.LotusPetal => Sound.LotusPetal,
         BulletStyle.MagmaOrb => Sound.MagmaOrb,
@@ -378,6 +383,47 @@ public static class SfxBank
                 var thump = Sweep(t => 95 * Math.Exp(-t * 8) + 42);
                 var crackle = HighNoise(43, 0.7);
                 return Render(0.35, t => thump(t) * Env(t, 0.003, 10) * 0.9 + crackle(t) * Math.Exp(-t * 30) * 0.3);
+            }
+            case Sound.Thunder: // a crack, then a long rumble that rolls away
+            {
+                var crack = HighNoise(51, 0.8);
+                var rumble = LowNoise(52, t => 0.03 + 0.05 * Math.Exp(-t * 1.2));
+                var deep = Sweep(t => 48 + 14 * Math.Sin(t * 3.0));
+                return Render(2.4, t =>
+                {
+                    double roll = Math.Min(1, t / 0.12) * Math.Exp(-t * 1.5) * (0.7 + 0.3 * Math.Sin(t * 11));
+                    return crack(t) * Math.Exp(-t * 28) * 0.8 + rumble(t) * roll * 2.4 + deep(t) * roll * 0.4;
+                });
+            }
+            case Sound.Slash: // the claws cut the air: a hiss that falls, and a tearing crackle
+            {
+                var air = HighNoise(61, 0.9);
+                var tear = Sweep(t => 2600 * Math.Exp(-t * 9) + 300, ph => Math.Tanh(Math.Sin(ph) * 4));
+                var thud = Sweep(t => 120 * Math.Exp(-t * 14) + 50);
+                return Render(0.4, t => air(t) * Math.Exp(-t * 7) * 0.8 + tear(t) * Env(t, 0.002, 9) * 0.35 + thud(t) * Env(t, 0.002, 12) * 0.6);
+            }
+            case Sound.Roar: // a bear's roar: a rough growl that swells, breaks and falls
+            {
+                var growl = Sweep(t => 70 + 55 * Math.Sin(t * 5) + 40 * t, ph => Math.Tanh(Math.Sin(ph) * 5));
+                var rough = LowNoise(62, t => 0.12 + 0.1 * Math.Sin(t * 30));
+                return Render(1.3, t =>
+                {
+                    double swell = Math.Min(1, t / 0.15) * Math.Exp(-Math.Max(0, t - 0.5) * 3.2);
+                    return (growl(t) * 0.6 + rough(t) * 1.1) * swell;
+                });
+            }
+            case Sound.Quake: // she stamps: a blow, and a rumble of rock that goes on
+            {
+                var thump = Sweep(t => 70 * Math.Exp(-t * 6) + 34);
+                var rumble = LowNoise(63, t => 0.04 + 0.03 * Math.Sin(t * 17));
+                var crack = HighNoise(64, 0.8);
+                return Render(1.6, t => thump(t) * Env(t, 0.002, 4) * 1.1 + rumble(t) * Math.Min(1, t / 0.05) * Math.Exp(-t * 1.1) * 2.2 + crack(t) * Math.Exp(-t * 40) * 0.5);
+            }
+            case Sound.Rock: // a dull knock of stone
+            {
+                var tone = Sweep(t => 260 * Math.Exp(-t * 30) + 110);
+                var grit = HighNoise(65, 0.6);
+                return Render(0.09, t => tone(t) * Env(t, 0.001, 38) * 0.9 + grit(t) * Math.Exp(-t * 80) * 0.3);
             }
             case Sound.HitBoss: // the boss is hurt: a ringing, fiery impact
             {

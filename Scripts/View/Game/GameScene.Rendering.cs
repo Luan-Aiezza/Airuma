@@ -9,7 +9,7 @@ public partial class GameScene : Node2D
     private void BuildWorldNodes()
     {
         River = new RiverBackground(new Vector2(Layout.RiverWidth, Layout.Height), Stage.Scenery);
-        _windEffect.Style = Stage.Scenery.LanternWind ? WindEffect.Kind.Lanterns : WindEffect.Kind.Leaves;
+        _windEffect.Style = Stage.Scenery.BirdWind ? WindEffect.Kind.Birds : (Stage.Scenery.LanternWind ? WindEffect.Kind.Lanterns : WindEffect.Kind.Leaves);
         AddChild(River);
         BuildMirrors();
 
@@ -51,6 +51,10 @@ public partial class GameScene : Node2D
             AddChild(node);
             _lightNodes.Add(node);
         }
+        _constellations.ZIndex = Z(3.9f);   // under the bullets, over everything else
+        AddChild(_constellations);
+        _slashes.ZIndex = Z(4.3f);          // the claws cut over the bullets
+        AddChild(_slashes);
         _burst.ZIndex = Z(2.6f);
         AddChild(_burst);
 
@@ -71,6 +75,7 @@ public partial class GameScene : Node2D
         AddChild(_playerNode);
         _boss = new BossView(Stage.Boss.Style, River.MirrorLayer);
         AddChild(_boss);
+        if (Stage.Boss.Style.Twin != null) { _twin = new BossView(Stage.Boss.Style.Twin, River.MirrorLayer); AddChild(_twin); }
         BuildPlayerLight();
         _wardRing.Texture = _wardFrames[0];
         _wardRing.Scale = new Vector2(3, 3);
@@ -183,9 +188,15 @@ public partial class GameScene : Node2D
         _boss.Update(new BossFrame
         {
             Dt = _bombDelta, Boss = World.Boss, Phase = CurrentPhase, Fighting = World.Part == StagePart.Boss, Over = World.Result != null,
-            Scripted = _bossSequence != BossSequence.None,
+            Scripted = _bossSequence != BossSequence.None, Fused = World.Twin != null && World.Twin.Merged,
+        });
+        _twin?.Update(new BossFrame
+        {
+            Dt = _bombDelta, Boss = World.Twin, Phase = CurrentPhase, Fighting = World.Part == StagePart.Boss, Over = World.Result != null,
+            Scripted = _bossSequence != BossSequence.None, Hidden = World.Twin.Merged,
         });
         River.Modulate = Colors.White.Lerp(_boss.Style.SceneTint, _boss.RageAmount);
+        World.FieldOpen = River.OpenAmount;       // the banks have gone: the boat has their room
     }
 
     private void SyncNodes()
@@ -210,6 +221,10 @@ public partial class GameScene : Node2D
 
         SyncBoss();
         SyncMirrors();
+        _constellations.Update(_bombDelta, BulletSystem.Links(World.Bullets));
+        _slashes.Show(World.Slashes, _bombDelta);
+        // The quake: the whole picture shakes, more and less.
+        Position = World.Shake > 0 ? new Vector2((_rng.Randf() - 0.5f) * 10 * World.Shake, (_rng.Randf() - 0.5f) * 10 * World.Shake) : Vector2.Zero;
 
         var bomb = player.Bomb;
         // The bomb is the lantern's light, so it is centred on the lantern, not on the middle of the boat.

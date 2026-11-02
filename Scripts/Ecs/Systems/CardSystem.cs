@@ -11,7 +11,7 @@ public static class CardSystem
     {
         switch (card)
         {
-            case Card.SpiritWard: case Card.MendingWard: player.Shield += 1; break;
+            case Card.SpiritWard: case Card.MendingWard: case Card.BearCloak: player.Shield += 1; break;
             case Card.SpareLantern: player.Bomb.BombsLeft = Math.Min(3, player.Bomb.BombsLeft + 1); break;
         }
     }
@@ -43,9 +43,9 @@ public static class CardSystem
     }
 
     /// <summary>Three cards to choose from, or null if there are none worth offering.</summary>
-    public static Draft MakeDraft(DraftMoment moment, RunState run, int bombsLeft, SeededGenerator rng)
+    public static Draft MakeDraft(DraftMoment moment, RunState run, int bombsLeft, SeededGenerator rng, Card? special = null, int stageScore = 0)
     {
-        var offers = CardDeck.Offers(run, bombsLeft, rng);
+        var offers = CardDeck.Offers(run, bombsLeft, rng, 1, special, special == null ? 0 : CardDeck.SpecialChance(stageScore));
         return offers.Count == 0 ? null : new Draft(moment, offers);
     }
 }

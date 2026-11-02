@@ -23,7 +23,7 @@ files in the project (apart from the game's icon).
 - **Practice** rehearses a whole stage (not recorded) or the fight with a boss; the bosses that are not made yet are locked. In practice the
   boat never loses a life.
 - Losing a life fills the bag of bombs again.
-- Light dropped by the spirits raises the weapon's level; a card is chosen at the start of the stage and before the boss; a spare
+- Light dropped by the spirits raises the weapon's level; one card is chosen at the start of the run and one after each boss (six in all; a boss may leave a special card of its theme, likelier the better the stage score); a spare
   bomb and a spare boat (a life) fall from the sky when the score reaches certain heights.
 
 ## How the project is organised
@@ -71,6 +71,10 @@ Shaders/              water, menu water
 - **How a boss moves:** `BossMovementType` plus a file `Ecs/Systems/Movement/MovementSystem.<Name>.cs` and a brain in `BossBrains.cs`.
 - **How bullets are fired:** one function, `BulletSystem.FireBullet`, for the emitters of the bosses and for the patterns of the spirits
   (`FirePattern` can be `Styled(...)` and `Dancing(...)`, like a boss's emitter).
+- **The bullets a boss can fire** (`BulletEmitterComponent` / `BulletBehavior`): plain volleys and spirals; `Dance` (sway on a half-second beat); `Zigzag`
+  (lightning); `Constellation` (stars that fly out, hang linked by thin lines that hurt, and fall; `Link`, `LinkSkip`); and the **curtain**: a row
+  of bullets across the field with a gap that swings from side to side, which makes the boat move in small steps (the micro-movement of the
+  later bosses; the gap is never faster than the boat while focusing).
 - **Every text:** by key, in the tables; a talk's lines hold keys (`DialogueLine.Key`), so adding a line is a line of code and two table entries.
 
 ### Languages

@@ -39,10 +39,11 @@ public partial class WindEffect : Node2D
 
     public readonly Vector2 Field;
     /// <summary>What the wind carries: leaves in the jungle, paper lanterns at the festival.</summary>
-    public enum Kind { Leaves, Lanterns }
+    public enum Kind { Leaves, Lanterns, Birds }
     public Kind Style = Kind.Leaves;
     private readonly Texture2D[][] _leafTextures = WindArt.MakeLeafTextures();
     private Texture2D[][] _lanternTextures;
+    private Texture2D[] _birdTextures;
     private readonly Leaf[] _leaves;
     private readonly Sprite2D[] _nodes;
     private readonly List<Pending> _pending = new List<Pending>();
@@ -152,6 +153,7 @@ public partial class WindEffect : Node2D
 
     private void Enqueue(int count, float duration)
     {
+        if (Style == Kind.Birds) count = Math.Max(1, count / 4);          // birds are few
         for (int k = 0; k < count; k++) _pending.Add(new Pending { Delay = Rand(0, duration), Level = WindLevel });
     }
 
@@ -181,6 +183,7 @@ public partial class WindEffect : Node2D
         leaf.Fall = Rand(18, 40);
         leaf.Tone = _rng.Next(0, Style == Kind.Lanterns ? FestivalArt.LanternTones : WindArt.LeafTones);
         if (Style == Kind.Lanterns) leaf.Fall = Rand(-6, 8);   // paper lanterns float level
+        if (Style == Kind.Birds) { leaf.Fall = 0; leaf.SwayAmplitude = Rand(4, 12); leaf.SwayRate = Rand(1, 2); leaf.Speed *= 1.15f; leaf.Life = distance / leaf.Speed; }   // a bird glides straight along the wind
         leaf.TumbleRate = Rand(3, 6);
         leaf.Life = distance / leaf.Speed;
         _leaves[i] = leaf;
@@ -199,6 +202,20 @@ public partial class WindEffect : Node2D
         float y = leaf.Start.Y + d.Y * leaf.Speed * leaf.Age + perp.Y * sway + leaf.Fall * leaf.Age;
         node.Position = new Vector2(MathF.Round(x / WindArt.Scale) * WindArt.Scale, MathF.Round(y / WindArt.Scale) * WindArt.Scale);
 
+        if (Style == Kind.Birds)
+        {
+            // A condor glides with the wind: head first, its wings beating a little, at an easy pace.
+            _birdTextures ??= new Texture2D[BirdArt.FrameCount];
+            int frame = (int)(leaf.Age * 3 + leaf.Phase) % BirdArt.FrameCount;
+            _birdTextures[frame] ??= BirdArt.MakeCanvas(frame).ToTexture();
+            node.Texture = _birdTextures[frame];
+            node.Rotation = MathF.Atan2(d.Y, d.X) + MathF.PI / 2;
+            node.Scale = new Vector2(3, 3);
+            float bt = leaf.Age / leaf.Life;
+            node.Modulate = new Color(1, 1, 1, Math.Min(1, bt / 0.06f) * Math.Min(1, (1 - bt) / 0.12f));
+            node.Visible = true;
+            return;
+        }
         if (Style == Kind.Lanterns)
         {
             // A lantern does not tumble: it stays upright, rocks a little as it sways, and its flame flickers.

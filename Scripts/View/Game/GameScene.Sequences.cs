@@ -79,7 +79,7 @@ public partial class GameScene : Node2D
                 _sequenceClock += dt;
                 float u = Mathf.Clamp(_sequenceClock / DescendTime, 0, 1);
                 float ease = 1 - (1 - u) * (1 - u) * (1 - u);
-                World.Boss.Transform.Position = new Vector2(300, Mathf.Lerp(-170, Layout.BossY, ease));
+                World.PlaceBoss(new Vector2(300, Mathf.Lerp(-170, Layout.BossY, ease)));
                 if (_sequenceClock >= DescendTime + 0.5f) { _bossSequence = BossSequence.TalkTwo; StartTalk(Stage.BossEncounter); }
                 return true;
             }
@@ -88,9 +88,10 @@ public partial class GameScene : Node2D
                 {
                     // The talk is over: her title and her music, and the fight begins a moment later.
                     _bossSequence = BossSequence.None;
-                    World.Boss.Transform.Position = new Vector2(300, Layout.BossY);
+                    World.PlaceBoss(new Vector2(300, Layout.BossY));
                     World.Boss.TransitionTimer = 1.0f;
                     World.Boss.TransitionSpeed = 0;
+                    if (World.Twin != null) { World.Twin.TransitionTimer = 1.0f; World.Twin.TransitionSpeed = 0; }
                     AnnounceBossPhase(1.6f);
                 }
                 return true;
@@ -121,6 +122,7 @@ public partial class GameScene : Node2D
     private void BeginEnrage()
     {
         _boss.Flash();
+        _twin?.Flash();
         AnnounceBossPhase(1.6f);
     }
 
@@ -129,7 +131,7 @@ public partial class GameScene : Node2D
     {
         _bossSequence = BossSequence.Opening;
         _sequenceClock = 0;
-        World.Boss.Transform.Position = new Vector2(300, -170);
+        World.PlaceBoss(new Vector2(300, -170));
         River.BeginOpenWater(3.2f);
         MusicPlayer.Instance?.Stop(1.2f);
     }
@@ -157,6 +159,7 @@ public partial class GameScene : Node2D
             if (phase.Enraged)
             {
                 _boss.BurstRage();
+                _twin?.BurstRage();
                 SfxPlayer.Instance?.Play(SfxBank.Sound.Rage);
                 SfxPlayer.Instance?.Play(SfxBank.Sound.BossBroken);
             }

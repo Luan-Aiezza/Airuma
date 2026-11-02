@@ -17,8 +17,12 @@ public static class DevTools
         else if (options.Value("--export-icon") is string icon) IconArt.MakeImage().SavePng(icon);
         else if (options.Value("--export-pillar") is string pillar) ExportPillar(pillar);
         else if (options.Value("--export-baylo") is string baylo) ExportBoss(baylo, BayloArt.MakeCanvas, BayloArt.Width, BayloArt.Height, 6);
+        else if (options.Value("--export-thaqai") is string thaqai) ExportBoss(thaqai, ThaqaiArt.MakeCanvas, ThaqaiArt.Width, ThaqaiArt.Height, 6);
+        else if (options.Value("--export-ukhumo") is string ukhumo) ExportBoss(ukhumo, UkhumoArt.MakeCanvas, UkhumoArt.Width, UkhumoArt.Height, 6);
+        else if (options.Value("--export-kuychu") is string kuychu) ExportKuychu(kuychu);
         else if (options.Value("--export-iryssh") is string iryssh) ExportBoss(iryssh, IrysshWomanArt.MakeCanvas, IrysshWomanArt.Width, IrysshWomanArt.Height, 6);
         else if (options.Value("--export-retired") is string retired) ExportRetired(retired);
+        else if (options.Value("--export-cards") is string cards) ExportCards(cards);
         else if (options.Value("--export-spirits") is string spirits) ExportSpirits(spirits);
         else return false;
         return true;
@@ -40,13 +44,39 @@ public static class DevTools
         sheet.BlendRect(img, new Rect2I(0, 0, img.GetWidth(), img.GetHeight()), new Vector2I(x, y));
     }
 
+    /// <summary>The faces of an ordinary card (Fervor) and of the three special ones, 2x, side by side.</summary>
+    private static void ExportCards(string file)
+    {
+        var shown = new[] { Card.Fervor, Card.SerpentFlame, Card.PartyFever, Card.StormBolt };
+        const int k = 2, gap = 12;
+        var sheet = Image.CreateEmpty((CardArt.Width * k + gap) * shown.Length + gap, CardArt.Height * k + 2 * gap, false, Image.Format.Rgba8);
+        sheet.Fill(new Color(0.05f, 0.06f, 0.16f));
+        for (int i = 0; i < shown.Length; i++) Blit(sheet, CardArt.Face(shown[i]), gap + i * (CardArt.Width * k + gap), gap, k);
+        sheet.SavePng(file);
+    }
+
     /// <summary>The spirits of every stage: a row for each style, each kind's three frames side by side, 8 times larger.</summary>
+    /// <summary>The two persons of Kuychu, the four frames of each, one row for each.</summary>
+    private static void ExportKuychu(string file)
+    {
+        const int k = 4;
+        var sheet = Image.CreateEmpty(KuychuArt.Width * k * BossStyle.FrameCount + 50, KuychuArt.Height * k * 3 + 40, false, Image.Format.Rgba8);
+        sheet.Fill(new Color(0.05f, 0.06f, 0.16f));
+        for (int f = 0; f < BossStyle.FrameCount; f++)
+        {
+            Blit(sheet, KuychuArt.MakeLeft(f), 10 + f * (KuychuArt.Width * k + 10), 10, k);
+            Blit(sheet, KuychuArt.MakeRight(f), 10 + f * (KuychuArt.Width * k + 10), 20 + KuychuArt.Height * k, k);
+            Blit(sheet, KuychuArt.MakeFused(f), 10 + f * (KuychuArt.Width * k + 10), 30 + KuychuArt.Height * k * 2, k);
+        }
+        sheet.SavePng(file);
+    }
+
     private static void ExportSpirits(string file)
     {
-        var styles = new[] { SpiritStyle.Forest, SpiritStyle.Party };
+        var styles = new[] { SpiritStyle.Forest, SpiritStyle.Party, SpiritStyle.Animals, SpiritStyle.Cave, SpiritStyle.Andes };
         var kinds = Enum.GetValues<SpiritKind>();
         const int k = 8, gap = 12;
-        int cell = 20 * k + gap, rowHeight = 26 * k + gap;
+        int cell = 24 * k + gap, rowHeight = 28 * k + gap;
         var sheet = Image.CreateEmpty(cell * 3 * kinds.Length + gap, rowHeight * styles.Length + gap, false, Image.Format.Rgba8);
         sheet.Fill(new Color(0.05f, 0.06f, 0.16f));
         for (int row = 0; row < styles.Length; row++)

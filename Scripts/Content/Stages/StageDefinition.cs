@@ -15,6 +15,8 @@ public sealed class StageDefinition
     /// <summary>How the stage looks: the scenery of the river, and the HUD panel (each stage has its own, made after its boss).</summary>
     public Scenery Scenery = Scenery.Jungle;
     public System.Func<HudTheme> Hud = HudTheme.Original;
+    /// <summary>The special card this stage's boss may leave behind when beaten (null: none).</summary>
+    public Card? BossCard;
     /// <summary>How the common enemies of the stage look.</summary>
     public SpiritStyle Spirits = SpiritStyle.Forest;
 

@@ -12,6 +12,8 @@ public sealed class BossDefinition
     public readonly IReadOnlyList<BossPhase> Phases;
     /// <summary>How the boss looks (the art, the glow, the colours of its rage).</summary>
     public BossStyle Style = BossStyles.Iryssh;
+    /// <summary>The boss is two bodies that share one life (the second has the style <c>Style.Twin</c>).</summary>
+    public bool HasTwin => Style.Twin != null;
 
     public BossDefinition(string nameKey, IReadOnlyList<BossPhase> phases) { _nameKey = nameKey; Phases = phases; }
 

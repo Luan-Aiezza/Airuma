@@ -25,6 +25,12 @@ public static class BulletArt
         BulletStyle.OrbRed => (7, 7),
         BulletStyle.RiceRed => (3, 7),
         BulletStyle.Wisp => (5, 5),
+        BulletStyle.Hail => (7, 7),
+        BulletStyle.Star => (7, 7),
+        BulletStyle.Shard => (5, 11),
+        BulletStyle.Claw => (7, 11),
+        BulletStyle.Rock => (7, 7),
+        BulletStyle.Stalactite => (5, 13),
         _ => (1, 1),
     };
 
@@ -37,7 +43,7 @@ public static class BulletArt
     /// <summary>Styles that are elongated or directional are rotated to face where the bullet is going.</summary>
     public static bool Rotates(BulletStyle style) => style switch
     {
-        BulletStyle.FlameDart or BulletStyle.LotusPetal or BulletStyle.FireSerpent or BulletStyle.LightBolt or BulletStyle.RiceRed => true,
+        BulletStyle.FlameDart or BulletStyle.LotusPetal or BulletStyle.FireSerpent or BulletStyle.LightBolt or BulletStyle.RiceRed or BulletStyle.Shard or BulletStyle.Claw or BulletStyle.Stalactite => true,
         _ => false,
     };
 
@@ -70,6 +76,12 @@ public static class BulletArt
             case BulletStyle.OrbRed: DrawOrb(c, frame, PixelColor.Hex(0xC8283A), PixelColor.Hex(0xFF6A78)); break;
             case BulletStyle.RiceRed: DrawRice(c, frame); break;
             case BulletStyle.Wisp: DrawWisp(c, frame); break;
+            case BulletStyle.Hail: DrawHail(c, frame); break;
+            case BulletStyle.Star: DrawStar(c, frame); break;
+            case BulletStyle.Shard: DrawShard(c, frame); break;
+            case BulletStyle.Claw: DrawClaw(c, frame); break;
+            case BulletStyle.Rock: DrawRock(c, frame); break;
+            case BulletStyle.Stalactite: DrawStalactite(c, frame); break;
         }
         return c;
     }
@@ -229,6 +241,77 @@ public static class BulletArt
         foreach (var (x, y) in new[] { (1, 0), (2, 0), (0, 1), (3, 1), (0, 2), (3, 2), (1, 3), (2, 3) }) Put(c, x, y, outer);
         foreach (var (x, y) in new[] { (1, 1), (2, 1), (1, 2), (2, 2) }) Put(c, x, y, Fire[frame == 0 ? 2 : 3]);
         Put(c, frame == 0 ? 1 : 2, 1, Fire[1]);
+    }
+
+    /// <summary>A hailstone: a sphere of white ice with a pale blue shade and a glint that moves.</summary>
+    private static void DrawHail(PixelCanvas c, int frame)
+    {
+        Disk(c, 3f, 3f, 3.3f, new[] { PixelColor.Hex(0xFFFFFF), PixelColor.Hex(0xDDEFFF), PixelColor.Hex(0x9CC4EC), PixelColor.Hex(0x4E7CB8) });
+        Put(c, frame == 0 ? 2 : 4, frame == 0 ? 2 : 2, PixelColor.Hex(0xFFFFFF));
+        Put(c, 4, 4, PixelColor.Hex(0x4E7CB8));
+    }
+
+    /// <summary>A shard of cave ice: a long pointed crystal (the point is its head, so that it falls point first), pale blue with a white edge that glints.</summary>
+    private static void DrawShard(PixelCanvas c, int frame)
+    {
+        var white = PixelColor.Hex(0xFFFFFF); var light = PixelColor.Hex(0xDDF4FF); var mid = PixelColor.Hex(0x8CC8F0); var dark = PixelColor.Hex(0x3E78B8);
+        Put(c, 2, 0, white);
+        Put(c, 1, 1, light); Put(c, 2, 1, white); Put(c, 3, 1, mid);
+        for (int y = 2; y <= 6; y++) { Put(c, 0, y, y < 4 ? mid : dark); Put(c, 1, y, light); Put(c, 2, y, y == 3 && frame == 1 ? white : light); Put(c, 3, y, mid); Put(c, 4, y, dark); }
+        Put(c, 0, 7, dark); Put(c, 1, 7, mid); Put(c, 2, 7, mid); Put(c, 3, 7, dark);
+        Put(c, 1, 8, dark); Put(c, 2, 8, mid); Put(c, 3, 8, dark);
+        Put(c, 2, 9, dark);
+        if (frame == 0) Put(c, 1, 4, white);
+    }
+
+    /// <summary>The mark of a claw: a curved blade, white-hot at its edge and red behind it, with a dark tail (the point is its head). It glints on the second frame.</summary>
+    private static void DrawClaw(PixelCanvas c, int frame)
+    {
+        string[] rows =
+        {
+            "...W...", "..WWR..", "..WRR..", ".WWRR..", ".WWRD..", ".WRRD..", ".WRD...", "WWRD...", "WRD....", "WD.....", "D......",
+        };
+        var white = PixelColor.Hex(frame == 0 ? 0xFFF4ECu : 0xFFFFFFu); var red = PixelColor.Hex(0xE0281C); var dark = PixelColor.Hex(0x7A0E12);
+        for (int y = 0; y < rows.Length; y++)
+            for (int x = 0; x < rows[y].Length; x++)
+                switch (rows[y][x]) { case 'W': Put(c, x, y, white); break; case 'R': Put(c, x, y, red); break; case 'D': Put(c, x, y, dark); break; }
+        if (frame == 1) { Put(c, 3, 1, white); Put(c, 2, 4, white); }
+    }
+
+    /// <summary>A stone: a rough, round chunk of grey-brown rock with cracks, lit from the upper left.</summary>
+    private static void DrawRock(PixelCanvas c, int frame)
+    {
+        Disk(c, 3f, 3f, 3.3f, new[] { PixelColor.Hex(0xC8BEB0), PixelColor.Hex(0x9C9082), PixelColor.Hex(0x6E6458), PixelColor.Hex(0x3E362E) });
+        var crack = PixelColor.Hex(0x2A241E);
+        Put(c, 3, 2, crack); Put(c, 4, 3, crack); Put(c, 4, 4, crack); Put(c, frame == 0 ? 2 : 1, 4, crack);
+        Put(c, 1, 1, PixelColor.Hex(0xE6DED0));
+    }
+
+    /// <summary>A stalactite broken from the ceiling: a long, heavy spike of grey rock with a pale edge, pointed at its head so that it falls point first.</summary>
+    private static void DrawStalactite(PixelCanvas c, int frame)
+    {
+        var edge = PixelColor.Hex(0xD0C8BC); var lit = PixelColor.Hex(0xA09484); var mid = PixelColor.Hex(0x756A5C); var dark = PixelColor.Hex(0x453D34); var deep = PixelColor.Hex(0x2A241E);
+        int[] half = { 0, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1 };
+        for (int y = 0; y < half.Length; y++)
+            for (int x = 2 - half[y]; x <= 2 + half[y]; x++)
+            {
+                var col = x == 2 - half[y] ? edge : (x == 2 - half[y] + 1 ? lit : (x == 2 + half[y] ? dark : mid));
+                if (half[y] == 0) col = edge;
+                Put(c, x, y, col);
+            }
+        Put(c, 2, 6 + frame, deep); Put(c, 3, 8 - frame, deep);
+        Put(c, 1, 12, deep); Put(c, 3, 12, deep);
+    }
+
+    /// <summary>A star of a constellation: a bright four-pointed star that twinkles.</summary>
+    private static void DrawStar(PixelCanvas c, int frame)
+    {
+        var core = PixelColor.Hex(0xFFFFFF); var mid = PixelColor.Hex(0xFFF2B0); var edge = PixelColor.Hex(0xE8B64A);
+        Put(c, 3, 3, core);
+        foreach (var (x, y) in new[] { (3, 2), (2, 3), (4, 3), (3, 4) }) Put(c, x, y, mid);
+        foreach (var (x, y) in new[] { (3, 1), (1, 3), (5, 3), (3, 5) }) Put(c, x, y, frame == 0 ? edge : mid);
+        foreach (var (x, y) in new[] { (3, 0), (0, 3), (6, 3), (3, 6) }) if (frame == 0) Put(c, x, y, edge);
+        if (frame == 1) foreach (var (x, y) in new[] { (2, 2), (4, 2), (2, 4), (4, 4) }) Put(c, x, y, edge);
     }
 
     /// <summary>The player's shots: slim bolts of pale lantern light, cool-toned so they never read as enemy fire.</summary>

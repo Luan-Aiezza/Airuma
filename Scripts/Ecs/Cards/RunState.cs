@@ -10,8 +10,8 @@ public class RunState
     public CardEffects Effects => new CardEffects(_stacks);
     public int TotalCards => _stacks.Values.Sum();
 
-    /// <summary>The most cards a whole run can gather (the HUD keeps this many places for them).</summary>
-    public const int MaxCards = 12;
+    /// <summary>The most cards a whole run can gather: one at the start and one after each boss (the HUD keeps this many places for them).</summary>
+    public const int MaxCards = 6;
 
     private readonly List<Card> _history = new List<Card>();
     /// <summary>The cards in the order they were taken (one entry for each time a card was taken).</summary>

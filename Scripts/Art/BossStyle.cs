@@ -25,6 +25,12 @@ public sealed class BossStyle
     public uint GlowInner = 0xFFB347, GlowOuter = 0xE8481A;
     /// <summary>Spins on the spot while it roams (with the effect and the sound of a spin).</summary>
     public bool Spins;
+    /// <summary>Whether the water mirrors the boss (not if she stands on rock).</summary>
+    public bool Reflects = true;
+    /// <summary>The style of the second body, if the boss is two persons who share their life (see <see cref="BossEntity"/> Twin): each is drawn by its own style.</summary>
+    public BossStyle Twin;
+    /// <summary>The style of the boss when its two bodies have fused into one (the phases marked <see cref="BossPhase.Fused"/>).</summary>
+    public BossStyle Fused;
     /// <summary>The rage: the colours of its glow, sparks and rings, and the tint the river takes.</summary>
     public Color RageMain = new Color(1f, 0.45f, 0.15f), RageAccent = new Color(1f, 0.85f, 0.4f), SceneTint = new Color(1f, 0.74f, 0.68f);
 
@@ -62,5 +68,47 @@ public static class BossStyles
         MakeFrame = BayloArt.MakeCanvas, Width = BayloArt.Width, Height = BayloArt.Height, Centre = BayloArt.Centre, WaterRow = BayloArt.WaterRow,
         GlowInner = 0xFFB0DC, GlowOuter = 0xE0508A, Spins = true,
         RageMain = new Color(1f, 0.35f, 0.7f), RageAccent = new Color(1f, 0.9f, 0.5f), SceneTint = new Color(1f, 0.72f, 0.9f),
+    };
+
+    /// <summary>Thaqai: a girl with the ears and the tail of a dark grey cat with bolts of white; a cold glow, a white and blue rage and a scenery that turns grey and blue.</summary>
+    public static readonly BossStyle Thaqai = new BossStyle
+    {
+        MakeFrame = ThaqaiArt.MakeCanvas, Width = ThaqaiArt.Width, Height = ThaqaiArt.Height, Centre = ThaqaiArt.Centre, WaterRow = ThaqaiArt.WaterRow,
+        GlowSize = 80,
+        GlowInner = 0xCFE4FF, GlowOuter = 0x6A8AD8,
+        RageMain = new Color(0.55f, 0.7f, 1f), RageAccent = new Color(1f, 1f, 1f), SceneTint = new Color(0.78f, 0.85f, 1f),
+    };
+
+    /// <summary>Ukhumo: a bear girl in the fur of a bear, who stands on the rock of her platform (no reflection); a cold glow, a brown and cream rage, a scenery that turns brown.</summary>
+    public static readonly BossStyle Ukhumo = new BossStyle
+    {
+        MakeFrame = UkhumoArt.MakeCanvas, Width = UkhumoArt.Width, Height = UkhumoArt.Height, Centre = UkhumoArt.Centre, WaterRow = UkhumoArt.WaterRow,
+        Reflects = false,
+        GlowInner = 0xE6F6FF, GlowOuter = 0x5A8FC8,
+        RageMain = new Color(0.65f, 0.5f, 0.3f), RageAccent = new Color(1f, 0.95f, 0.8f), SceneTint = new Color(0.9f, 0.86f, 0.8f),
+    };
+
+    /// <summary>Kuychu, the first of the two (the sun's, on the left): a divine person in a long gown, 60 x 80 px, with a glow of gold; the rage of the pair is the colours of the rainbow.</summary>
+    public static readonly BossStyle Kuychu = new BossStyle
+    {
+        MakeFrame = KuychuArt.MakeLeft, Width = KuychuArt.Width, Height = KuychuArt.Height, Centre = KuychuArt.Centre, WaterRow = KuychuArt.WaterRow,
+        GlowSize = 100, GlowRadius = 44,
+        GlowInner = 0xFFF4C0, GlowOuter = 0xE8A838, Spins = false,
+        RageMain = new Color(1f, 0.8f, 0.4f), RageAccent = new Color(1f, 0.95f, 0.8f), SceneTint = new Color(0.9f, 0.92f, 1f),
+        Twin = new BossStyle
+        {
+            MakeFrame = KuychuArt.MakeRight, Width = KuychuArt.Width, Height = KuychuArt.Height, Centre = KuychuArt.Centre, WaterRow = KuychuArt.WaterRow,
+            GlowSize = 100, GlowRadius = 44,
+            GlowInner = 0xDDF8FF, GlowOuter = 0x4FA8E8, Spins = false,
+            RageMain = new Color(0.55f, 0.85f, 1f), RageAccent = new Color(1f, 0.95f, 0.8f), SceneTint = new Color(0.9f, 0.92f, 1f),
+        },
+        Fused = new BossStyle
+        {
+            // one body, taller and bigger: the left half of the one and the right half of the other (the feet stay on the horizon)
+            MakeFrame = KuychuArt.MakeFused, Width = KuychuArt.Width, Height = KuychuArt.Height, Centre = (KuychuArt.Centre.x, 55), WaterRow = KuychuArt.WaterRow, Scale = 2.5f,
+            GlowSize = 100, GlowRadius = 48,
+            GlowInner = 0xFFF4D8, GlowOuter = 0x7AA8E8, Spins = false,
+            RageMain = new Color(0.8f, 0.85f, 1f), RageAccent = new Color(1f, 0.95f, 0.8f), SceneTint = new Color(0.9f, 0.92f, 1f),
+        },
     };
 }

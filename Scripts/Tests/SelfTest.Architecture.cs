@@ -12,6 +12,7 @@ public static partial class SelfTest
         T("EveryBossStyleFitsItsHitbox", EveryBossStyleFitsItsHitbox);
         T("ANewAttackResetsWhatTheBossWasDoing", ANewAttackResetsWhatTheBossWasDoing);
         T("SpiritsCanFireDancingBullets", SpiritsCanFireDancingBullets);
+        T("EverySpiritStyleDrawsEveryKindAtItsSize", EverySpiritStyleDrawsEveryKindAtItsSize);
         T("EveryTextPropertyIsInEveryLanguage", EveryTextPropertyIsInEveryLanguage);
         T("EveryLineOfEveryTalkHasItsTextInEveryLanguage", EveryLineOfEveryTalkHasItsTextInEveryLanguage);
     }
@@ -28,7 +29,7 @@ public static partial class SelfTest
             True(stage.Boss.Style != null && stage.Boss.Style.MakeFrame != null, "a style for the boss");
             Eq(Stages.IndexOf(stage), Stages.All.ToList().IndexOf(stage));
             var names = Enumerable.Range(1, stage.Boss.Lives).Select(stage.Boss.AttackName).ToList();
-            True(names.All(n => !string.IsNullOrEmpty(n)), "every attack has a name");
+            True(names.All(n => !string.IsNullOrEmpty(n) && !n.StartsWith("Attack")), "every attack has a name, in the texts");
             Eq(names.Distinct().Count(), names.Count, "no two attacks of a boss have the same name");
         }
     }
@@ -99,6 +100,29 @@ public static partial class SelfTest
         var pool2 = BulletSystem.NewPool();
         for (int i = 0; i < 4; i++) EnemySystem.Fire(plain, V(300, 600), pool2, World.PlayArea, 0.05f);
         True(pool2.Where(b => b.IsActive).All(b => b.Behavior == BulletBehavior.Normal && b.Style == BulletStyle.OrbGreen), "plain green orbs");
+    }
+
+    private static void EverySpiritStyleDrawsEveryKindAtItsSize()
+    {
+        var styles = Stages.All.Select(stage => stage.Spirits).Distinct().ToList();
+        Greater(styles.Count, 2, "stages have spirits of their own");
+        foreach (var style in styles)
+            foreach (var kind in Enum.GetValues<SpiritKind>())
+            {
+                for (int frame = 0; frame < style.FrameCount; frame++)
+                {
+                    var canvas = style.MakeCanvas(kind, frame);
+                    Eq(canvas.Width, style.Width); Eq(canvas.Height, style.Height);
+                    Greater(canvas.Pixels.Count(px => px.A > 0), 60, "something is drawn");
+                }
+                True(style.SparkColour(kind).A > 0, "a colour for the sparks");
+            }
+        // The three kinds of a style do not look alike.
+        foreach (var style in styles)
+        {
+            var a = style.MakeCanvas(SpiritKind.Swarm, 0).Pixels; var b = style.MakeCanvas(SpiritKind.Gunner, 0).Pixels; var c = style.MakeCanvas(SpiritKind.Heavy, 0).Pixels;
+            True(!a.SequenceEqual(b) && !b.SequenceEqual(c) && !a.SequenceEqual(c), "each kind has its own look");
+        }
     }
 
     private static void EveryTextPropertyIsInEveryLanguage()

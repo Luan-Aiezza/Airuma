@@ -176,6 +176,15 @@ public static class Mathx
     public static float Degrees(float radians) => radians * 180f / MathF.PI;
 
     /// <summary>Zero vectors stay zero instead of becoming NaN.</summary>
+    /// <summary>How far a point is from the segment between a and b.</summary>
+    public static float DistanceToSegment(Vector2 point, Vector2 a, Vector2 b)
+    {
+        Vector2 ab = b - a;
+        float length2 = ab.LengthSquared();
+        float t = length2 <= 0 ? 0 : Math.Clamp((point - a).Dot(ab) / length2, 0f, 1f);
+        return point.DistanceTo(a + ab * t);
+    }
+
     public static Vector2 Norm(Vector2 v) { float l = v.Length(); return l > 0 ? v / l : Vector2.Zero; }
 
     public static Rect2 Grown(this Rect2 r, float amount) =>
