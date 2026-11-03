@@ -7,7 +7,7 @@ public static class KuychuBoss
 {
     public const string NameKey = "KuychuName";
 
-    private static readonly BossBuilder Builder = new BossBuilder(NameKey, 44, BossStyles.Kuychu, health: 400, enragedHealth: 650);
+    private static readonly BossBuilder Builder = new BossBuilder(NameKey, 44, BossStyles.Kuychu, health: 400, enragedHealth: 650, theme: MusicPlayer.Theme.SerpentBoss, themeTitleKey: nameof(UIText.Boss5Music));
 
     public static readonly BossDefinition Definition = Builder.Build(
         Builder.Calm(Attacks.TwoHeads()),

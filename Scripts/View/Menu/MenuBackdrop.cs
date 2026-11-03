@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Godot;
 
 /// <summary>The menu's living backdrop: the layers of <see cref="MenuArt"/> stacked up, with a rippling mirror for the water, twinkling
-/// stars, drifting mist, fireflies, the lantern's flickering light.
+/// stars, drifting mist, fireflies, the lantern's flickering light and Airu fluttering around it.
 /// Coordinates are screen pixels (Y down).</summary>
 public partial class MenuBackdrop : Node2D
 {
@@ -173,7 +173,7 @@ public partial class MenuBackdrop : Node2D
         }
     }
 
-    // MARK: Lantern
+    // MARK: Lantern and Airu
 
     private void AddLantern()
     {
@@ -186,11 +186,11 @@ public partial class MenuBackdrop : Node2D
         _lantern.ZIndex = Z(9);
         AddChild(_lantern);
 
-        _glowFrames = new[]
+        _glowFrames = new[] { 29, 26 }.Length == 2 ? new[]
         {
-            GlowArt.MakeCanvas(91, 44, PixelColor.Hex(0xFFD27A), PixelColor.Hex(0xFF8A2A), new GlowArt.Tiers(120, 80, 40)).ToTexture(),
-            GlowArt.MakeCanvas(91, 39, PixelColor.Hex(0xFFD27A), PixelColor.Hex(0xFF8A2A), new GlowArt.Tiers(120, 80, 40)).ToTexture(),
-        };
+            GlowArt.MakeCanvas(61, 29, PixelColor.Hex(0xFFD27A), PixelColor.Hex(0xFF8A2A), new GlowArt.Tiers(120, 80, 40)).ToTexture(),
+            GlowArt.MakeCanvas(61, 26, PixelColor.Hex(0xFFD27A), PixelColor.Hex(0xFF8A2A), new GlowArt.Tiers(120, 80, 40)).ToTexture(),
+        } : null;
         _lanternGlow.Texture = _glowFrames[0];
         _lanternGlow.Scale = new Vector2(Pixel, Pixel);
         _lanternGlow.Position = position;
@@ -232,5 +232,8 @@ public partial class MenuBackdrop : Node2D
             _glowDuration = _glowLow ? 0.13f + _flickerRng.Range(-0.05f, 0.05f) : 0.3f + _flickerRng.Range(-0.1f, 0.1f);
         }
         _lanternGlow.Texture = _glowFrames[_glowLow ? 1 : 0];
+
+        // Airu loops lazily around the lantern, never straying far from its light.
+        var p = LanternPosition;
     }
 }

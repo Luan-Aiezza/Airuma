@@ -11,7 +11,7 @@ using System.Linq;
 /// "Ember Serpent" (the boss, 156 BPM): the same tune, now in trumpets, over a pounding beat; a slithering chromatic line stands
 /// for the fire serpent under the river.
 /// </summary>
-public static class Songs
+public static partial class Songs
 {
     private readonly struct Chord
     {

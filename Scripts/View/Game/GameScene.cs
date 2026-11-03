@@ -149,6 +149,9 @@ public partial class GameScene : Node2D
         _lastLives = World.Player.Health.Lives;
         _lastBombs = World.Player.Bomb.BombsLeft;
         _lastBossLives = World.Boss.Health.Lives;
+        // the songs of this stage are asked for now, so that they are being rendered long before the title and the fight need them
+        MusicPlayer.Instance?.Prepare(Stage.Theme);
+        foreach (var phase in Stage.Boss.Phases) MusicPlayer.Instance?.Prepare(phase.Theme);
         _hud.HideEnd();
         _title.Hide2();
         _dialogue.Cancel();

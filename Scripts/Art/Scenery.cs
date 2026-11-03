@@ -38,6 +38,8 @@ public sealed class Scenery
     // The weather and the mood (only for the eyes: none of it changes the game, not even the wind).
     /// <summary>Rain and lightning over the river.</summary>
     public bool Rains;
+    /// <summary>The rain goes on in the boss fight (it stops, as the clouds part, if false).</summary>
+    public bool RainContinues;
     /// <summary>How far the trees of the banks sway in the wind, in px at the branches (0: they stand still).</summary>
     public float BankSway;
     /// <summary>When the boss comes the rain stops and the clouds part: the moon shines in the middle of the water (and the thunder goes on, twice as often).</summary>
@@ -94,7 +96,7 @@ public sealed class Scenery
     public static readonly Scenery Storm = new Scenery
     {
         MakeSky = StormArt.MakeSky, MakeReflection = BankArt.MakeCrownsDry, MakeGround = BankArt.MakeRootsDry, MakeOverhead = BankArt.MakeBranchesDry,
-        MakeRipples = BankArt.MakeRipples, OpensToSea = false, Rains = true, ClearsForBoss = true, BankSway = 8, Agitation = 0.35f, BossAgitation = 1.2f,
+        MakeRipples = BankArt.MakeRipples, OpensToSea = false, Rains = true, RainContinues = true, ClearsForBoss = true, BankSway = 8, Agitation = 0.35f, BossAgitation = 1.2f,
         BankTint = new Godot.Color(0.5f, 0.55f, 0.66f), WaterGrade = new Godot.Color(0.55f, 0.63f, 0.76f),
     };
 

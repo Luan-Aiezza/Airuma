@@ -154,10 +154,10 @@ public sealed class Heightfield
     }
 
     /// <summary>Picks from a dark-to-light ramp for a light value, with ordered dithering between steps.</summary>
-    public static PixelColor Pick(PixelColor[] ramp, float lit, int x, int y)
+    public static PixelColor Pick(PixelColor[] ramp, float lit, int x, int y, float dither = 0.7f)
     {
         float t = MathF.Max(0, MathF.Min(0.999f, (lit + 0.15f) / 1.1f));
-        float f = t * ramp.Length + (Bayer.Threshold(x, y) - 0.5f) * 0.7f;
+        float f = t * ramp.Length + (Bayer.Threshold(x, y) - 0.5f) * dither;
         return ramp[Math.Max(0, Math.Min(ramp.Length - 1, (int)MathF.Floor(f)))];
     }
 }

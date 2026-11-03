@@ -84,7 +84,6 @@ public partial class GameScene : Node2D
 
     public override void _Input(InputEvent @event)
     {
-        if (HandleEpilogueInput(@event)) return;
         if (Demo)
         {
             // any key, click, touch or move of the mouse brings the menu back (a moment of grace first, so what the scene change itself stirs up does not)

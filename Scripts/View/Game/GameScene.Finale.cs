@@ -185,18 +185,4 @@ public partial class GameScene : Node2D
                 break;
         }
     }
-
-    /// <summary>Keys and clicks while the story is told: Z, Enter, Space or a click turn the page, X or Escape skip it.</summary>
-    private bool HandleEpilogueInput(InputEvent @event)
-    {
-        if (_epilogue == null) return false;
-        if (@event is InputEventKey { Pressed: true, Echo: false } key)
-        {
-            if (key.Keycode is Key.Z or Key.Enter or Key.KpEnter or Key.Space) { _epilogue.Advance(); GetViewport().SetInputAsHandled(); }
-            else if (key.Keycode is Key.X or Key.Escape) { _epilogue.Skip(); GetViewport().SetInputAsHandled(); }
-            else if (key.Keycode == Key.F11) return false;      // the window's own key
-        }
-        else if (@event is InputEventMouseButton { Pressed: true, ButtonIndex: MouseButton.Left } || @event is InputEventScreenTouch { Pressed: true }) _epilogue.Advance();
-        return true;
-    }
 }

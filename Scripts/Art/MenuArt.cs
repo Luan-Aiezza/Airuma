@@ -86,12 +86,12 @@ public static class MenuArt
                 var color = t < 0.6f ? top.Mixed(middle, t / 0.6f) : middle.Mixed(low, MathF.Pow((t - 0.6f) / 0.4f, 1.4f));
                 float d = Hypot(x - Moon.x, y - Moon.y);
                 float glow = MathF.Pow(MathF.Max(0, 1 - d / 62), 1.7f);
-                float band = MathF.Floor(glow * 6 + (Bayer.Threshold(x, y) - 0.5f) * 0.8f) / 6;
+                float band = MathF.Floor(glow * 6 + (Bayer.Threshold(x, y) - 0.5f) * 0.35f) / 6;
                 if (band > 0) color = color.Mixed(halo, MathF.Min(1, band * 0.9f));
                 float n = clouds.Sample((float)x / Width, (float)y / Horizon);
                 if (n > 0.58f)
                 {
-                    float level = MathF.Floor((n - 0.58f) * 6 * 3 + (Bayer.Threshold(x, y) - 0.5f) * 0.7f) / 3;
+                    float level = MathF.Floor((n - 0.58f) * 6 * 3 + (Bayer.Threshold(x, y) - 0.5f) * 0.3f) / 3;
                     if (level > 0) color = color.Mixed(PixelColor.Hex(0x6AA3BE), MathF.Min(0.55f, level * (0.25f + glow * 0.4f)));
                 }
                 c[x, y] = color;
@@ -168,7 +168,7 @@ public static class MenuArt
         var ramp = dark
             ? new[] { PixelColor.Hex(0x0A1A26), PixelColor.Hex(0x102A3A), PixelColor.Hex(0x1A4254), PixelColor.Hex(0x2F6578) }
             : new[] { PixelColor.Hex(0x1B4560), PixelColor.Hex(0x245772), PixelColor.Hex(0x33708C), PixelColor.Hex(0x5290AA) };
-        var canvas = field.Shade(s => Heightfield.Pick(ramp, s.Lit, s.X, s.Y).Mixed(HazeColor, haze), 2.0f, MoonLight);
+        var canvas = field.Shade(s => Heightfield.Pick(ramp, s.Lit, s.X, s.Y, 0.2f).Mixed(HazeColor, haze), 2.0f, MoonLight);
         // The line ends at the horizon: the water starts below it.
         for (int y = Horizon; y < canvas.Height; y++)
             for (int xx = 0; xx < Width; xx++)
@@ -191,7 +191,7 @@ public static class MenuArt
             float t = (float)(y - (Horizon - rows)) / rows;
             for (int x = 0; x < Width; x++)
             {
-                float level = MathF.Floor(t * 4 + (Bayer.Threshold(x, y) - 0.5f) * 0.7f) / 4;
+                float level = MathF.Floor(t * 4 + (Bayer.Threshold(x, y) - 0.5f) * 0.3f) / 4;
                 if (!(level > 0)) continue;
                 c[x, y] = mist.WithAlpha((byte)Math.Min(255f, 150 * level));
             }
@@ -396,7 +396,7 @@ public static class MenuArt
             // Backlit: faces turned away from the moon are nearly black; only rims catch the light.
             float lit = s.Lit - (trunk ? 0.38f : 0.22f) - (s.Edge && !s.Rim ? 0.3f : 0);
             float haze = MathF.Max(0, MathF.Min(1, (200 - depth) / 170)) * 0.5f;
-            var color = Heightfield.Pick(trunk ? TrunkRamp : JungleRamp, lit, s.X, s.Y);
+            var color = Heightfield.Pick(trunk ? TrunkRamp : JungleRamp, lit, s.X, s.Y, 0.2f);
             if (s.Top && s.Lit > 0.5f && (s.X + s.Y * 2) % 3 == 0) color = trunk ? TrunkRamp[5] : JungleRamp[6]; // moonlit rim
             return color.Mixed(HazeColor, haze);
         }, 2.2f, MoonLight));
@@ -404,8 +404,8 @@ public static class MenuArt
 
     // MARK: Foreground
 
-    /// <summary>Where the middle of the lantern is, in grid pixels. It hangs from a crook on the left gunwale.</summary>
-    public static readonly (int x, int y) Lantern = (100, 136);
+    /// <summary>Where the middle of the lantern is, in grid pixels. It hangs by its handle from the head of the prow.</summary>
+    public static readonly (int x, int y) Lantern = (126, 152);
 
     private static readonly PixelColor[] WoodRamp =
     {
@@ -458,91 +458,29 @@ public static class MenuArt
                 x += 1;
             }
         }
-        // The prow: a post that rises and curls, with a small carved head.
-        for (int i = 0; i <= 26; i++)
+        // The prow: a post that rises and bends over to the left, outside the boat, into a hook; the lantern hangs from it by its handle.
+        for (int i = 0; i <= 50; i++)
         {
-            float t = i / 26f;
-            field.Stamp(tipX + MathF.Sin(t * 2.6f) * 3.2f, tipY - 2 - t * 13, 2.4f - t * 0.8f, 1.8f, 1);
+            float t = i / 50f;
+            field.Stamp(tipX + MathF.Sin(t * 2.6f) * 1.2f, tipY - 2 - t * 22, 2.4f - t * 0.6f, 1.8f, 1);
         }
-        field.Stamp(tipX + 3.4f, tipY - 17, 2.4f, 1.9f, 1);
-        // The lantern's post: a crook of wood that rises from the left gunwale, clamped to it by an iron band, and bends over
-        // to hold the lantern by a chain.
-        for (int i = 0; i <= 90; i++)
+        for (int i = 0; i <= 40; i++)
         {
-            float t = i / 90f;
-            var (px, py) = Crook(t);
-            field.Stamp(px, py, 2.3f - 0.9f * t, 2.0f, 2);
+            float t = i / 40f;
+            float x = tipX - 2 - t * (tipX - 2 - Lantern.x);
+            field.Stamp(x, tipY - 24 - MathF.Sin(t * MathF.PI) * 2.5f + t * 1.5f, 1.9f, 1.6f, 1);
         }
-        for (int i = 0; i <= 8; i++) field.Stamp(Crook(0.05f).x + (i % 2) * 0.01f, Crook(0.05f).y - 3 + i * 0.75f, 3.1f, 2.3f, 3); // the iron band
         float lx = Lantern.x, ly = Lantern.y;
         var bow = Cropped(field.Shade(s =>
         {
             if (s.Edge && !s.Rim) return WoodRamp[0];
             float d = Hypot(s.X - lx, s.Y - ly);
             float glow = MathF.Pow(MathF.Max(0, 1 - d / 95), 1.5f);
-            bool floor = s.Tag == 0, pole = s.Tag == 2, iron = s.Tag == 3;
-            if (iron) return Heightfield.Pick(SidePillarArt.Stone, s.Lit * 0.8f - 0.1f + glow * 0.5f, s.X, s.Y);
-            var color = Heightfield.Pick(WoodRamp, s.Lit * 0.75f + glow * (pole ? 0.7f : 1.1f) - (floor ? 0.55f : (pole ? 0.4f : 0.28f)), s.X, s.Y);
-            if (s.Top && !pole && glow > 0.2f && (s.X + s.Y * 2) % 3 == 0) color = WoodRamp[6]; // lantern-lit edges
+            bool floor = s.Tag == 0;
+            var color = Heightfield.Pick(WoodRamp, s.Lit * 0.75f + glow * 1.1f - (floor ? 0.55f : 0.28f), s.X, s.Y, 0.15f);
             return color;
         }, 2.4f, (-0.4f, -0.5f, 0.7f)));
-        DrawChain(bow);
-        DrawPostVines(bow);
         return bow;
-    }
-
-    /// <summary>A point of the lantern's post: a cubic curve from the gunwale (t = 0) up and over to the hook (t = 1).</summary>
-    private static (float x, float y) Crook(float t)
-    {
-        (float x, float y) p0 = (92, 190), p1 = (80, 126), p2 = (90, 96), p3 = (Lantern.x, 102);
-        float u = 1 - t;
-        return (u * u * u * p0.x + 3 * u * u * t * p1.x + 3 * u * t * t * p2.x + t * t * t * p3.x,
-                u * u * u * p0.y + 3 * u * u * t * p1.y + 3 * u * t * t * p2.y + t * t * t * p3.y);
-    }
-
-    /// <summary>The chain from the end of the crook to the ring of the lantern: links, dark and pale by turns.</summary>
-    private static void DrawChain(PixelCanvas c)
-    {
-        var (hx, hy) = Crook(1);
-        int top = (int)hy + 1, bottom = Lantern.y - 16;
-        for (int y = top; y <= bottom; y++)
-        {
-            int x = (int)MathF.Round(hx);
-            var link = (y - top) % 3 == 2 ? SidePillarArt.Stone[3] : SidePillarArt.Stone[1];
-            if (c.Contains(x, y)) c[x, y] = link;
-            if (c.Contains(x + 1, y)) c[x + 1, y] = (y - top) % 3 == 1 ? SidePillarArt.Stone[2] : SidePillarArt.Out;
-            if (c.Contains(x - 1, y) && (y - top) % 3 != 1) c[x - 1, y] = SidePillarArt.Out;
-        }
-    }
-
-    /// <summary>The same vines as on the pillars wind round the post, with their leaves and little orange flowers.</summary>
-    private static void DrawPostVines(PixelCanvas c)
-    {
-        var leaf = SidePillarArt.Leaf; var flower = SidePillarArt.Flower;
-        int n = 0;
-        for (float t = 0.08f; t <= 0.96f; t += 0.006f, n++)
-        {
-            var (x, y) = Crook(t);
-            var (x2, y2) = Crook(t + 0.01f);
-            float dx = x2 - x, dy = y2 - y; float len = MathF.Max(0.001f, MathF.Sqrt(dx * dx + dy * dy));
-            float nx = -dy / len, ny = dx / len;
-            float off = MathF.Sin(t * 38) * 2.6f;
-            bool front = MathF.Cos(t * 38) > 0;
-            int vx = (int)MathF.Round(x + nx * off), vy = (int)MathF.Round(y + ny * off);
-            if (front && c.Contains(vx, vy)) c[vx, vy] = n % 3 == 0 ? leaf[3] : leaf[2];
-            if (front && c.Contains(vx + 1, vy)) c[vx + 1, vy] = leaf[1];
-            if (n % 9 == 4 && c.Contains(vx, vy))
-            {
-                int dir = n % 2 == 0 ? -1 : 1;
-                foreach (var (ox, oy, k) in new[] { (dir, 0, 2), (2 * dir, -1, 3), (3 * dir, -1, 4), (2 * dir, 1, 1) })
-                    if (c.Contains(vx + ox, vy + oy)) c[vx + ox, vy + oy] = leaf[k];
-            }
-            if (n % 29 == 14 && c.Contains(vx, vy))
-            {
-                foreach (var (ox, oy) in new[] { (-1, 0), (1, 0), (0, -1), (0, 1) }) if (c.Contains(vx + ox, vy + oy)) c[vx + ox, vy + oy] = flower[1];
-                c[vx, vy] = flower[3];
-            }
-        }
     }
 
     public const int FlameWidth = 13, FlameHeight = 10;

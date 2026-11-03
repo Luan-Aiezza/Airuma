@@ -25,7 +25,7 @@ public partial class StormWeather : Node2D
     private const float BankScroll = 52;          // px per second: the banks go by
     private readonly Eyes[] _eyes = new Eyes[EyePairs];
     private float _clock, _open;
-    /// <summary>The boss fight: the rain has stopped (`_rain` fades from 1 to 0), and the lightning comes twice as often.</summary>
+    /// <summary>The boss fight: the rain stops (`_rain` fades from 1 to 0) unless it is kept, and the lightning comes twice as often.</summary>
     private bool _fight;
     private float _rain = 1;
 
@@ -39,9 +39,13 @@ public partial class StormWeather : Node2D
 
     private float Rand(float lo, float hi) => lo + (hi - lo) * (float)_rng.NextDouble();
 
-    public StormWeather(Vector2 size)
+    /// <summary>The rain goes on in the boss fight (only the lightning comes more often).</summary>
+    private readonly bool _keepRain;
+
+    public StormWeather(Vector2 size, bool keepRain = false)
     {
         _size = size;
+        _keepRain = keepRain;
         ZIndex = ViewKit.Z(3.6f);        // over the banks and the branches, under the bullets
         for (int i = 0; i < Drops; i++) _drops[i] = NewDrop(true);
         for (int i = 0; i < EyePairs; i++) { _eyes[i] = NewEyes(Rand(0, size.Y)); }
@@ -72,7 +76,7 @@ public partial class StormWeather : Node2D
             _eyes[i].Position.Y += BankScroll * dt;
             if (_eyes[i].Position.Y > _size.Y + 20) _eyes[i] = NewEyes(-20);
         }
-        _rain = Mathf.MoveToward(_rain, _fight ? 0 : 1, dt / 1.2f);
+        _rain = Mathf.MoveToward(_rain, _fight && !_keepRain ? 0 : 1, dt / 1.2f);
         // Rain.
         for (int i = 0; i < Drops; i++)
         {

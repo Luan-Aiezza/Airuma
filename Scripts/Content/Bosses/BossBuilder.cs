@@ -10,18 +10,23 @@ public sealed class BossBuilder
     private readonly float _hitbox;
     private readonly int _health, _enragedHealth;
     private readonly BossStyle _style;
+    private readonly MusicPlayer.Theme _calmTheme, _enragedTheme;
+    private readonly string _calmTitleKey, _enragedTitleKey;
 
     /// <summary>`hitbox` is a third of the width of the sprite; the enraged attacks have `enragedHealth` (500 by default, against 300).</summary>
-    public BossBuilder(string nameKey, float hitbox, BossStyle style, int health = 300, int enragedHealth = 500)
+    public BossBuilder(string nameKey, float hitbox, BossStyle style, int health = 300, int enragedHealth = 500, MusicPlayer.Theme? theme = null, string themeTitleKey = null)
     {
         _nameKey = nameKey; _hitbox = hitbox; _style = style; _health = health; _enragedHealth = enragedHealth;
+        // a boss with a song of its own plays it through the whole fight (calm and enraged); the others have the calm song and the enraged one
+        _calmTheme = theme ?? MusicPlayer.Theme.Boss; _enragedTheme = theme ?? MusicPlayer.Theme.BossTwo;
+        _calmTitleKey = themeTitleKey ?? nameof(UIText.BossMusic); _enragedTitleKey = themeTitleKey ?? nameof(UIText.BossTwoMusic);
     }
 
     /// <summary>A calm attack.</summary>
-    public BossPhase Calm(BossPhase attack) => Dress(attack, MusicPlayer.Theme.Boss, nameof(UIText.BossMusic), _health, false);
+    public BossPhase Calm(BossPhase attack) => Dress(attack, _calmTheme, _calmTitleKey, _health, false);
 
     /// <summary>An enraged attack: other music and more health.</summary>
-    public BossPhase Enraged(BossPhase attack) => Dress(attack, MusicPlayer.Theme.BossTwo, nameof(UIText.BossTwoMusic), _enragedHealth, true);
+    public BossPhase Enraged(BossPhase attack) => Dress(attack, _enragedTheme, _enragedTitleKey, _enragedHealth, true);
 
     /// <summary>TEMPORARY, to test the flow of the stages quickly: every boss attack has this share of its health. Put it back to 1 when the stages are done.</summary>
     public const float TestHealthFactor = 0.1f;

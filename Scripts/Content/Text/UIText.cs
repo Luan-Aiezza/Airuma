@@ -62,9 +62,17 @@ public static class UIText
     public static string Stage6Title => Loc.Get(nameof(Stage6Title));
     public static string KillaName => Loc.Get(nameof(KillaName));
     public static string IllariName => Loc.Get(nameof(IllariName));
-    public static string EpilogueTitle => Loc.Get(nameof(EpilogueTitle));
-    public static string EpilogueHint => Loc.Get(nameof(EpilogueHint));
-    public static string IntroTitle => Loc.Get(nameof(IntroTitle));
+    public static string Stage2Music => Loc.Get(nameof(Stage2Music));
+    public static string Boss2Music => Loc.Get(nameof(Boss2Music));
+    public static string Stage3Music => Loc.Get(nameof(Stage3Music));
+    public static string Boss3Music => Loc.Get(nameof(Boss3Music));
+    public static string Stage4Music => Loc.Get(nameof(Stage4Music));
+    public static string Boss4Music => Loc.Get(nameof(Boss4Music));
+    public static string Stage5Music => Loc.Get(nameof(Stage5Music));
+    public static string Boss5Music => Loc.Get(nameof(Boss5Music));
+    public static string Stage6Music => Loc.Get(nameof(Stage6Music));
+    public static string IntroHint => Loc.Get(nameof(IntroHint));
+    public static string TheEnd => Loc.Get(nameof(TheEnd));
     public static string DemoLabel => Loc.Get(nameof(DemoLabel));
 
     // Side panel

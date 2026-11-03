@@ -174,7 +174,7 @@ public partial class Main : Node2D
     {
         MusicPlayer.Instance?.Play(MusicPlayer.Theme.Menu);
         _menuThemeOn = true;
-        var story = new EpilogueScreen(Dialogues.IntroStory, nameof(UIText.IntroTitle), EpilogueScreen.MakeNight) { HandlesOwnInput = true };
+        var story = new IntroScreen(Dialogues.IntroStory);
         story.Finished += () => CallDeferred(nameof(ShowMenu));
         Swap(story);
     }

@@ -13,7 +13,7 @@ public static class Stages
 
     /// <summary>The river of the parties. Its music is still that of stage 1, and so are the sprites.</summary>
     public static readonly StageDefinition Two = new StageDefinition(
-        nameof(UIText.Stage2Title), nameof(UIText.StageMusic), MusicPlayer.Theme.Stage, Stage2Waves.Waves, BayloBoss.Definition)
+        nameof(UIText.Stage2Title), nameof(UIText.Stage2Music), MusicPlayer.Theme.NightStage, Stage2Waves.Waves, BayloBoss.Definition)
     {
         BossCard = Card.PartyFever, Scenery = Scenery.Festival, Hud = HudTheme.Festival, Spirits = SpiritStyle.Party,
         Intro = () => Dialogues.StageTwoIntro,
@@ -22,7 +22,7 @@ public static class Stages
 
     /// <summary>The lake of the hail. The black forest in a storm: its scenery is the storm, its spirits are small animals; its HUD has the storm and the stars.</summary>
     public static readonly StageDefinition Three = new StageDefinition(
-        nameof(UIText.Stage3Title), nameof(UIText.StageMusic), MusicPlayer.Theme.Stage, Stage3Waves.Waves, ThaqaiBoss.Definition)
+        nameof(UIText.Stage3Title), nameof(UIText.Stage3Music), MusicPlayer.Theme.StormStage, Stage3Waves.Waves, ThaqaiBoss.Definition)
     {
         BossCard = Card.StormBolt, Scenery = Scenery.Storm, Hud = HudTheme.Storm, Spirits = SpiritStyle.Animals,
         Intro = () => Dialogues.StageThreeIntro,
@@ -31,7 +31,7 @@ public static class Stages
 
     /// <summary>The river inside the mountain: dark, with ice. Its art (banks, spirits, boss) is still borrowed: this is a sketch to play.</summary>
     public static readonly StageDefinition Four = new StageDefinition(
-        nameof(UIText.Stage4Title), nameof(UIText.StageMusic), MusicPlayer.Theme.Stage, Stage4Waves.Waves, UkhumoBoss.Definition)
+        nameof(UIText.Stage4Title), nameof(UIText.Stage4Music), MusicPlayer.Theme.CaveStage, Stage4Waves.Waves, UkhumoBoss.Definition)
     {
         BossCard = Card.BearCloak, Scenery = Scenery.Cave, Hud = HudTheme.Cave, Spirits = SpiritStyle.Cave,
         Intro = () => Dialogues.StageFourIntro,
@@ -40,7 +40,7 @@ public static class Stages
 
     /// <summary>The waterfall of the seven colours: a prototype (the art of the other stages is borrowed). Its red spirits come in pairs.</summary>
     public static readonly StageDefinition Five = new StageDefinition(
-        nameof(UIText.Stage5Title), nameof(UIText.StageMusic), MusicPlayer.Theme.Stage, Stage5Waves.Waves, KuychuBoss.Definition)
+        nameof(UIText.Stage5Title), nameof(UIText.Stage5Music), MusicPlayer.Theme.DivineStage, Stage5Waves.Waves, KuychuBoss.Definition)
     {
         Scenery = Scenery.Waterfall, Hud = HudTheme.Andes, Spirits = SpiritStyle.Andes, LightTransition = true,
         Intro = () => Dialogues.StageFiveIntro,
@@ -53,7 +53,7 @@ public static class Stages
     /// end of the story is told after it. Its art is still borrowed from the other stages.
     /// </summary>
     public static readonly StageDefinition Six = new StageDefinition(
-        nameof(UIText.Stage6Title), nameof(UIText.StageMusic), MusicPlayer.Theme.Stage, Stage6Waves.Waves, KillaBoss.Definition)
+        nameof(UIText.Stage6Title), nameof(UIText.Stage6Music), MusicPlayer.Theme.CosmicStage, Stage6Waves.Waves, KillaBoss.Definition)
     {
         Scenery = Scenery.Cosmos, Hud = HudTheme.Cosmos, Spirits = SpiritStyle.Celestial,
         OpensFromDark = true, Priestess = true,

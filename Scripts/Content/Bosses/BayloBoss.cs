@@ -8,7 +8,7 @@ public static class BayloBoss
 {
     public const string NameKey = "BayloName";
 
-    private static readonly BossBuilder Builder = new BossBuilder(NameKey, 26, BossStyles.Baylo);
+    private static readonly BossBuilder Builder = new BossBuilder(NameKey, 26, BossStyles.Baylo, theme: MusicPlayer.Theme.DancerBoss, themeTitleKey: nameof(UIText.Boss2Music));
 
     public static readonly BossDefinition Definition = Builder.Build(
         Builder.Calm(Attacks.PartyTwoStep()),

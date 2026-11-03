@@ -323,7 +323,7 @@ public partial class RiverBackground : Node2D
             _streaks = new FlowStreaks(size) { ZIndex = -97 }; AddChild(_streaks);
         }
         if (_look.Snow) { _snow = new SnowFall(size) { ZIndex = 18 }; AddChild(_snow); }
-        if (_look.Rains) { _weather = new StormWeather(size); AddChild(_weather); }
+        if (_look.Rains) { _weather = new StormWeather(size, _look.RainContinues); AddChild(_weather); }
         _water.SetShaderParameter("grade", new Vector3(_look.WaterGrade.R, _look.WaterGrade.G, _look.WaterGrade.B));
         _agitation = _look.Agitation;
         foreach (var (node, _, _, _) in _banks) node.Modulate = _look.BankTint;

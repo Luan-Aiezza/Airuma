@@ -145,7 +145,7 @@ public static class DevTools
     private static void ExportMusic(string folder)
     {
         Directory.CreateDirectory(folder);
-        foreach (var (name, song) in new[] { ("menu_quiet_water", Songs.QuietWater()), ("stage_ember_serpent", Songs.EmberSerpent()), ("boss_inferno_serpent", Songs.InfernoSerpent()), ("boss_serpent_ablaze", Songs.SerpentAblaze()) })
+        foreach (var (name, song) in new[] { ("menu_quiet_water", Songs.QuietWater()), ("stage_ember_serpent", Songs.EmberSerpent()), ("boss_inferno_serpent", Songs.InfernoSerpent()), ("boss_serpent_ablaze", Songs.SerpentAblaze()), ("stage2_animated_night", Songs.AnimatedNight()), ("boss2_star_dancer", Songs.StarDancer()), ("stage3_storm_under_the_river", Songs.StormUnderTheRiver()), ("boss3_cat_in_the_storm", Songs.CatInTheStorm()), ("stage4_cave_hibernation", Songs.CaveHibernation()), ("boss4_great_beast", Songs.GreatBeast()), ("stage5_serpent_under_the_mountain", Songs.SerpentUnderTheMountain()), ("boss5_hymn_to_the_guardian", Songs.HymnToTheGuardian()), ("stage6_river_through_the_universe", Songs.RiverThroughTheUniverse()) })
         {
             WriteWav(Path.Combine(folder, name + ".wav"), Synth.ToPcm16(song.Item1, song.Item2), channels: 2, rate: Synth.Rate);
             GD.Print($"{name}: {song.Item1.Length / (double)Synth.Rate:F1} s");

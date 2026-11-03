@@ -31,6 +31,10 @@ public partial class PixelLabel : Sprite2D
         public static readonly Style MenuHeading = Flat("menuHeading", 0xF2C14E, 0x050A10);
         public static readonly Style Victory = Flat("victory", 0xF2C14E, 0x7E1A20);
         public static readonly Style Defeat = Flat("defeat", 0xE8483C, 0x120D11);
+        /// <summary>Words cut into a stone: dark in the groove, with the lit lip of the cut at the lower right.</summary>
+        public static readonly Style Carved = Flat("carved", 0x141C18, 0x9DB0A2);
+        /// <summary>The same, on the stone the lantern's fire reaches.</summary>
+        public static readonly Style CarvedLit = Flat("carvedLit", 0x3A1604, 0xFFE9A0);
         /// <summary>Embers: white-hot at the top of each letter, dark red at the bottom.</summary>
         public static readonly Style Title = new Style("title", r => FirePalette.Ramp[new[] { 0, 1, 1, 2, 2, 3, 4 }[Math.Max(0, Math.Min(6, r))]],
                                                        PixelColor.Hex(0x120D11));

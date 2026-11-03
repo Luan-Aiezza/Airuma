@@ -144,23 +144,31 @@ Este documento reúne **todos os textos que aparecem no jogo**, com o contexto d
 
 | Chave | Português (PT-BR) | Inglês (EN) | Contexto |
 | --- | --- | --- | --- |
-| `IntroTitle` | A Noite Sem Fim | The Night Without End | Abertura do jogo: título. |
-| `IntroPage1` | A Sacerdotisa das terras sagradas foi sequestrada. | The priestess of the sacred lands has been taken. | Abertura do jogo: página 1 da história. |
-| `IntroPage2` | Sem ela para realizar o ritual anual do solstício, o mundo cai na noite eterna. | Without her to perform the yearly ritual of the solstice, the world falls into eternal night. | Abertura do jogo: página 2. |
-| `IntroPage3` | O jovem velejador Atli, junto de sua lamparina, parte em busca de encontrá-la... | The young sailor Atli, with his lantern, sets out to find her... | Abertura do jogo: página 3. |
-| `IntroPage4` | ...para que o sol possa nascer novamente. | ...so that the sun may rise again. | Abertura do jogo: página 4. |
-| `EpilogueTitle` | O Amanhecer | The Dawn | Fim do jogo (depois da fase 6): título da história final. |
-| `S6Epi01` | Atli desceu do céu com Illari, pela ponte de água que Kuychu fez brilhar uma última vez. | Atli came down from the sky with Illari, over the bridge of water that Kuychu made shine one last time. | Fim do jogo: página 1 da história final. |
-| `S6Epi02` | A sacerdotisa subiu ao alto da colina e completou o ritual antes que a noite terminasse de ceder. | The priestess climbed to the top of the hill and finished the ritual before the night had stopped giving way. | Fim do jogo: página 2. |
-| `S6Epi03` | E o sol nasceu de novo, quente demais, como sempre. Atli suou, reclamou... e achou graça. | And the sun rose again, too hot, as always. Atli sweated, complained... and found it funny. | Fim do jogo: página 3. |
-| `S6Epi04` | Dizem que, desde aquele dia, a lua ganhou um poema: dez horas e meia de noite, e uma brisa ao meio-dia. | They say that since that day the moon has had a poem: ten and a half hours of night, and a breeze at noon. | Fim do jogo: página 4. |
-| `EpilogueHint` | Z: Continuar   X: Pular | Z: Continue   X: Skip | Dica das teclas, na abertura e no fim. |
+| `IntroHint` | Pressione qualquer tecla | Press any key | Dica no canto de baixo à direita, na abertura do jogo e na cena do fim da história (cada uma fecha sozinha em 10 segundos, ou com qualquer tecla). |
+| `IntroPage1` | A Sacerdotisa das terras sagradas foi sequestrada. | The priestess of the sacred lands has been taken. | Abertura do jogo: parágrafo 1 da história, escrito na escuridão, embaixo à esquerda, sobre a cena da noite sem fim (os quatro aparecem juntos). |
+| `IntroPage2` | Sem ela para realizar o ritual anual do solstício, o mundo cai na noite eterna. | Without her to perform the yearly ritual of the solstice, the world falls into eternal night. | Abertura do jogo: parágrafo 2 da história, escrito na escuridão, embaixo à esquerda, sobre a cena da noite sem fim (os quatro aparecem juntos). |
+| `IntroPage3` | O jovem velejador Atli, junto de sua lamparina, parte em busca de encontrá-la... | The young sailor Atli, with his lantern, sets out to find her... | Abertura do jogo: parágrafo 3 da história, escrito na escuridão, embaixo à esquerda, sobre a cena da noite sem fim (os quatro aparecem juntos). |
+| `IntroPage4` | ...para que o sol possa nascer novamente. | ...so that the sun may rise again. | Abertura do jogo: parágrafo 4 da história, escrito na escuridão, embaixo à esquerda, sobre a cena da noite sem fim (os quatro aparecem juntos). |
+| `S6Epi01` | Atli desceu do céu com Illari, pela ponte de água que Kuychu fez brilhar uma última vez. | Atli came down from the sky with Illari, over the bridge of water that Kuychu made shine one last time. | Fim do jogo: parágrafo 1 da história final, escrito embaixo da cena do nascer do sol (os quatro aparecem juntos). |
+| `S6Epi02` | A sacerdotisa subiu ao alto da colina e completou o ritual antes que a noite terminasse de ceder. | The priestess climbed to the top of the hill and finished the ritual before the night had stopped giving way. | Fim do jogo: parágrafo 2 da história final, escrito embaixo da cena do nascer do sol (os quatro aparecem juntos). |
+| `S6Epi03` | E o sol nasceu de novo, quente demais, como sempre. Atli suou, reclamou... e achou graça. | And the sun rose again, too hot, as always. Atli sweated, complained... and found it funny. | Fim do jogo: parágrafo 3 da história final, escrito embaixo da cena do nascer do sol (os quatro aparecem juntos). |
+| `S6Epi04` | Dizem que, desde aquele dia, a lua ganhou um poema: dez horas e meia de noite, e uma brisa ao meio-dia. | They say that since that day the moon has had a poem: ten and a half hours of night, and a breeze at noon. | Fim do jogo: parágrafo 4 da história final, escrito embaixo da cena do nascer do sol (os quatro aparecem juntos). |
+| `TheEnd` | FIM | THE END | Fim do jogo: escrito bem grande embaixo, no centro, na cena do nascer do sol que fecha a história. |
 
 ### Música
 
 | Chave | Português (PT-BR) | Inglês (EN) | Contexto |
 | --- | --- | --- | --- |
-| `StageMusic` | ♪ Serpente de Brasas | ♪ Ember Serpent | Nome da música das fases, mostrado no título da fase. |
+| `StageMusic` | ♪ Serpente de Brasas | ♪ Ember Serpent | Nome da música da fase 1, mostrado no título da fase. |
+| `Stage2Music` | ♪ Uma noite animada em meio à escuridão | ♪ A Lively Night in the Midst of the Dark | Nome da música da fase 2, mostrado no título da fase: um quadro animado, com trompetes, saxofones e bateria. |
+| `Stage3Music` | ♪ A tempestade sob o rio agitado | ♪ The Storm Under the Restless River | Nome da música da fase 3, mostrado no título da fase: sombria, com trompetes e pianos. |
+| `Boss3Music` | ♪ A gata arisca brinca na tempestade | ♪ The Wild Cat Plays in the Storm | Nome da música do chefe da fase 3 (Thaqai), em toda a luta: mais forte, com piano grave e trompetes. |
+| `Stage4Music` | ♪ Hibernação em meio a morcegos e musgo | ♪ Hibernation Among Bats and Moss | Nome da música da fase 4, mostrado no título da fase: calma, com tambores lentos e trompetes. |
+| `Boss4Music` | ♪ A grande fera Deidane | ♪ The Great Beast Deidane | Nome da música do chefe da fase 4 (Ukhumo), em toda a luta: violenta, animalesca, com tambores e trompetes. |
+| `Stage5Music` | ♪ A grande serpe sob a montanha | ♪ The Great Serpent Under the Mountain | Nome da música da fase 5, mostrado no título da fase: épica, com flautas, trompetes e saxofones (era a música do chefe). |
+| `Boss5Music` | ♪ Hino ao guardião dos dois reinos | ♪ Hymn to the Guardian of the Two Realms | Nome da música do chefe da fase 5 (Kuychu), em toda a luta: um hino divino, com trompetes e coros, que lembra a música católica. |
+| `Stage6Music` | ♪ O rio que percorre o universo | ♪ The River That Runs Through the Universe | Nome da música da fase 6, mostrado no título da fase: divina e cósmica, com órgão, piano, coros, canto gregoriano e trompetes. |
+| `Boss2Music` | ♪ O dançarino das estrelas | ♪ The Dancer of the Stars | Nome da música do chefe da fase 2 (Baylo), em toda a luta: intensa, com trompetes, saxofones e bateria. |
 | `BossMusic` | ♪ Serpente Infernal | ♪ Inferno Serpent | Nome da música dos ataques calmos do chefe. |
 | `BossTwoMusic` | ♪ Serpente em Chamas | ♪ Serpent Ablaze | Nome da música dos ataques enfurecidos do chefe. |
 

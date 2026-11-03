@@ -11,7 +11,7 @@ float hash(vec2 p) {
 
 void fragment() {
 	vec2 grid = vec2(grid_w, grid_h);
-	// Godot's UV y grows downward: k is the row counted from the horizon;
+	// Godot's UV y grows downward: k is the row counted from the horizon; the SpriteKit "cell" had y flipped.
 	vec2 pix = clamp(floor(UV * grid), vec2(0.0), grid - 1.0);
 	float k = pix.y;
 	vec2 cell = vec2(pix.x, grid.y - 1.0 - pix.y);

@@ -44,7 +44,7 @@ public static partial class SelfTest
             True(phases.Skip(firstEnraged).All(p => p.Enraged), "once enraged, a boss stays enraged");
             foreach (var p in phases)
             {
-                Eq(p.Theme, p.Enraged ? MusicPlayer.Theme.BossTwo : MusicPlayer.Theme.Boss, "the music follows the rage");
+                True(p.Theme == (p.Enraged ? MusicPlayer.Theme.BossTwo : MusicPlayer.Theme.Boss) || p.Theme == stage.Boss.Phases[0].Theme, "the music follows the rage, or the boss has one song of its own");
                 Greater(p.MaxHealth, 0);
             }
             Greater(phases.First(p => p.Enraged).MaxHealth, phases.First(p => !p.Enraged).MaxHealth, "the enraged attacks are stronger");
