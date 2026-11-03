@@ -437,6 +437,12 @@ public static class BulletSystem
         return targets;
     }
 
+    /// <summary>Takes every bullet off the field, whoever fired it (the boss's arrival freezes the picture: nothing may be left hanging in it).</summary>
+    public static void ClearAll(BulletData[] pool)
+    {
+        for (int i = 0; i < pool.Length; i++) pool[i].IsActive = false;
+    }
+
     public static void ClearBossBullets(BulletData[] pool)
     {
         for (int i = 0; i < pool.Length; i++)

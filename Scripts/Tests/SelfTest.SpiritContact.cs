@@ -209,7 +209,7 @@ public static partial class SelfTest
 
     private static void ThePowerLevelsComeEarlierThanBefore()
     {
-        True(PowerCurve.Level3 < PowerCurve.DropsInStage.Sum() * 0.5f, "level 3 needs less than half of all the light of the stage");
+        True(PowerCurve.Level3 > PowerCurve.DropsInStage.Sum(), "level 3 needs more than all the light of stage 1");
     }
 
     // Difficulty

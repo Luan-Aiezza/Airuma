@@ -154,7 +154,12 @@ public partial class GameScene : Node2D
 
     // MARK: The end of the story
 
-    private EpilogueScreen _epilogue;
+    /// <summary>
+    /// Easy mode goes no further than stage 5: the boss calls the player unworthy and the game ends there, with the bad ending (the boy and the bear fishing in the endless night, to a sad piano).
+    /// </summary>
+    private bool EasyEnds => Difficulty == Difficulty.Easy && Stage == Stages.Five && PracticePhase == null && !StagePractice;
+
+    private Node _epilogue;
     private int _epilogueState;
     private bool _epilogueDone;
     private float _epilogueClock;
@@ -168,14 +173,24 @@ public partial class GameScene : Node2D
                 _epilogueState = 1; _epilogueClock = 0;
                 _hud.HideAttackName();
                 FadeVeil(Colors.Black, 1.2f);
-                MusicPlayer.Instance?.Play(MusicPlayer.Theme.Menu);
+                MusicPlayer.Instance?.Play(EasyEnds ? MusicPlayer.Theme.SadEnding : MusicPlayer.Theme.HappyEnding);
                 break;
             case 1:
                 _epilogueClock += dt;
                 if (_epilogueClock < 1.4f) break;
                 _epilogueState = 2;
-                _epilogue = new EpilogueScreen(Stage.Epilogue());
-                _epilogue.Finished += () => _epilogueState = 3;
+                if (EasyEnds)
+                {
+                    var bad = new IntroScreen(Dialogues.BadEndStory, bad: true);
+                    bad.Finished += () => _epilogueState = 3;
+                    _epilogue = bad;
+                }
+                else
+                {
+                    var good = new EpilogueScreen(Stage.Epilogue());
+                    good.Finished += () => _epilogueState = 3;
+                    _epilogue = good;
+                }
                 AddChild(_epilogue);
                 break;
             case 3:

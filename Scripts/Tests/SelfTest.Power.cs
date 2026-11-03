@@ -28,29 +28,22 @@ public static partial class SelfTest
 
     private static void TheLightOfAny70PercentOfTheSpiritsReachesLevelThree()
     {
-        var drops = PowerCurve.DropsInStage;
-        int seventy = (int)(drops.Count * PowerCurve.Level3Share);
-        var rng = new Random(7);
-        for (int i = 0; i < 200; i++)
-        {
-            float energy = drops.OrderBy(_ => rng.Next()).Take(seventy).Sum();
-            GreaterEq(energy, PowerCurve.Level3);
-        }
-        GreaterEq(drops.OrderBy(d => d).Take(seventy).Sum(), PowerCurve.Level3);
+        // (the name is old) all the light of stage 1 takes the boat to level 2, and not to 3
+        int total = PowerCurve.DropsInStage.Sum();
+        Eq(PowerCurve.Level(total), 2);
+        Less(total, PowerCurve.Level3, "stage 1 alone cannot reach level 3");
     }
 
     private static void CollectingMuchLessIsNotEnough()
     {
-        var drops = PowerCurve.DropsInStage.OrderBy(d => d).ToList();
-        int sixty = (int)(drops.Count * (PowerCurve.Level3Share - 0.1));
-        Less(drops.Take(sixty).Sum(), PowerCurve.Level3, "the weakest 35% do not make level 3");
-        Greater(PowerCurve.Level3, drops.Count * 0.4f);
+        int total = PowerCurve.DropsInStage.Sum();
+        Eq(PowerCurve.Level(total * 0.3f), 1, "a third of the light is still level 1");
     }
 
     private static void TheStageHasEnoughSpiritsToGoAroundWithRoomToSpare()
     {
         int total = PowerCurve.DropsInStage.Sum();
-        Greater(total, PowerCurve.Level3 * 1.4f, "perfect play has a surplus");
+        Greater(PowerCurve.Level3, total, "level 3 asks for more than stage 1 gives");
     }
 
     private static void ProgressRisesWithinEachLevel()

@@ -72,6 +72,13 @@ public static class UIText
     public static string Boss5Music => Loc.Get(nameof(Boss5Music));
     public static string Stage6Music => Loc.Get(nameof(Stage6Music));
     public static string IntroHint => Loc.Get(nameof(IntroHint));
+    public static string MenuMusic => Loc.Get(nameof(MenuMusic));
+    public static string SadEndingMusic => Loc.Get(nameof(SadEndingMusic));
+    public static string HappyEndingMusic => Loc.Get(nameof(HappyEndingMusic));
+    public static string MusicRoomTitle => Loc.Get(nameof(MusicRoomTitle));
+    public static string RestartsLeft => Loc.Get(nameof(RestartsLeft));
+    public static string GameOver => Loc.Get(nameof(GameOver));
+    public static string GameOverMusic => Loc.Get(nameof(GameOverMusic));
     public static string TheEnd => Loc.Get(nameof(TheEnd));
     public static string DemoLabel => Loc.Get(nameof(DemoLabel));
 
@@ -158,7 +165,6 @@ public static class UIText
     // Music titles, shown when a part of the game begins
     public static string StageMusic => Loc.Get(nameof(StageMusic));
     public static string BossMusic => Loc.Get(nameof(BossMusic));
-    public static string BossTwoMusic => Loc.Get(nameof(BossTwoMusic));
     public static string LockedBoss => Loc.Get(nameof(LockedBoss));
 
     // Difficulty

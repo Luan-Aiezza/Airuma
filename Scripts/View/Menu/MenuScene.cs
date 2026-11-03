@@ -10,9 +10,9 @@ using Godot;
 /// A screen-space node tree for the 1110x775 viewport (Y down). The owner listens to <see cref="StartGame"/> and <see cref="StartPractice"/>.</summary>
 public partial class MenuScene : Node2D
 {
-	public enum Screen { Main, Difficulty, PracticeKind, PracticeStages, Practice, Scores, Config, Controls }
+	public enum Screen { Main, Difficulty, PracticeKind, PracticeStages, Practice, Scores, Config, Controls, MusicRoom }
 
-	public enum ActionKind { Start, Practice, PracticeStages, PracticeBosses, Scores, MusicRoom, Config, Quit, Rehearse, RehearseStage, Back, Choose, Setting, OpenControls, RestoreSettings, KeyBind, RestoreKeys }
+	public enum ActionKind { Start, Practice, PracticeStages, PracticeBosses, Scores, MusicRoom, Config, Quit, Rehearse, RehearseStage, Back, Choose, Setting, OpenControls, RestoreSettings, KeyBind, RestoreKeys, Track }
 
 	/// <summary>The settings of the Config screen (the Phase of an entry of kind Setting).</summary>
 	public enum SettingId { Lives, Bombs, Music, Sfx, Mode }
@@ -93,9 +93,9 @@ public partial class MenuScene : Node2D
 		_ui.ZIndex = 200;
 		AddChild(_ui);
 
-		var title = new PixelLabel(PixelLabel.Style.Title, 9, PixelLabel.Align.Center) { Position = At(330, 78) };
-		title.SetText(UIText.Title);
-		_ui.AddChild(title);
+		_title = new PixelLabel(PixelLabel.Style.Title, 9, PixelLabel.Align.Center) { Position = At(330, 78) };
+		_title.SetText(UIText.Title);
+		_ui.AddChild(_title);
 
 		_hint = new PixelLabel(PixelLabel.Style.MenuDim, 3, PixelLabel.Align.Right) { Position = At(Layout.SceneSize.X - 28, 730) };
 		_hint.SetText(UIText.MenuHint);
@@ -184,6 +184,17 @@ public partial class MenuScene : Node2D
 					new(UIText.CfgDefaults, ActionKind.RestoreSettings), new(UIText.CfgExit, ActionKind.Back),
 				};
 				break;
+			case Screen.MusicRoom:
+				// every song in the order a player meets them; those of a stage and its boss stay behind a padlock until the stage is cleared
+				Entries = new List<Entry>();
+				for (int i = 0; i < MusicRoom.Tracks.Count; i++)
+				{
+					var track = MusicRoom.Tracks[i];
+					Entries.Add(new Entry(track.Unlocked ? Loc.Get(track.TitleKey) : UIText.LockedBoss, ActionKind.Track, i, locked: !track.Unlocked));
+				}
+				Entries.Add(new Entry(UIText.Back, ActionKind.Back));
+				_playingTrack = -1;
+				break;
 			case Screen.Controls:
 				Entries = new List<Entry>();
 				foreach (ControlAction action in Enum.GetValues<ControlAction>()) Entries.Add(new Entry(ControlName(action), ActionKind.KeyBind, (int)action));
@@ -207,6 +218,20 @@ public partial class MenuScene : Node2D
 		_ => At(700, 650),
 	};
 
+	/// <summary>The track now playing in the Music Room (its index), or -1.</summary>
+	private int _playingTrack = -1;
+	/// <summary>The Music Room is one list that scrolls: the chosen song in the middle, larger, and the others fading above and below it (these many each way).</summary>
+	private const int RoomReach = 3;
+	private const float RoomRight = 1080, RoomCentreY = 430;
+	private readonly Dictionary<int, Sprite2D> _roomPadlocks = new();
+	private PixelLabel _title;
+
+	private Vector2 ItemAt(int i)
+	{
+		var origin = ItemOrigin;
+		return new Vector2(origin.X, origin.Y + i * ItemPitch);
+	}
+
 	private float ItemPitch => CurrentScreen == Screen.Config ? 52 : CurrentScreen == Screen.Controls ? 46 : CurrentScreen == Screen.Main || CurrentScreen == Screen.Difficulty ? 66 : (CurrentScreen is Screen.Practice or Screen.PracticeStages or Screen.PracticeKind ? 50 : 60);
 	private float ItemScale => CurrentScreen == Screen.Main || CurrentScreen == Screen.Difficulty ? 4 : 3;
 
@@ -214,6 +239,8 @@ public partial class MenuScene : Node2D
 	{
 		foreach (var pair in _itemNodes) { pair.normal.QueueFree(); pair.selected.QueueFree(); }
 		_itemNodes.Clear();
+		foreach (var padlock in _roomPadlocks.Values) padlock.QueueFree();
+		_roomPadlocks.Clear();
 		foreach (var value in _valueNodes) value?.QueueFree();
 		_valueNodes.Clear();
 		_extras?.QueueFree();
@@ -224,11 +251,13 @@ public partial class MenuScene : Node2D
 		var origin = ItemOrigin;
 		for (int i = 0; i < Entries.Count; i++)
 		{
-			var normal = new PixelLabel(PixelLabel.Style.MenuDim, ItemScale);
-			var selected = new PixelLabel(PixelLabel.Style.Title, ItemScale);
+			var room = CurrentScreen == Screen.MusicRoom;
+			var align = room ? PixelLabel.Align.Right : PixelLabel.Align.Left;
+			var normal = new PixelLabel(PixelLabel.Style.MenuDim, ItemScale, align);
+			var selected = new PixelLabel(PixelLabel.Style.Title, room ? ItemScale + 1 : ItemScale, align);
 			foreach (var label in new[] { normal, selected })
 			{
-				label.Position = new Vector2(origin.X, origin.Y + i * ItemPitch);
+				label.Position = ItemAt(i);
 				label.SetText(Entries[i].Title);
 				_ui.AddChild(label);
 			}
@@ -243,8 +272,9 @@ public partial class MenuScene : Node2D
 			if (Entries[i].Locked)
 			{
 				var padlock = new Sprite2D { Texture = PadlockTexture(), Centered = false, Scale = new Vector2(ItemScale, ItemScale), Modulate = new Color(1, 1, 1, 0.8f) };
-				padlock.Position = new Vector2(origin.X - 52, origin.Y + i * ItemPitch - 2);
+				padlock.Position = ItemAt(i) + new Vector2(-40, -2);
 				_extras.AddChild(padlock);
+				if (CurrentScreen == Screen.MusicRoom) _roomPadlocks[i] = padlock;
 			}
 		}
 
@@ -262,6 +292,11 @@ public partial class MenuScene : Node2D
 				heading.SetText(CurrentScreen == Screen.PracticeStages ? UIText.PracticeStageTitle : (CurrentScreen == Screen.Practice ? UIText.PracticeTitle : UIText.MenuBossPractice));
 				_extras.AddChild(heading);
 				break;
+			case Screen.MusicRoom:
+				var roomTitle = new PixelLabel(PixelLabel.Style.MenuHeading, 5) { Position = At(300, 160) };
+				roomTitle.SetText(UIText.MusicRoomTitle);
+				_extras.AddChild(roomTitle);
+				break;
 			case Screen.Scores:
 				BuildScoreTable(_extras);
 				break;
@@ -274,6 +309,7 @@ public partial class MenuScene : Node2D
 		}
 		RefreshValues();
 
+		RefreshTracks();
 		_uiFade = 0;
 		_ui.Modulate = new Color(1, 1, 1, 0);
 		RefreshSelection();
@@ -328,8 +364,20 @@ public partial class MenuScene : Node2D
 		}
 	}
 
+	/// <summary>The song that is playing shows in gold.</summary>
+	private void RefreshTracks()
+	{
+		if (CurrentScreen != Screen.MusicRoom) return;
+		for (int i = 0; i < _itemNodes.Count && i < Entries.Count; i++)
+		{
+			float tint = Entries[i].Action == ActionKind.Track && Entries[i].Phase == _playingTrack ? 0.9f : 0f;
+			_itemNodes[i].normal.SetTint(new Color(1f, 0.82f, 0.3f), tint);
+		}
+	}
+
 	private void RefreshSelection()
 	{
+		if (CurrentScreen == Screen.MusicRoom) { RefreshRoom(); return; }
 		for (int i = 0; i < _itemNodes.Count; i++)
 		{
 			var pair = _itemNodes[i];
@@ -337,12 +385,41 @@ public partial class MenuScene : Node2D
 			pair.normal.Visible = !isSelected;
 			pair.selected.Visible = isSelected;
 			// The chosen entry steps out to the left.
-			pair.selected.Position = new Vector2(ItemOrigin.X - 18, pair.selected.Position.Y);
+			pair.selected.Position = ItemAt(i) + new Vector2(-18, 0);
 		}
 		if (Selection >= _itemNodes.Count) return;
 		var label = _itemNodes[Selection].selected;
 		_marker.Position = new Vector2(label.Position.X - 36, label.Position.Y + PixelFont.GlyphHeight * ItemScale / 2);
 		_marker.Visible = true;
+	}
+
+	/// <summary>The Music Room's list: the chosen song in the middle, larger and lit; the ones near it above and below, smaller and fainter; the rest hidden. Moving the choice scrolls the list.</summary>
+	private void RefreshRoom()
+	{
+		_marker.Visible = false;
+		for (int i = 0; i < _itemNodes.Count; i++)
+		{
+			var (normal, selected) = _itemNodes[i];
+			int d = i - Selection;
+			bool shown = Math.Abs(d) <= RoomReach;
+			normal.Visible = shown && d != 0;
+			selected.Visible = d == 0;
+			var label = d == 0 ? selected : normal;
+			float height = PixelFont.GlyphHeight * label.PixelScale;
+			float y = RoomCentreY + d * 58 + Math.Sign(d) * 10 - height / 2;
+			float alpha = d == 0 ? 1 : 1 - 0.27f * (Math.Abs(d) - 0.4f);
+			normal.Position = new Vector2(RoomRight, y);
+			selected.Position = new Vector2(RoomRight, y);
+			normal.Modulate = new Color(1, 1, 1, alpha);
+			if (_roomPadlocks.TryGetValue(i, out var padlock))
+			{
+				padlock.Visible = shown;
+				padlock.Scale = new Vector2(label.PixelScale, label.PixelScale);
+				padlock.Modulate = new Color(1, 1, 1, 0.8f * alpha);
+				float width = label.Texture == null ? 0 : label.Texture.GetSize().X * label.PixelScale;
+				padlock.Position = new Vector2(RoomRight - width - 12 * label.PixelScale, y - 2);
+			}
+		}
 	}
 
 	// MARK: Settings
@@ -452,7 +529,8 @@ public partial class MenuScene : Node2D
 			case ActionKind.PracticeStages: Show(Screen.PracticeStages); break;
 			case ActionKind.PracticeBosses: Show(Screen.Practice); break;
 			case ActionKind.Scores: Show(Screen.Scores); break;
-			case ActionKind.MusicRoom: ShowNotice(UIText.ComingSoon); break;
+			case ActionKind.MusicRoom: Show(Screen.MusicRoom); break;
+				case ActionKind.Track: PlayTrack(entry.Phase); break;
 			case ActionKind.Config: Show(Screen.Config); break;
 			case ActionKind.Setting: StepSelection(); break;
 			case ActionKind.OpenControls: Show(Screen.Controls); break;
@@ -475,7 +553,21 @@ public partial class MenuScene : Node2D
 	}
 
 	/// <summary>One level up: the lists of stages and of bosses go back to the choice between them, the rest to the main menu.</summary>
-	private void Back() => Show(CurrentScreen is Screen.PracticeStages or Screen.Practice ? Screen.PracticeKind : (CurrentScreen == Screen.Controls ? Screen.Config : Screen.Main));
+	/// <summary>Plays a song of the Music Room, or, if it is the one playing, goes back to the menu's own.</summary>
+	private void PlayTrack(int index)
+	{
+		if (_playingTrack == index) { _playingTrack = -1; MusicPlayer.Instance?.Play(MusicPlayer.Theme.Menu); }
+		else { _playingTrack = index; MusicPlayer.Instance?.Play(MusicRoom.Tracks[index].Theme); }
+		RefreshTracks();
+	}
+
+	private void Back()
+	{
+		if (CurrentScreen == Screen.MusicRoom) MusicPlayer.Instance?.Play(MusicPlayer.Theme.Menu);
+		BackTo();
+	}
+
+	private void BackTo() => Show(CurrentScreen is Screen.PracticeStages or Screen.Practice ? Screen.PracticeKind : (CurrentScreen == Screen.Controls ? Screen.Config : Screen.Main));
 
 	private void ShowNotice(string text)
 	{
@@ -549,7 +641,7 @@ public partial class MenuScene : Node2D
 		{
 			var pair = _itemNodes[i];
 			var label = pair.normal.Visible ? pair.normal : pair.selected;
-			if (label.Texture == null) continue;
+			if (label.Texture == null || !label.Visible) continue;
 			var rect = new Rect2(label.Position + label.Offset * label.PixelScale, label.Texture.GetSize() * label.PixelScale).Grown(0);
 			rect = new Rect2(rect.Position - new Vector2(24, 14), rect.Size + new Vector2(48, 28));
 			if (rect.HasPoint(p))

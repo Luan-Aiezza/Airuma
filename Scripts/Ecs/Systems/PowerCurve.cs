@@ -23,18 +23,14 @@ public static class PowerCurve
     /// </summary>
     public static List<int> DropsInStage => DropsIn(Stages.One);
 
-    /// <summary>The share of the stage's spirits whose light is enough for level 3, and the share of that for level 2.</summary>
-    public const double Level3Share = 0.45, Level2Share = 0.35;
+    /// <summary>Level 3 needs this many times all the light that stage 1 can give, so that even gathering every light of stage 1 gets the boat only to level 2. The second stage tops it up.</summary>
+    public const double Level3OfStageOne = 1.25;
 
-    /// <summary>Energy for level 3: what the weakest 45% of the stage's spirits give.</summary>
-    public static readonly float Level3 = ComputeLevel3();
+    /// <summary>The share of the energy for level 3 that is enough for level 2.</summary>
+    public const double Level2Share = 0.35;
 
-    private static float ComputeLevel3()
-    {
-        var drops = DropsInStage.OrderBy(d => d).ToList();
-        int share = (int)Math.Floor(drops.Count * Level3Share);
-        return drops.Take(share).Sum();
-    }
+    /// <summary>Energy for level 3: a quarter more than all the light of stage 1.</summary>
+    public static readonly float Level3 = MathF.Round((float)(DropsInStage.Sum() * Level3OfStageOne), MidpointRounding.AwayFromZero);
 
     /// <summary>Energy for level 2.</summary>
     public static readonly float Level2 = MathF.Round(Level3 * (float)Level2Share, MidpointRounding.AwayFromZero);

@@ -18,8 +18,8 @@ public sealed class BossBuilder
     {
         _nameKey = nameKey; _hitbox = hitbox; _style = style; _health = health; _enragedHealth = enragedHealth;
         // a boss with a song of its own plays it through the whole fight (calm and enraged); the others have the calm song and the enraged one
-        _calmTheme = theme ?? MusicPlayer.Theme.Boss; _enragedTheme = theme ?? MusicPlayer.Theme.BossTwo;
-        _calmTitleKey = themeTitleKey ?? nameof(UIText.BossMusic); _enragedTitleKey = themeTitleKey ?? nameof(UIText.BossTwoMusic);
+        _calmTheme = theme ?? MusicPlayer.Theme.Boss; _enragedTheme = theme ?? MusicPlayer.Theme.Boss;
+        _calmTitleKey = themeTitleKey ?? nameof(UIText.BossMusic); _enragedTitleKey = themeTitleKey ?? nameof(UIText.BossMusic);
     }
 
     /// <summary>A calm attack.</summary>

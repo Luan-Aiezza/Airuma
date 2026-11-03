@@ -51,7 +51,8 @@ public static class NightArt
         }
     }
 
-    public static PixelCanvas MakeScene()
+    /// <summary>`fishing`: the picture of the bad ending: the boy fishes with a rod, a bear sits beside him in the boat, and the lantern hangs from the mast.</summary>
+    public static PixelCanvas MakeScene(bool fishing = false)
     {
         var c = new PixelCanvas(Width, Height);
         DrawSky(c);
@@ -60,7 +61,7 @@ public static class NightArt
         DrawRiver(c);
         // the boy and his boat: silhouettes, lit on one side by the moon (cold) and, near the lantern, by the lantern (gold)
         var sil = new PixelCanvas(Width, Height);
-        DrawBoat(sil);
+        DrawBoat(sil, fishing);
         for (int y = 0; y < Height; y++) for (int x = 0; x < Width; x++) if (sil[x, y].A > 0) c[x, y] = Dark;
         for (int y = 1; y < Height; y++)
             for (int x = 1; x < Width - 1; x++)
@@ -69,7 +70,8 @@ public static class NightArt
                 bool moonSide = sil[x - 1, y].A == 0 && x > MoonX, top = sil[x, y - 1].A == 0;
                 if (moonSide || top) c[x, y] = P.Hex(0x3A5890);
             }
-        DrawLantern(c, sil);
+        DrawLantern(c, sil, fishing ? BoatX + 1 : BoatX - 11, fishing ? BoatY - 33 : BoatY - 11);
+        if (fishing) DrawLine(c);
         // the dark at the foot, for the writing
         for (int y = 118; y < Height; y++)
             for (int x = 0; x < Width; x++)
@@ -161,7 +163,7 @@ public static class NightArt
     }
 
     /// <summary>His boat, far and small on the dark river: the low hull, the mast, the sail raised, and the boy standing in front of the mast with his face turned up and his hands before him holding the lantern.</summary>
-    private static void DrawBoat(PixelCanvas sil)
+    private static void DrawBoat(PixelCanvas sil, bool fishing = false)
     {
         int bx = BoatX, by = BoatY;
         P k = Dark;
@@ -173,12 +175,36 @@ public static class NightArt
         Poly(sil, k, (bx - 6, by - 18), (bx - 1, by - 18), (bx + 1, by - 1), (bx - 8, by - 1));
         PixelPaint.Ellipse(sil, bx - 3, by - 22, 2.9f, 3.1f, k);
         Poly(sil, k, (bx - 6, by - 24), (bx - 3, by - 26), (bx - 1, by - 24));                                                            // the face lifted: the chin up, the brow back
-        Line(sil, bx - 6, by - 16, bx - 10, by - 12, k); Line(sil, bx - 5, by - 16, bx - 9, by - 12, k);                                   // the arms to the lantern
+        if (!fishing) { Line(sil, bx - 6, by - 16, bx - 10, by - 12, k); Line(sil, bx - 5, by - 16, bx - 9, by - 12, k); }                // the arms to the lantern
+        if (fishing)
+        {
+            // the arms hold a long rod out over the water, to the left; and a bear sits at the stern, hunched, with its round ears and its heavy shoulders
+            Line(sil, bx - 6, by - 16, bx - 9, by - 14, k); Line(sil, bx - 5, by - 15, bx - 8, by - 14, k);
+            Line(sil, bx - 9, by - 15, bx - 36, by - 36, k);
+            Blob(sil, bx - 15, by - 6, 5.2f, 5.6f, k);                  // the body
+            Blob(sil, bx - 15, by - 14, 3.3f, 3.1f, k);                 // the head
+            Blob(sil, bx - 18, by - 17, 1.5f, 1.5f, k); Blob(sil, bx - 12, by - 17, 1.5f, 1.5f, k);   // the ears
+            Blob(sil, bx - 15, by - 12, 1.8f, 1.4f, k);                 // the snout
+        }
     }
 
-    private static void DrawLantern(PixelCanvas c, PixelCanvas sil)
+    /// <summary>The fishing line: a thin pale thread from the tip of the rod down to the black water, with a float at its end.</summary>
+    private static void Blob(PixelCanvas c, float cx, float cy, float rx, float ry, P colour)
     {
-        int lx = BoatX - 11, ly = BoatY - 11;
+        for (int y = (int)(cy - ry) - 1; y <= cy + ry + 1; y++)
+            for (int x = (int)(cx - rx) - 1; x <= cx + rx + 1; x++)
+                if (c.Contains(x, y) && (x - cx) * (x - cx) / (rx * rx) + (y - cy) * (y - cy) / (ry * ry) <= 1) c[x, y] = colour;
+    }
+
+    private static void DrawLine(PixelCanvas c)
+    {
+        int x = BoatX - 36;
+        for (int y = BoatY - 36; y < BoatY + 6; y++) if (c.Contains(x, y)) c[x, y] = P.Hex(0x3A5890);
+        c[x, BoatY + 6] = P.Hex(0xC8503C); c[x, BoatY + 7] = P.Hex(0x7A2418);
+    }
+
+    private static void DrawLantern(PixelCanvas c, PixelCanvas sil, int lx, int ly)
+    {
         // the glow of the lantern on the boy, the sail, the boat and the water: gold, in rings that fade
         for (int y = ly - 14; y <= ly + 18; y++)
             for (int x = lx - 14; x <= lx + 14; x++)

@@ -293,26 +293,35 @@ public static class HudArt
         return c;
     }
 
-    /// <summary>Wooden frame used for the dialogue box and the end screen.</summary>
-    public static PixelCanvas Box(int width, int height)
+    /// <summary>
+    /// Wooden frame used for the dialogue box, the pause menu and the end screen. With a stage's <paramref name="theme"/> it takes that stage's colours: its ink and bead of the edge, its dots, the corners in
+    /// its plaque colours, the pattern of its panel for the field and, down the left, its band.
+    /// </summary>
+    public static PixelCanvas Box(int width, int height, HudTheme theme = null)
     {
+        var ink = theme?.Ink ?? Colors.Ink; var bead = theme?.BeadLight ?? Colors.WoodLight; var dot = theme?.FrameDot ?? Colors.Cream;
+        var cornerA = theme?.PlaqueEdgeA ?? Colors.Urucum; var cornerB = theme?.PlaqueEdgeB ?? Colors.Gold;
         var c = new PixelCanvas(width, height, Colors.DeepInk);
+        if (theme?.Background != null)
+            for (int y = 0; y < height; y++) for (int x = 0; x < width; x++) c[x, y] = theme.Background(x, y).Mixed(Colors.DeepInk, 0.35f);
+        if (theme?.Band != null)
+            for (int y = 4; y < height - 4; y++) for (int x = 0; x < 8; x++) c[4 + x, y] = theme.Band(x, y);
         for (int x = 0; x < width; x++)
         {
-            c[x, 0] = Colors.Ink;
-            c[x, 1] = Colors.WoodLight;
-            c[x, height - 1] = Colors.Ink;
-            c[x, height - 2] = Colors.WoodLight;
+            c[x, 0] = ink;
+            c[x, 1] = bead;
+            c[x, height - 1] = ink;
+            c[x, height - 2] = bead;
         }
         for (int y = 0; y < height; y++)
         {
-            c[0, y] = Colors.Ink;
-            c[1, y] = Colors.WoodLight;
-            c[width - 1, y] = Colors.Ink;
-            c[width - 2, y] = Colors.WoodLight;
+            c[0, y] = ink;
+            c[1, y] = bead;
+            c[width - 1, y] = ink;
+            c[width - 2, y] = bead;
         }
-        for (int x = 4; x < width - 4; x += 4) { c[x, 2] = Colors.Cream; c[x, height - 3] = Colors.Cream; }
-        for (int y = 4; y < height - 4; y += 4) { c[2, y] = Colors.Cream; c[width - 3, y] = Colors.Cream; }
+        for (int x = 4; x < width - 4; x += 4) { c[x, 2] = dot; c[x, height - 3] = dot; }
+        for (int y = 4; y < height - 4; y += 4) { c[2, y] = dot; c[width - 3, y] = dot; }
         foreach (var (x, y) in new[] { (0, 0), (width - 1, 0), (0, height - 1), (width - 1, height - 1) })
         {
             for (int dy = 0; dy < 3; dy++)
@@ -320,7 +329,7 @@ public static class HudArt
                 for (int dx = 0; dx < 3; dx++)
                 {
                     int px = x == 0 ? dx : x - dx, py = y == 0 ? dy : y - dy;
-                    c[px, py] = (dx + dy) % 2 == 0 ? Colors.Urucum : Colors.Gold;
+                    c[px, py] = (dx + dy) % 2 == 0 ? cornerA : cornerB;
                 }
             }
         }
@@ -328,16 +337,17 @@ public static class HudArt
     }
 
     /// <summary>A wooden plaque for the restart button.</summary>
-    public static PixelCanvas Plaque(int width, int height)
+    public static PixelCanvas Plaque(int width, int height, HudTheme theme = null)
     {
-        var c = new PixelCanvas(width, height, Colors.Wood);
+        var wood = theme?.BeadDark ?? Colors.Wood; var light = theme?.BeadLight ?? Colors.WoodLight; var shade = theme?.RimInner ?? Colors.UrucumDark; var ink = theme?.Ink ?? Colors.Ink;
+        var c = new PixelCanvas(width, height, wood);
         for (int x = 0; x < width; x++)
         {
             for (int y = 0; y < height; y++)
             {
-                if (y == 0 || y == height - 1 || x == 0 || x == width - 1) c[x, y] = Colors.Ink;
-                else if (y == 1 || x == 1) c[x, y] = Colors.WoodLight;
-                else if (y == height - 2 || x == width - 2) c[x, y] = Colors.UrucumDark;
+                if (y == 0 || y == height - 1 || x == 0 || x == width - 1) c[x, y] = ink;
+                else if (y == 1 || x == 1) c[x, y] = light;
+                else if (y == height - 2 || x == width - 2) c[x, y] = shade;
             }
         }
         return c;

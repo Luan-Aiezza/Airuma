@@ -72,7 +72,7 @@ public partial class GameScene : Node2D
     private readonly Dictionary<BulletStyle, Vector2> _bulletScale = new();
 
     private readonly GameHud _hud;   // each stage has its own HUD, after its boss
-    private readonly PauseMenu _pause = new();
+    private readonly PauseMenu _pause;
     private readonly DialogueBox _dialogue = new();
     private readonly TitleCard _title = new();
     private HashSet<Key> _dialogueHeld = new();
@@ -92,6 +92,7 @@ public partial class GameScene : Node2D
     private readonly RandomNumberGenerator _rng = new();
 
     public readonly Difficulty Difficulty;
+    private bool _progressSaved;
 
     /// <summary>The stage being played.</summary>
     public readonly StageDefinition Stage;
@@ -105,6 +106,7 @@ public partial class GameScene : Node2D
         StagePractice = stagePractice;
         Stage = stage ?? Stages.One;
         _hud = new GameHud(Stage.Hud());
+        _pause = new PauseMenu(Stage.Hud());
         _burst = new BurstEffect(Stage.Spirits);
         PracticePhase = practicePhase;
         Difficulty = difficulty;
@@ -215,9 +217,11 @@ public partial class GameScene : Node2D
         }
         if (!frozen) UpdatePicker(fdt);
 
-        if (World.Result is GameResult result && !_hud.IsEndVisible)
+        if (_gameOver != null) UpdateGameOver(fdt);
+        if (World.Result is GameResult result && !_hud.IsEndVisible && _gameOver == null)
         {
-            if (result == GameResult.Victory && PracticePhase == null && !StagePractice && _endSequence == EndSequence.Done && Stages.After(Stage) != null)
+            if (result == GameResult.Victory && !_progressSaved && PracticePhase == null && !StagePractice && !Demo) { _progressSaved = true; Progress.MarkCleared(Stages.IndexOf(Stage)); }
+            if (result == GameResult.Victory && PracticePhase == null && !StagePractice && _endSequence == EndSequence.Done && Stages.After(Stage) != null && !EasyEnds)
             {
                 // The stage is won; a stage that ends in a great light goes white and then dark first; the boss leaves a gift (one choice of cards), and then the river goes on.
                 if (Stage.LightTransition && !_lightDone) _lightDone = RunLightTransition(fdt);
@@ -238,17 +242,17 @@ public partial class GameScene : Node2D
                     MusicPlayer.Instance?.Stop(1.5f);
                 }
             }
-            else if (result == GameResult.Victory && Stage.LightTransition && !_lightDone)
+            else if (result == GameResult.Victory && Stage.LightTransition && !_lightDone && !EasyEnds)
             {
                 // Practice: the great light and the dark play too, and then the screen clears for the end screen (the next stage is not entered).
                 if (RunLightTransition(fdt)) { _lightDone = true; FadeVeil(new Color(0, 0, 0, 0), 1.0f); }
             }
-            else if (result == GameResult.Victory && Stage.Epilogue != null && !_epilogueDone) RunEpilogue(fdt);
+            else if (result == GameResult.Victory && (Stage.Epilogue != null || EasyEnds) && !_epilogueDone) RunEpilogue(fdt);
             else Finish(result);
         }
         if (World.Result != null && _hud.IsEndVisible)
         {
-            if (KeyDown(Key.Enter) || KeyDown(Key.KpEnter)) Restart();
+            if ((KeyDown(Key.Enter) || KeyDown(Key.KpEnter)) && CanRestart) Restart();
             else if (KeyDown(Key.Escape)) { SfxPlayer.Instance?.Play(SfxBank.Sound.MenuBack); DoExit(); return; }
         }
 
@@ -296,6 +300,8 @@ public partial class GameScene : Node2D
 
     private void Restart()
     {
+        if (!CanRestart) return;
+        if (CountsRestarts) RunRestarts.Used++;
         SfxPlayer.Instance?.Play(SfxBank.Sound.MenuSelect);
         World.Reset();
         _picker.Hide();

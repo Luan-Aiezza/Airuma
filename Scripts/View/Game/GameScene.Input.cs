@@ -146,7 +146,7 @@ public partial class GameScene : Node2D
         var control = _hud.ControlAt(p);
         if (_hud.IsEndVisible)
         {
-            if (control == GameHud.Control.Restart) Restart();
+            if (control == GameHud.Control.Restart && CanRestart) Restart();
             else if (control == GameHud.Control.Menu) { SfxPlayer.Instance?.Play(SfxBank.Sound.MenuBack); DoExit(); }
             return;
         }

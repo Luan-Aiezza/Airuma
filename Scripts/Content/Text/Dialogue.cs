@@ -244,6 +244,18 @@ public static class Dialogues
         new DialogueLine(DialogueSpeaker.Boss, Emotion.Happy, "S5End17"),
     };
 
+    /// <summary>Easy mode ends at stage 5: after Kuychu falls too easily he calls them unworthy and turns them back (the bad ending follows).</summary>
+    public static IReadOnlyList<DialogueLine> StageFiveEasyEnding => new[]
+    {
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Annoyed, "S5Easy01"),
+        new DialogueLine(DialogueSpeaker.LeftSerpent, Emotion.Neutral, "S5Easy02"),
+        new DialogueLine(DialogueSpeaker.RightSerpent, Emotion.Annoyed, "S5Easy03"),
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Neutral, "S5Easy04"),
+        new DialogueLine(DialogueSpeaker.Atli, Emotion.Surprised, "S5Easy05"),
+        new DialogueLine(DialogueSpeaker.Boss, Emotion.Annoyed, "S5Easy06", shout: true),
+        new DialogueLine(DialogueSpeaker.Airu, Emotion.Worried, "S5Easy07"),
+    };
+
     // MARK: Stage 6, the river of stars
 
     private static DialogueLine L(DialogueSpeaker who, Emotion e, string key, bool shout = false) => new DialogueLine(who, e, key, shout);
@@ -288,6 +300,9 @@ public static class Dialogues
 
     /// <summary>The story told when the game opens, over a picture of the night: the keys of its paragraphs.</summary>
     public static readonly string[] IntroStory = { "IntroPage1", "IntroPage2", "IntroPage3", "IntroPage4" };
+
+    /// <summary>The bad ending (easy mode): the boy and the bear fishing in the endless night, over a picture: the keys of its paragraphs.</summary>
+    public static readonly string[] BadEndStory = { "BadEnd1", "BadEnd2", "BadEnd3", "BadEnd4", "BadEnd5", "BadEnd6", "BadEnd7" };
 
     /// <summary>The story after the last fight, told over a picture: the keys of its paragraphs.</summary>
     public static readonly string[] StageSixEpilogue = { "S6Epi01", "S6Epi02", "S6Epi03", "S6Epi04" };

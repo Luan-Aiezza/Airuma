@@ -196,7 +196,12 @@ public partial class Main : Node2D
         Swap(menu);
     }
 
-    private void StartGameDeferred(int phase, int level, int stage) => StartGame(phase <= 0 ? null : phase, (Difficulty)level, stage, null, stagePractice: phase == 0);
+    private void StartGameDeferred(int phase, int level, int stage)
+    {
+        if (phase < 0) RunRestarts.Used = 0;     // a new game: the restarts are given again
+        StartGame(phase <= 0 ? null : phase, (Difficulty)level, stage, null, stagePractice: phase == 0);
+    }
+
 
     private void StartGame(int? phase, Difficulty difficulty = Difficulty.Normal, int stage = 0, RunCarry carry = null, bool stagePractice = false)
     {

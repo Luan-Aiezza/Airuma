@@ -227,7 +227,7 @@ public partial class World
     {
         Part = StagePart.Boss;
         Slashes.Clear();
-        BulletSystem.ClearBossBullets(Bullets);
+        BulletSystem.ClearAll(Bullets);      // the spirits' shots and the boat's too: the scene of the boss's arrival freezes the field
         PlaceBoss(new Vector2(300, -160));
         StartBossPhase();
         BeginBossEntrance();

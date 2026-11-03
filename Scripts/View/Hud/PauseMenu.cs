@@ -20,12 +20,14 @@ public partial class PauseMenu : Node2D
     private readonly Sprite2D[] _plaques = new Sprite2D[2];
     private readonly PixelLabel[] _captions = new PixelLabel[2];
     private int _selected;
+    private readonly HudTheme _theme;
 
     public bool IsShown => Visible;
     public int Selected => _selected;
 
-    public PauseMenu()
+    public PauseMenu(HudTheme theme = null)
     {
+        _theme = theme ?? HudTheme.Original();
         ZIndex = 200;
         Visible = false;
     }
@@ -44,7 +46,7 @@ public partial class PauseMenu : Node2D
         AddChild(_panel);
         _panel.AddChild(new Sprite2D
         {
-            Texture = HudArt.Box(100, 50).ToTexture(), Centered = false, Scale = new Vector2(Art, Art),
+            Texture = HudArt.Box(100, 50, _theme).ToTexture(), Centered = false, Scale = new Vector2(Art, Art),
             Position = new Vector2(-50 * Art, 0),
         });
 
@@ -57,7 +59,7 @@ public partial class PauseMenu : Node2D
             float x = i == 0 ? -PlaqueX : PlaqueX;
             var plaque = new Sprite2D
             {
-                Texture = HudArt.Plaque(PlaqueWidth, 9).ToTexture(), Centered = false, Scale = new Vector2(Art, Art),
+                Texture = HudArt.Plaque(PlaqueWidth, 9, _theme).ToTexture(), Centered = false, Scale = new Vector2(Art, Art),
                 Position = new Vector2(x - PlaqueWidth * Art / 2, PlaqueY), ZIndex = 10,
             };
             _panel.AddChild(plaque);

@@ -24,7 +24,7 @@ Este documento reúne **todos os textos que aparecem no jogo**, com o contexto d
 | `MenuStart` | Iniciar | Start | Menu principal: começa uma partida (leva à escolha da dificuldade). |
 | `MenuBossPractice` | Treino | Boss Practice | Menu principal: abre o treino (de fases ou de chefes). |
 | `MenuScores` | Recordes | Scores | Menu principal: mostra os recordes. |
-| `MenuMusicRoom` | Músicas | Music Room | Menu principal: sala de músicas (ainda não existe; mostra o aviso "Em breve"). |
+| `MenuMusicRoom` | Sala de música | Music Room | Menu principal: sala de músicas (ainda não existe; mostra o aviso "Em breve"). |
 | `MenuConfig` | Opções | Config | Menu principal: abre as opções. |
 | `MenuQuit` | Sair | Quit | Menu principal: fecha o jogo. |
 | `MenuHint` | Z: Escolher   X: Voltar | Z: Select   X: Back | Dica das teclas, no canto de baixo do menu. |
@@ -169,8 +169,7 @@ Este documento reúne **todos os textos que aparecem no jogo**, com o contexto d
 | `Boss5Music` | ♪ Hino ao guardião dos dois reinos | ♪ Hymn to the Guardian of the Two Realms | Nome da música do chefe da fase 5 (Kuychu), em toda a luta: um hino divino, com trompetes e coros, que lembra a música católica. |
 | `Stage6Music` | ♪ O rio que percorre o universo | ♪ The River That Runs Through the Universe | Nome da música da fase 6, mostrado no título da fase: divina e cósmica, com órgão, piano, coros, canto gregoriano e trompetes. |
 | `Boss2Music` | ♪ O dançarino das estrelas | ♪ The Dancer of the Stars | Nome da música do chefe da fase 2 (Baylo), em toda a luta: intensa, com trompetes, saxofones e bateria. |
-| `BossMusic` | ♪ Serpente Infernal | ♪ Inferno Serpent | Nome da música dos ataques calmos do chefe. |
-| `BossTwoMusic` | ♪ Serpente em Chamas | ♪ Serpent Ablaze | Nome da música dos ataques enfurecidos do chefe. |
+| `BossMusic` | ♪ Serpente Infernal | ♪ Inferno Serpent | Nome da música do chefe da fase 1 (Iryssh), em toda a luta. |
 
 ---
 
@@ -524,6 +523,20 @@ Este documento reúne **todos os textos que aparecem no jogo**, com o contexto d
 | `S5End16` | Água é água, em cima ou embaixo! | Water is water, above or below! | 16ª fala; quem fala: Atli; expressão feliz. |
 | `S5End17` | Esperto, o menino. Segurem firme. | Clever boy. Hold on tight. | 17ª fala; quem fala: o chefe da fase; expressão feliz. |
 
+### Falas: Final da fase (depois da luta)
+
+*Resumo, do código (em inglês): Easy mode ends at stage 5: after Kuychu falls too easily he calls them unworthy and turns them back (the bad ending follows).*
+
+| Chave | Português (PT-BR) | Inglês (EN) | Contexto |
+| --- | --- | --- | --- |
+| `S5Easy01` | Hmpf... vocês me derrotaram. | Hmpf... you have defeated me. | 1ª fala; quem fala: o chefe da fase; expressão irritada. |
+| `S5Easy02` | Com facilidade. | With ease. | 2ª fala; quem fala: Serpente esquerda; expressão neutra. |
+| `S5Easy03` | Facilidade demais. | Too much ease. | 3ª fala; quem fala: Serpente direita; expressão irritada. |
+| `S5Easy04` | Vitória sem suor não prova valor algum. Quem passa assim, sem ter sido posto à prova de verdade, não é digno de cruzar a fronteira. | A victory without sweat proves no worth at all. Whoever passes like this, never truly tested, is not worthy of crossing the border. | 4ª fala; quem fala: o chefe da fase; expressão neutra. |
+| `S5Easy05` | Mas... a gente ganhou! | But... we won! | 5ª fala; quem fala: Atli; expressão surpresa. |
+| `S5Easy06` | Indignos! Voltem para o rio, e só me procurem quando souberem o que é lutar! | Unworthy! Go back to the river, and look for me only when you know what a fight is! | 6ª fala; quem fala: o chefe da fase; expressão irritada; GRITADA (a caixa treme). |
+| `S5Easy07` | Atli... acho que a gente não vai passar. | Atli... I don't think we're getting through. | 7ª fala; quem fala: Airu (espírito da lamparina); expressão preocupada. |
+
 ---
 
 ## Fase 6: Mama Killa, a Lua
@@ -657,4 +670,25 @@ Cada carta tem um nome (**Título**) e uma descrição curta do que ela faz (**D
 | `CardStormBolt.Detail` | Tiros atravessam +2 e voam 25% mais rápido. | Shots pierce 2 more and fly 25% faster. | Descrição da carta (StormBolt). Carta especial, deixada pelo chefe da fase 3. |
 | `CardBearCloak.Title` | Manto de Urso | Bear Cloak | Nome da carta (BearCloak). Carta especial, deixada pelo chefe da fase 4. |
 | `CardBearCloak.Detail` | Um escudo bloqueia o próximo golpe, e o vento empurra 30% menos. | A ward blocks the next hit, and the wind pushes you 30% less. | Descrição da carta (BearCloak). Carta especial, deixada pelo chefe da fase 4. |
+
+---
+
+## Outros
+
+| Chave | Português (PT-BR) | Inglês (EN) | Contexto |
+| --- | --- | --- | --- |
+| `MenuMusic` | ♪ Águas quietas (entrada e menu) | ♪ Quiet waters (opening and menu) | Texto sem contexto catalogado ainda. |
+| `SadEndingMusic` | ♪ Noite sem fim (final ruim) | ♪ Endless night (bad ending) | Texto sem contexto catalogado ainda. |
+| `HappyEndingMusic` | ♪ Aurora (final) | ♪ Daybreak (ending) | Texto sem contexto catalogado ainda. |
+| `MusicRoomTitle` | Sala de música | Music Room | Texto sem contexto catalogado ainda. |
+| `RestartsLeft` | Reinícios restantes: | Restarts left: | Texto sem contexto catalogado ainda. |
+| `GameOver` | Game Over | Game Over | Texto sem contexto catalogado ainda. |
+| `GameOverMusic` | ♪ Luz que se apaga (game over) | ♪ Light going out (game over) | Texto sem contexto catalogado ainda. |
+| `BadEnd1` | Barrados na fronteira, Atli e Ukhumo voltaram ao rio, e a noite não terminou. | Turned back at the border, Atli and Ukhumo returned to the river, and the night did not end. | Texto sem contexto catalogado ainda. |
+| `BadEnd2` | Atli: Faz quanto tempo que a gente está parado aqui, Ukhumo? | Atli: How long have we been sitting here, Ukhumo? | Texto sem contexto catalogado ainda. |
+| `BadEnd3` | Ukhumo: Desde que o sol sumiu. E os peixes continuam sem morder. | Ukhumo: Since the sun vanished. And the fish still won't bite. | Texto sem contexto catalogado ainda. |
+| `BadEnd4` | Atli: Pelo menos ninguém precisa acordar cedo. E a lua é bonita, vai. | Atli: At least nobody has to wake up early. And the moon is pretty, come on. | Texto sem contexto catalogado ainda. |
+| `BadEnd5` | Ukhumo: Bonita e fria. Sem sol, o milho não cresce, e eu estou com fome. | Ukhumo: Pretty and cold. Without the sun the corn won't grow, and I'm hungry. | Texto sem contexto catalogado ainda. |
+| `BadEnd6` | Ukhumo: Você pesca pouco e reclama muito, Atli. Passa a isca. | Ukhumo: You fish little and complain a lot, Atli. Pass the bait. | Texto sem contexto catalogado ainda. |
+| `BadEnd7` | E o sol nunca mais nasceu. | And the sun never rose again. | Texto sem contexto catalogado ainda. |
 

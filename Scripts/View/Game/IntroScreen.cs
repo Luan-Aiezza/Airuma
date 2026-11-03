@@ -13,9 +13,13 @@ public partial class IntroScreen : Node2D
 
     /// <summary>How long the picture and the writing show (from the start of the fade-in) before it closes by itself.</summary>
     public const float Seconds = 10;
-    private const int LineWidth = 44, MaxLines = 22;
+    private const int MaxLines = 22;
+    private readonly int LineWidth = 44;
+    private readonly float Duration = Seconds;
+    private readonly bool _bad;
     /// <summary>The writing starts 20 points from the left; 44 letters of 12 points end before the middle of the screen (555).</summary>
-    private const float FadeTime = 0.9f, InputLock = 0.35f, TextX = 20, TextY = 536, LineGap = 22, ParagraphGap = 10;
+    private const float FadeTime = 0.9f, InputLock = 0.35f, TextX = 20;
+    private readonly float TextY = 536, LineGap = 22, ParagraphGap = 10;
 
     private readonly string[] _pageKeys;
     private readonly List<PixelLabel> _lines = new();
@@ -23,15 +27,18 @@ public partial class IntroScreen : Node2D
     private float _clock, _cover01 = 1, _coverTarget;
     private bool _leaving;
 
-    public IntroScreen(IEnumerable<string> pageKeys)
+    /// <summary>`bad`: the picture of the bad ending (the boy and the bear fishing in the night, <see cref="NightArt.MakeScene"/> with `fishing`), with a longer writing, in lines across the foot of the picture.</summary>
+    public IntroScreen(IEnumerable<string> pageKeys, bool bad = false)
     {
         _pageKeys = pageKeys.ToArray();
+        _bad = bad;
+        if (bad) { LineWidth = 80; TextY = 556; LineGap = 20; ParagraphGap = 4; Duration = 30; }
         ZIndex = 148;
     }
 
     public override void _Ready()
     {
-        AddChild(new Sprite2D { Texture = NightArt.MakeScene().ToTexture(), Centered = false, Scale = new Vector2(Layout.SceneSize.X / NightArt.Width, Layout.SceneSize.Y / NightArt.Height) });
+        AddChild(new Sprite2D { Texture = NightArt.MakeScene(_bad).ToTexture(), Centered = false, Scale = new Vector2(Layout.SceneSize.X / NightArt.Width, Layout.SceneSize.Y / NightArt.Height) });
 
         // the whole story, as paragraphs, written at once
         float y = TextY;
@@ -90,7 +97,7 @@ public partial class IntroScreen : Node2D
     {
         float dt = (float)Math.Min(delta, 0.1);
         _clock += dt;
-        if (!_leaving && _clock >= Seconds) Close();
+        if (!_leaving && _clock >= Duration) Close();
         _cover01 = Mathf.MoveToward(_cover01, _coverTarget, dt / FadeTime);
         _cover.Color = new Color(0, 0, 0, _cover01);
         if (_leaving && _cover01 >= 1) { SetProcess(false); Finished?.Invoke(); }

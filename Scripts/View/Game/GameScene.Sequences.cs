@@ -109,7 +109,7 @@ public partial class GameScene : Node2D
         {
             case EndSequence.Waiting:
                 _sequenceClock += dt;
-                if (_sequenceClock >= EndingDelay) { _endSequence = EndSequence.Talking; StartTalk(Stage.Ending); }
+                if (_sequenceClock >= EndingDelay) { _endSequence = EndSequence.Talking; StartTalk(EasyEnds ? () => Dialogues.StageFiveEasyEnding : Stage.Ending); }
                 return true;
             case EndSequence.Talking:
                 UpdatePriestessEnding();

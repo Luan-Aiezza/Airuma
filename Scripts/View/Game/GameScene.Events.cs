@@ -70,13 +70,48 @@ public partial class GameScene : Node2D
         _lastBossLives = boss.Health.Lives;
     }
 
+    /// <summary>A real game (not a practice, not the demonstration) has only three restarts in all.</summary>
+    private bool CountsRestarts => PracticePhase == null && !StagePractice && !Demo;
+    /// <summary>Hard mode has no restart at all: losing goes straight to Game Over.</summary>
+    private bool HardNoRestart => Difficulty == Difficulty.Hard && CountsRestarts;
+    private bool CanRestart => !CountsRestarts || (!HardNoRestart && RunRestarts.Left > 0);
+
+    private ColorRect _gameOver;
+    private float _gameOverClock;
+
+    private void BeginGameOver()
+    {
+        _gameOver = new ColorRect { Color = new Color(0, 0, 0, 0), Size = Layout.SceneSize, ZIndex = 300, MouseFilter = Control.MouseFilterEnum.Ignore };
+        var label = new PixelLabel(PixelLabel.Style.Defeat, 10, PixelLabel.Align.Center) { Position = new Vector2(Layout.SceneSize.X / 2, 330) };
+        label.SetText(UIText.GameOver);
+        _gameOver.AddChild(label);
+        AddChild(_gameOver);
+        _gameOverClock = 0;
+        MusicPlayer.Instance?.Play(MusicPlayer.Theme.GameOver);
+    }
+
+    private void UpdateGameOver(float dt)
+    {
+        _gameOverClock += dt;
+        _gameOver.Color = new Color(0, 0, 0, System.Math.Min(1, _gameOverClock / 1.2f));
+        bool skip = _gameOverClock > 2.0f && (KeyDown(Key.Enter) || KeyDown(Key.KpEnter) || KeyDown(Key.Escape) || KeyDown(Key.Z) || KeyDown(Key.Space));
+        if (_gameOverClock >= 5.5f || skip) DoExit();
+    }
+
     private void Finish(GameResult result)
     {
         // Practice runs (of a boss or of a stage) are not recorded.
         bool newRecord = PracticePhase == null && !StagePractice && HighScore.Submit(World.Score, result == GameResult.Victory, Difficulty);
         _hud.HideAttackName();
         MusicPlayer.Instance?.Stop(2.0f);
-        _hud.ShowEnd(result, World.Score, newRecord);
+        if (result == GameResult.Defeat && CountsRestarts && (HardNoRestart || RunRestarts.Left == 0))
+        {
+            // lost with no restart left: the screen goes black, Game Over, and then the menu
+            _input.EndAll();
+            BeginGameOver();
+            return;
+        }
+        _hud.ShowEnd(result, World.Score, newRecord, CountsRestarts ? RunRestarts.Left : -1);
         _hud.Say(result == GameResult.Victory ? UIText.SayVictory : UIText.SayDefeat);
         _input.EndAll();
     }

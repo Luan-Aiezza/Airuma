@@ -79,8 +79,8 @@ public partial class GameHud : Node2D
     private readonly PixelLabel _endSubtitle = new(PixelLabel.Style.Label, 3, PixelLabel.Align.Center);
     private readonly PixelLabel _endPoints = new(PixelLabel.Style.Value, 3, PixelLabel.Align.Center);
     private readonly PixelLabel _endRecord = new(PixelLabel.Style.Gold, 3, PixelLabel.Align.Center);
-    private readonly Sprite2D _restartPlaque = new() { Texture = HudArt.Plaque(36, 9).ToTexture() };
-    private readonly Sprite2D _menuPlaque = new() { Texture = HudArt.Plaque(36, 9).ToTexture() };
+    private readonly Sprite2D _restartPlaque = new();
+    private readonly Sprite2D _menuPlaque = new();
 
     // Wind pulse animation state.
     private bool _pulsingWind;
@@ -100,6 +100,7 @@ public partial class GameHud : Node2D
     public GameHud(HudTheme theme = null)
     {
         _theme = theme ?? HudTheme.Original();
+        _restartPlaque.Texture = _menuPlaque.Texture = HudArt.Plaque(36, 9, _theme).ToTexture();
         ZIndex = Z(10);
         BuildPanel();
         BuildFrame();
@@ -220,7 +221,8 @@ public partial class GameHud : Node2D
 
         static float SlotX(int i) => 826 + i * 32;
         // the hearts are drawn a little smaller than the other icons (3 points per art pixel, 27 wide), so that there is the same gap between them as between the lanterns and the flames
-        for (int i = 0; i < LifeSlots; i++) _lifeIcons.Add(MakeSprite(_heartEmpty, At(SlotX(i) + 1, 277), 2, scale: 3));
+        // (the three at the right are always where they were; the extra lives of the Config go to the left of them, where there is room)
+        for (int i = 0; i < LifeSlots; i++) _lifeIcons.Add(MakeSprite(_heartEmpty, At(SlotX(i - (LifeSlots - 3)) + 1, 277), 2, scale: 3));
         for (int i = 0; i < MaxBombs; i++)
         {
             _bombIcons.Add(MakeSprite(_lanternEmpty, At(SlotX(i), 317), 2));
@@ -323,10 +325,10 @@ public partial class GameHud : Node2D
         _endPanel.Visible = false;
         _endPanel.Position = AtField(300, 288); // top-centre of the game field
         AddChild(_endPanel);
-        MakeSprite(HudArt.Box(100, 50).ToTexture(), Vector2.Zero, 0, new Vector2(0.5f, 1), null, _endPanel);
+        MakeSprite(HudArt.Box(100, 50, _theme).ToTexture(), Vector2.Zero, 0, new Vector2(0.5f, 1), null, _endPanel);
         _victoryTitle.SetText(UIText.Victory);
         _defeatTitle.SetText(UIText.Defeat);
-        var rows = new[] { (_victoryTitle, 24f), (_defeatTitle, 24f), (_endSubtitle, 76f), (_endPoints, 84f), (_endRecord, 116f) };
+        var rows = new[] { (_victoryTitle, 24f), (_defeatTitle, 24f), (_endSubtitle, 60f), (_endPoints, 84f), (_endRecord, 116f) };
         foreach (var (l, top) in rows)
         {
             l.Position = new Vector2(0, top);
@@ -352,10 +354,10 @@ public partial class GameHud : Node2D
 
     public void Update(HudState state, float dt)
     {
-        for (int i = 0; i < _lifeIcons.Count; i++) _lifeIcons[i].Texture = i < state.Lives ? _heartFull : _heartEmpty;
+        for (int i = 0; i < _lifeIcons.Count; i++) _lifeIcons[i].Texture = i >= _lifeIcons.Count - state.Lives ? _heartFull : _heartEmpty;     // they go out from the left to the right
         for (int i = 0; i < MaxBombs; i++)
         {
-            _bombIcons[i].Texture = i < state.Bombs ? _lanternFull : _lanternEmpty;
+            _bombIcons[i].Texture = i >= MaxBombs - state.Bombs ? _lanternFull : _lanternEmpty;
             _powerIcons[i].Texture = i < state.Power ? _flameFull : _flameEmpty;
         }
         _powerBarFill.Size = new Vector2(MathF.Round(PowerBarWidth * state.PowerProgress / 4, MidpointRounding.AwayFromZero) * 4, 4);
@@ -553,11 +555,11 @@ public partial class GameHud : Node2D
 
     // MARK: End screen
 
-    public void ShowEnd(GameResult result, int score, bool newRecord)
+    public void ShowEnd(GameResult result, int score, bool newRecord, int restartsLeft = -1)
     {
         _victoryTitle.Visible = result == GameResult.Victory;
         _defeatTitle.Visible = result == GameResult.Defeat;
-        _endSubtitle.SetText("");
+        _endSubtitle.SetText(result == GameResult.Defeat && restartsLeft >= 0 ? UIText.RestartsLeft + " " + restartsLeft : "");
         string points = score.ToString("D7", CultureInfo.InvariantCulture);
         _endPoints.SetText(UIText.Score + " " + points);
         _endRecord.SetText(newRecord ? UIText.NewRecord : "");
