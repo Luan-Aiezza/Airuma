@@ -27,6 +27,7 @@ public partial class Main : Node2D
     public override void _Process(double delta)
     {
         // the menu left alone for a while turns into a demonstration of the game
+        if (_menu == null || _menu.CurrentScreen != MenuScene.Screen.Main) _idle = 0;     // only the main menu, left alone, turns into the demonstration: not a sub-menu
         if (_inMenu && !_starting && (_idle += (float)delta) >= IdleSeconds) StartDemo();
         if (_shot == null || ++_shotFrames < _shotAt) return;
         GetViewport().GetTexture().GetImage().SavePng(_shot);
@@ -37,6 +38,7 @@ public partial class Main : Node2D
     private const float IdleSeconds = 10;
     private float _idle;
     private bool _inMenu, _starting;
+    private MenuScene _menu;
     private static int _demoStage = System.Random.Shared.Next(4);
 
     /// <summary>A black veil over everything, for the soft change between the menu and the demonstration.</summary>
@@ -70,9 +72,11 @@ public partial class Main : Node2D
         // the menu fades to black, the demonstration is built behind the veil and fades in; on leaving, the same the other way round
         FadeTo(1, () =>
         {
-            _starting = false; _inMenu = false;
+            _starting = false; _inMenu = false; _menu = null;
             var game = new GameScene(null, Difficulty.Normal, definition, null, stagePractice: true) { Demo = true };
-            game.Exit += () => FadeTo(1, () => { ShowMenu(); FadeTo(0); });
+            game.Exit += () => FadeTo(1, () => { MusicPlayer.Instance.Silent = false; ShowMenu(); FadeTo(0); });
+            MusicPlayer.Instance.Stop(0.2f);
+            MusicPlayer.Instance.Silent = true;     // the demonstration has no music: it would give the songs away
             Swap(game);
             FadeTo(0);
         });
@@ -185,7 +189,7 @@ public partial class Main : Node2D
         _menuThemeOn = false;
         _idle = 0;
         _inMenu = true;
-        var menu = new MenuScene();
+        var menu = _menu = new MenuScene();
         menu.Quit += () => GetTree().Quit();
         menu.StartGame += level => CallDeferred(nameof(StartGameDeferred), -1, (int)level, 0);
         menu.StartPractice += (stage, phase) => CallDeferred(nameof(StartGameDeferred), phase, (int)Difficulty.Normal, stage);
@@ -197,6 +201,7 @@ public partial class Main : Node2D
     private void StartGame(int? phase, Difficulty difficulty = Difficulty.Normal, int stage = 0, RunCarry carry = null, bool stagePractice = false)
     {
         _inMenu = false;
+        _menu = null;
         var definition = Stages.All[System.Math.Clamp(stage, 0, Stages.All.Count - 1)];
         var game = new GameScene(phase, difficulty, definition, carry, stagePractice) { Autoplay = _autoplay };
         game.Exit += () => CallDeferred(nameof(ShowMenu));

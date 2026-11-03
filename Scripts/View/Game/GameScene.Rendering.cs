@@ -196,6 +196,8 @@ public partial class GameScene : Node2D
             Scripted = _bossSequence != BossSequence.None, Hidden = World.Twin.Merged,
         });
         River.Modulate = Colors.White.Lerp(_boss.Style.SceneTint, _boss.RageAmount);
+        World.HorizonOpen = River.HorizonAmount;
+        World.Rock = River.RockNow;
         World.FieldOpen = River.OpenAmount;       // the banks have gone: the boat has their room
     }
 

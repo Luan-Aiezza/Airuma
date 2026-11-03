@@ -25,12 +25,21 @@ public partial class GameScene : Node2D
     private BossSequence _bossSequence;
     /// <summary>While she gathers herself and speaks, the boss is still the woman, though the world has already counted her second form.</summary>
     private float _sequenceClock;
+    /// <summary>Seconds left in which the boss rides the platform down, in boss practice.</summary>
+    private float _rideClock;
     private enum EndSequence { None, Waiting, Talking, Done }
     private EndSequence _endSequence;
 
     /// <summary>Runs the openings and the talks; returns true while the world must stay still.</summary>
     private bool UpdateSequences(float dt)
     {
+        // The boss rides the platform down: they come together (stage 4)
+        if (River.HasPlatform && (_bossSequence is BossSequence.Opening or BossSequence.TalkOne or BossSequence.Descend || _rideClock > 0))
+        {
+            _rideClock = Math.Max(0, _rideClock - dt);
+            if (_bossSequence != BossSequence.None || World.Boss.MovementType == BossMovementType.Transition)
+                World.PlaceBoss(new Vector2(300, World.Definition.Boss.StandY - River.PlatformRise));
+        }
         if (_stageIntroPending)
         {
             _stageIntroPending = false;
@@ -78,7 +87,7 @@ public partial class GameScene : Node2D
                 _sequenceClock += dt;
                 float u = Mathf.Clamp(_sequenceClock / DescendTime, 0, 1);
                 float ease = 1 - (1 - u) * (1 - u) * (1 - u);
-                World.PlaceBoss(new Vector2(300, Mathf.Lerp(-170, World.Definition.Boss.StandY, ease)));
+                if (!River.HasPlatform) World.PlaceBoss(new Vector2(300, Mathf.Lerp(-170, World.Definition.Boss.StandY, ease)));
                 if (_sequenceClock >= DescendTime + 0.5f) { _bossSequence = BossSequence.TalkTwo; StartTalk(Stage.BossEncounter); SendPriestessAway(); }
                 return true;
             }
@@ -141,6 +150,7 @@ public partial class GameScene : Node2D
     private void BeginBossArrival(bool announce)
     {
         River.BeginOpenWater(3.2f);
+        _rideClock = 3.4f;
         AnnounceBossPhase(PhaseManagerSystem.EntranceSeconds, announce);
     }
 

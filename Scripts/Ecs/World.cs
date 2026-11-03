@@ -22,6 +22,20 @@ public partial class World
     public const float FieldExtraMax = 68;
     private float _fieldOpen;
     public float FieldOpen { get => _fieldOpen; set => _fieldOpen = Math.Clamp(value, 0, 1); }
+    /// <summary>A round platform of rock the boat cannot cross (stage 4): where its top is, how wide and deep, and how far down its wall goes.</summary>
+    public readonly struct Platform
+    {
+        public readonly Vector2 Centre; public readonly float Rx, Ry, Wall;
+        public Platform(Vector2 centre, float rx, float ry, float wall) { Centre = centre; Rx = rx; Ry = ry; Wall = wall; }
+    }
+    /// <summary>The platform now in the water (null: there is none), set by the scene as it comes down.</summary>
+    public Platform? Rock { get; set; }
+    /// <summary>How far the water's horizon has come down in the boss fight (0...1), set by the scene: the sky above it is closed to the boat.</summary>
+    public float HorizonOpen { get; set; }
+    /// <summary>How far above the horizon line the boat's centre can go: its hull is below the line.</summary>
+    public const float HorizonMargin = 20;
+    /// <summary>The space the boat moves in: the field, less the sky above the horizon when there is one.</summary>
+    public Rect2 PlayerField { get { var f = Field; float top = (Layout.Horizon + HorizonMargin) * Math.Clamp(HorizonOpen, 0, 1); return new Rect2(f.Position.X, top, f.Size.X, f.Size.Y - top); } }
     /// <summary>The space the boat (and the boss) can move in: the play area, wider at the sides once the banks have gone.</summary>
     public Rect2 Field => new Rect2(-FieldExtraMax * _fieldOpen, 0, PlayArea.Size.X + 2 * FieldExtraMax * _fieldOpen, PlayArea.Size.Y);
 
@@ -254,7 +268,7 @@ public partial class World
 
         // 2. Movement
         Vector2 windVector = Wind.CurrentWindVector * Difficulty.WindFactor();
-        MovementSystem.MovePlayer(Player, Field, delta, windVector);
+        MovementSystem.MovePlayer(Player, PlayerField, delta, windVector, Rock);
         // The slashes, the quake and the roar of the boss (nothing of it in the breather between two attacks).
         Vector2 roarPush = Vector2.Zero;
         if (bossActive && Boss.MovementType != BossMovementType.Transition && Boss.Health.Lives > 0)

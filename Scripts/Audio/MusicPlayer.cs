@@ -111,8 +111,12 @@ public partial class MusicPlayer : Node
 	}
 
 	/// <summary>Starts a theme from its beginning (as soon as it is ready), replacing whatever is playing.</summary>
+	/// <summary>While true no song starts: the demonstration of the game plays without music, so as not to give the songs away.</summary>
+	public bool Silent { get; set; }
+
 	public void Play(Theme theme)
 	{
+		if (Silent) return;
 		if (_wanted == theme) return;          // already wanted (a song that goes on from one attack to the next does not start over)
 		Prepare(theme);
 		_wanted = theme;

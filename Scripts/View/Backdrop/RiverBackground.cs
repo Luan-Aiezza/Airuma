@@ -125,6 +125,23 @@ public partial class RiverBackground : Node2D
         _beam.Position = new Vector2(PlatformCentre.X - 64 * pixel / 2, PlatformCentre.Y - 50 * pixel + 16);
     }
 
+    /// <summary>The platform of rock, as a thing the boat bumps into (game coordinates), or null while there is none in the water.</summary>
+    public World.Platform? RockNow
+    {
+        get
+        {
+            if (_platform == null || !_platform.Visible) return null;
+            const float pixel = 4;
+            float centreY = _platform.Position.Y + CaveArt.PlatformTopCentreY * pixel;
+            return new World.Platform(new Vector2(Layout.PlayWidth / 2, centreY), (CaveArt.PlatformWidth - 2) * pixel / 2, 12.5f * pixel, 9 * pixel);
+        }
+    }
+
+    public bool HasPlatform => _platform != null;
+
+    /// <summary>How far above its place the platform still is while it comes down (0 once it is there): the boss rides it by this much.</summary>
+    public float PlatformRise => _platform == null ? 0 : Mathf.Max(0, (Layout.Horizon - CaveArt.PlatformTopCentreY * 4) - _platform.Position.Y);
+
     private readonly Scenery _look;
     private StormWeather _weather;
     /// <summary>The sky of the boss fight (the clouds parted, with the moon), faded in over the stormy one; and how far it has faded in (0...1).</summary>
@@ -405,6 +422,9 @@ public partial class RiverBackground : Node2D
 
     /// <summary>How far the banks have slid out of the river (0: not at all, 1: gone): the boat has that much more room.</summary>
     public float OpenAmount => _open;
+
+    /// <summary>How far the horizon has come down (0: the river, no horizon; 1: in place): above it there is only sky, which the boat cannot enter.</summary>
+    public float HorizonAmount => !_look.OpensToSea ? 0 : (_look.Cosmic ? _sea : _open);
 
     public void Update(float dt)
     {
