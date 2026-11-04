@@ -16,7 +16,7 @@ public static partial class Attacks
         {
             IsActive = true, FireRate = 1.7f, BulletsPerVolley = 3, SpreadAngle = 30, BulletSpeed = 190, IsAimed = true, BulletScale = 1.0f, BulletStyle = BulletStyle.Claw,
         },
-        slashes: new SlashSpec { IsActive = true, Interval = 2.6f, Telegraph = 0.95f, Strike = 0.22f, Width = 34, Spacing = 125, Count = 3, Angle = 0, Aim = SlashAim.Player });
+        slashes: new SlashSpec { IsActive = true, Interval = 2.6f, Telegraph = 0.95f, Strike = 0.22f, Width = 34, Spacing = 155, Count = 3, Angle = 0, Aim = SlashAim.Player });
 
     /// <summary>The roar: every few seconds she roars and the boat is thrown back from her, away from the cave, towards the rings of claw marks that spread from her and the stones she flings.</summary>
     public static BossPhase RoarOfTheMountain() => Attack("AttackRoar", BossMovementType.Stationary, Centre,
@@ -56,7 +56,7 @@ public static partial class Attacks
         {
             IsActive = true, FireRate = 2.0f, BulletsPerVolley = 5, SpreadAngle = 60, BulletSpeed = 230, IsAimed = true, BulletScale = 1.0f, BulletStyle = BulletStyle.Claw,
         },
-        slashes: new SlashSpec { IsActive = true, Interval = 1.8f, Telegraph = 0.8f, Strike = 0.2f, Width = 30, Spacing = 105, Count = 3, Angle = 30, Aim = SlashAim.Alternate });
+        slashes: new SlashSpec { IsActive = true, Interval = 1.8f, Telegraph = 0.8f, Strike = 0.2f, Width = 30, Spacing = 150, Count = 3, Angle = 30, Aim = SlashAim.Alternate });
 
     /// <summary>Fury, the cave comes down: the screen shakes almost without a pause, stalactites fall in a crowd and great stones fall that break in a ring when they have fallen a while; now and then a roar throws the boat back.</summary>
     public static BossPhase CaveIn() => Attack("AttackCaveIn", BossMovementType.Stationary, Centre,
@@ -81,7 +81,7 @@ public static partial class Attacks
         {
             IsActive = true, FireRate = 2.2f, BulletsPerVolley = 20, SpreadAngle = 360, BulletSpeed = 140, SpinRate = 9, BulletScale = 1.0f, BulletStyle = BulletStyle.Claw,
         },
-        slashes: new SlashSpec { IsActive = true, Interval = 2.3f, Telegraph = 0.85f, Strike = 0.22f, Width = 30, Spacing = 95, Count = 4, Angle = 12, Aim = SlashAim.Alternate },
+        slashes: new SlashSpec { IsActive = true, Interval = 2.3f, Telegraph = 0.85f, Strike = 0.22f, Width = 30, Spacing = 140, Count = 4, Angle = 12, Aim = SlashAim.Alternate },
         quake: new QuakeSpec { IsActive = true, Interval = 4.5f, Duration = 2.2f, Intensity = 1.1f },
         roar: new RoarSpec { IsActive = true, Interval = 7.0f, Push = 220, Seconds = 0.5f });
 }

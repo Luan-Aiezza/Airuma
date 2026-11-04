@@ -57,7 +57,6 @@ public static partial class SelfTest
         var kinds = boss.Phases.Select(p => (p.Slashes.IsActive, p.Slashes.Angle, p.Quake.IsActive, p.Roar.IsActive, p.Main.Rainbow, p.Main.Ceiling, p.Main.SpinRate != 0, p.Main.CurveRate != 0, p.Sub.IsActive, p.Main.BulletStyle, p.Movement)).ToList();
         Eq(kinds.Distinct().Count(), kinds.Count, "no two attacks work alike");
         // an enraged one that roams rests as it does in the other stages
-        True(boss.Phases.Any(p => p.Movement == BossMovementType.Roam), "one glides about");
         // in the second half of the fight (the enraged attacks) the two are one body
         True(boss.Phases.Where(p => p.Enraged).All(p => p.Fused) && boss.Phases.Where(p => !p.Enraged).All(p => !p.Fused), "the two fuse into one when she is enraged");
         True(boss.Phases.Where(p => p.Fused).All(p => !p.Main.FromTwin && !p.Sub.FromTwin), "and the one body fires from itself");

@@ -27,6 +27,7 @@ public struct Shot
     public float WindFactor;
     /// <summary>For a Launch whose heading is "away from this point" (a figure that flies as one and then bursts outward from its centre).</summary>
     public Vector2 Anchor;
+    public float Blink;
 
     /// <summary>How much of the wind the bullets of the patterns feel (the old emitters keep 0.5): a little, so that the wind is still felt, but not so much that a rain of bullets leaves a void at one side of the field.</summary>
     public const float DefaultWind = 0.15f;
@@ -61,6 +62,8 @@ public struct Shot
     public Shot Constellation(float brake) { var s = this; s.Behavior = BulletBehavior.Constellation; s.Accel = -MathF.Abs(brake); return s; }
     /// <summary>Flies as it was fired for `fuse` seconds and then bursts: every bullet of the figure goes off straight away from `centre` (where the centre of the figure is by then), at `speed`.</summary>
     public Shot Scattering(float fuse, float speed, Vector2 centre, float accel = 0) { var s = this; s.Behavior = BulletBehavior.Launch; s.Fuse = fuse; s.LaunchSpeed = speed; s.LaunchAngle = float.NegativeInfinity; s.LaunchAccel = accel; s.Anchor = centre; return s; }
+    /// <summary>The lines of the constellation take turns to open: of every three, one is open at a time, each for `seconds`.</summary>
+    public Shot Blinking(float seconds) { var s = this; s.Blink = seconds; return s; }
     public Shot Bouncing(int times) { var s = this; s.Behavior = BulletBehavior.Bounce; s.Bounces = times; return s; }
 }
 
@@ -80,6 +83,7 @@ public static partial class BulletSystem
         b.SplitCount = shot.SplitCount; b.SplitSpread = shot.SplitSpread; b.SplitSpeed = shot.SplitSpeed; b.ChildScale = shot.ChildScale; b.SplitAimed = shot.SplitAimed; b.ChildStyle = shot.ChildStyle;
         b.Bounces = shot.Bounces;
         b.Anchor = shot.Anchor;
+        b.Blink = shot.Blink;
         b.WindModifier = shot.WindFactor;
         return i;
     }

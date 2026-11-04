@@ -31,7 +31,7 @@ public static class BulletArt
         BulletStyle.Claw => (7, 11),
         BulletStyle.Rock => (7, 7),
         BulletStyle.Stalactite => (5, 13),
-        BulletStyle.BoltYellow or BulletStyle.BoltBlue => (5, 11),
+        BulletStyle.BoltYellow or BulletStyle.BoltBlue or BulletStyle.BoltRed => (5, 11),
         _ => FamilySize(style),
     };
 
@@ -44,7 +44,7 @@ public static class BulletArt
     /// <summary>Styles that are elongated or directional are rotated to face where the bullet is going.</summary>
     public static bool Rotates(BulletStyle style) => style switch
     {
-        BulletStyle.FlameDart or BulletStyle.LotusPetal or BulletStyle.FireSerpent or BulletStyle.LightBolt or BulletStyle.RiceRed or BulletStyle.Shard or BulletStyle.Claw or BulletStyle.Stalactite or BulletStyle.BoltYellow or BulletStyle.BoltBlue => true,
+        BulletStyle.FlameDart or BulletStyle.LotusPetal or BulletStyle.FireSerpent or BulletStyle.LightBolt or BulletStyle.RiceRed or BulletStyle.Shard or BulletStyle.Claw or BulletStyle.Stalactite or BulletStyle.BoltYellow or BulletStyle.BoltBlue or BulletStyle.BoltRed => true,
         _ => Family(style) is Shape.Rice or Shape.Kunai,
     };
 
@@ -84,6 +84,7 @@ public static class BulletArt
             case BulletStyle.Rock: DrawRock(c, frame); break;
             case BulletStyle.Stalactite: DrawStalactite(c, frame); break;
             case BulletStyle.BoltYellow: DrawBolt(c, frame, PixelColor.Hex(0xC88818), PixelColor.Hex(0xFFD84A), PixelColor.Hex(0xFFF8D0)); break;
+            case BulletStyle.BoltRed: DrawBolt(c, frame, PixelColor.Hex(0x9A1020), PixelColor.Hex(0xFF3A3A), PixelColor.Hex(0xFFE0D8)); break;
             case BulletStyle.BoltBlue: DrawBolt(c, frame, PixelColor.Hex(0x2A5FD8), PixelColor.Hex(0x6AA0FF), PixelColor.Hex(0xE8F4FF)); break;
             default: DrawFamily(c, style, frame); break;
         }

@@ -56,7 +56,7 @@ public static partial class Attacks
             IsActive = true, FireRate = 1.4f, BulletsPerVolley = 1, SpreadAngle = 0, BulletSpeed = 190, IsAimed = true, BulletScale = 1.1f, BulletStyle = BulletStyle.LotusPetal, FromTwin = true,
         },
         slashes: new SlashSpec { IsActive = true, Interval = 2.7f, Telegraph = 1.1f, Strike = 0.45f, Width = 44, Spacing = 200, Count = 2, Angle = 84, Aim = SlashAim.Player },
-        twinTarget: RightSide, dance: true);
+        twinTarget: RightSide, dance: false);
 
     /// <summary>The trial of worth: the two fire together, face to face, rings that turn in opposite senses and cross in the middle in a lattice of colours.</summary>
     public static BossPhase Trial() => Attack("AttackTrial", BossMovementType.Stationary, LeftSide,
@@ -73,7 +73,7 @@ public static partial class Attacks
     private static readonly Vector2 Fusion = new Vector2(300, Layout.BossY + 50);   // the fused body is big: lower, so that its head is clear of the boss bar
 
     /// <summary>The broken rainbow (enraged, fused): the one body glides about the field while two spirals of the seven colours, turning in opposite senses, curve out of it, and jets of water cut down the field.</summary>
-    public static BossPhase BrokenRainbow() => Attack("AttackBrokenRainbow", BossMovementType.Roam, Fusion,
+    public static BossPhase BrokenRainbow() => Attack("AttackBrokenRainbow", BossMovementType.Stationary, Fusion,
         main: new BulletEmitterComponent
         {
             IsActive = true, FireRate = 0.24f, BulletsPerVolley = 7, SpreadAngle = 360, BulletSpeed = 160, SpinRate = -4.1f, CurveRate = 40, BulletScale = 0.95f, Rainbow = true, BulletStyle = BulletStyle.OrbRed,
@@ -82,7 +82,7 @@ public static partial class Attacks
         {
             IsActive = true, FireRate = 0.24f, TimeSinceLastFire = -0.12f, BulletsPerVolley = 7, SpreadAngle = 360, BulletSpeed = 160, SpinRate = 4.1f, CurveRate = -40, BulletScale = 0.95f, Rainbow = true, BulletStyle = BulletStyle.OrbRed,
         },
-        slashes: new SlashSpec { IsActive = true, Interval = 2.2f, Telegraph = 0.85f, Strike = 0.25f, Width = 36, Spacing = 110, Count = 3, Angle = 0, Aim = SlashAim.Player },
+        slashes: new SlashSpec { IsActive = true, Interval = 2.2f, Telegraph = 0.85f, Strike = 0.25f, Width = 36, Spacing = 155, Count = 3, Angle = 0, Aim = SlashAim.Player },
         fused: true);
 
     /// <summary>The tremor between two worlds (enraged, fused): the one body stamps, the screen shakes almost without pause while the drops of the falls pour down, fans of the seven colours fly at the boat, and a roar throws it back.</summary>
@@ -110,7 +110,7 @@ public static partial class Attacks
         {
             IsActive = true, FireRate = 1.3f, TimeSinceLastFire = -0.65f, BulletsPerVolley = 7, SpreadAngle = 55, BulletSpeed = 235, IsAimed = true, BulletScale = 1.0f, Rainbow = true, BulletStyle = BulletStyle.OrbGreen, SpawnOffset = new Vector2(34, 0),
         },
-        slashes: new SlashSpec { IsActive = true, Interval = 2.4f, Telegraph = 0.9f, Strike = 0.3f, Width = 38, Spacing = 100, Count = 4, Angle = 20, Aim = SlashAim.Alternate },
+        slashes: new SlashSpec { IsActive = true, Interval = 2.4f, Telegraph = 0.9f, Strike = 0.3f, Width = 38, Spacing = 145, Count = 4, Angle = 20, Aim = SlashAim.Alternate },
         quake: new QuakeSpec { IsActive = true, Interval = 5.0f, Duration = 2.2f, Intensity = 1.1f },
         roar: new RoarSpec { IsActive = true, Interval = 6.5f, Push = 220, Seconds = 0.5f },
         fused: true);

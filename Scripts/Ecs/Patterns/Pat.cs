@@ -88,6 +88,15 @@ public static class Pat
 
     // MARK: Figures
 
+    /// <summary>A star of a constellation that goes from `from` and hangs exactly at `to` (it brakes to a stop there when it stops flying); returns its slot, to be linked with <see cref="BulletSystem.LinkStars"/>.</summary>
+    public static int StarTo(PatternContext c, Vector2 from, Vector2 to, in Shot star)
+    {
+        float t = BulletSystem.StarFlySeconds, d = from.DistanceTo(to);
+        float speed = 2 * d / t;                                            // (it brakes evenly to a stop in `t` seconds, and covers half the speed times t)
+        var s = star.Speeded(speed).Constellation(speed / t).Steady();
+        return c.Fire(from, Mathx.Degrees(MathF.Atan2(to.Y - from.Y, to.X - from.X)), s);
+    }
+
     /// <summary>A constellation: `n` stars thrown out evenly round, braking, to hang linked each to the one `skip` places on (1: a polygon, 2: a pentagram...) by thin lines that hurt, and then fall.</summary>
     public static void Constellation(PatternContext c, Vector2 at, int n, float start, int skip, in Shot star)
     {

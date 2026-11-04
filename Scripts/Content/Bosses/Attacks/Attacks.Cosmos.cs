@@ -22,7 +22,7 @@ public static partial class Attacks
         main: new BulletEmitterComponent
         {
             IsActive = true, FireRate = 0.5f, BulletSpeed = 115, BulletScale = 1.9f, BulletStyle = BulletStyle.Hail,
-            Curtain = true, CurtainSlots = 24, CurtainGap = 110, CurtainSwing = 160, CurtainCentre = 300, CurtainPeriod = 9,
+            Curtain = true, CurtainSlots = 24, CurtainGap = 125, CurtainSwing = 80, CurtainCentre = 300, CurtainPeriod = 8,
         },
         sub: new BulletEmitterComponent
         {
@@ -43,11 +43,11 @@ public static partial class Attacks
         });
 
     /// <summary>The eternal night (enraged): two gaps in a curtain of hail, a spiral of orbs, and a wide fan at the boat.</summary>
-    public static BossPhase KillaEternalNight() => Attack("AttackKillaEternalNight", BossMovementType.Roam, Centre,
+    public static BossPhase KillaEternalNight() => Attack("AttackKillaEternalNight", BossMovementType.Stationary, Centre,
         main: new BulletEmitterComponent
         {
             IsActive = true, FireRate = 0.5f, BulletSpeed = 130, BulletScale = 1.9f, BulletStyle = BulletStyle.Hail,
-            Curtain = true, CurtainSlots = 24, CurtainGap = 90, CurtainSwing = 150, CurtainCentre = 300, CurtainPeriod = 8, CurtainMirror = true,
+            Curtain = true, CurtainSlots = 24, CurtainGap = 110, CurtainSwing = 60, CurtainCentre = 300, CurtainPeriod = 7, CurtainMirror = true,
         },
         sub: new BulletEmitterComponent
         {

@@ -229,6 +229,7 @@ public static partial class BulletSystem
         {
             if (slots[i] < 0) continue;
             pool[slots[i]].Chain = chain;
+            pool[slots[i]].LinkIndex = i;
             int prev = slots[((i - skip) % n + n) % n];
             pool[slots[i]].Prev = prev == slots[i] ? -1 : prev;
         }
@@ -279,6 +280,8 @@ public static partial class BulletSystem
             if (!b.IsActive || b.Behavior != BulletBehavior.Constellation || b.Chain == 0 || b.Prev < 0) continue;
             ref BulletData p = ref pool[b.Prev];
             if (!p.IsActive || p.Chain != b.Chain || p.Behavior != BulletBehavior.Constellation) continue;
+            // a constellation whose lines blink: of every three, one is open (gone, harmless) at a time, and each in turn
+            if (b.Blink > 0 && (int)(b.Timer / b.Blink) % 3 == b.LinkIndex % 3) continue;
             yield return (p.Position, b.Position, b.Timer >= StarFlySeconds && p.Timer >= StarFlySeconds);
         }
     }

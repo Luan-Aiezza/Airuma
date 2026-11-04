@@ -18,7 +18,7 @@ public static partial class Attacks
         main: new BulletEmitterComponent
         {
             IsActive = true, FireRate = 0.55f, BulletSpeed = 110, BulletScale = 1.9f, BulletStyle = BulletStyle.Hail,
-            Curtain = true, CurtainSlots = 24, CurtainGap = 120, CurtainSwing = 170, CurtainCentre = 300, CurtainPeriod = 10,
+            Curtain = true, CurtainSlots = 24, CurtainGap = 125, CurtainSwing = 80, CurtainCentre = 300, CurtainPeriod = 8,
         },
         sub: new BulletEmitterComponent
         {
@@ -27,15 +27,13 @@ public static partial class Attacks
 
     /// <summary>
     /// Great pentagrams of stars come out of the boss and advance on the boat as one figure; after a moment each bursts: the stars of its lines fly out from its centre and its five points, bigger stars, break into
-    /// rings of little stars that spread. Between them, hail at the boat, a drizzle of beads, and a constellation hung about the field.
+    /// small rings of little stars. Besides them there are only the stars of a constellation that hangs now and then about the field. Everything in this attack is made by stars.
     /// </summary>
     public static BossPhase StarPentagram() => Attack("AttackStarPentagram", BossMovementType.Roam, Centre, patterns: new[]
     {
-        Pat.Every(2.6f, c => AdvancingPentagram(c, c.Aim, 105, c.Count * 17f, BulletStyle.Star, BulletStyle.StarGold)),
-        Pat.Every(2.6f, c => AdvancingPentagram(c, c.Aim + (c.Count % 2 == 0 ? 32 : -32), 80, c.Count * -23f + 36, BulletStyle.StarBlue, BulletStyle.StarViolet)).After(1.3f),
-        Pat.Every(0.8f, c => Pat.Aimed(c, c.Origin, 3, 24, new Shot(BulletStyle.Hail, 150).Sized(0.9f))),
-        Pat.Every(0.1f, c => Pat.Rain(c, Edge.Top, 3, 6, Drizzle(130))),
-        Pat.Every(2.4f, c => Pat.Constellation(c, c.Origin, 5, c.Count * 23f, 2, Star(175, 250))).After(0.6f).NotOnEasy(),
+        Pat.Every(3.2f, c => AdvancingPentagram(c, c.Aim, 105, c.Count * 17f, BulletStyle.Star, BulletStyle.StarGold)),
+        Pat.Every(3.2f, c => AdvancingPentagram(c, c.Aim + (c.Count % 2 == 0 ? 32 : -32), 80, c.Count * -23f + 36, BulletStyle.StarBlue, BulletStyle.StarViolet)).After(1.6f),
+        Pat.Every(3.6f, c => Pat.Constellation(c, c.Origin, 5, c.Count * 23f, 2, Star(175, 250))).After(0.8f).NotOnEasy(),
     });
 
     /// <summary>
@@ -47,55 +45,56 @@ public static partial class Attacks
         const float speed = 85, fuse = 2.0f;
         var centre = c.Origin;
         var burst = centre + Pat.Dir(heading) * speed * fuse;                 // where the centre of the figure is when it bursts
-        int perEdge = c.Difficulty == Difficulty.Easy ? 4 : 6;
+        int perEdge = c.Difficulty == Difficulty.Easy ? 2 : 3;
         for (int i = 0; i < 5; i++)
         {
             var a = Pat.Round(centre, radius, rotation + 72f * (i * 2 % 5));
             var b = Pat.Round(centre, radius, rotation + 72f * ((i + 1) * 2 % 5));
             for (int j = 1; j < perEdge; j++)                                 // (j = 0 is the point itself, made apart below)
                 c.Fire(a.Lerp(b, (float)j / perEdge), heading, new Shot(edge, speed).Sized(0.9f).Steady().Scattering(fuse, 150, burst));
-            c.Fire(a, heading, new Shot(tip, speed).Zoomed(1.5f).Hitting(10).Steady().Splitting(fuse, 8, BulletStyle.StarGold, 140));
+            c.Fire(a, heading, new Shot(tip, speed).Zoomed(1.5f).Hitting(10).Steady().Splitting(fuse, 5, BulletStyle.StarGold, 140));
         }
     }
 
-    /// <summary>Fast crossings of the field in diagonals; fans of sparks of lightning that zigzag at the boat, and a storm of little bolts, of every speed, sent in every direction: from the boss, from the top and from the sides.</summary>
+    /// <summary>Fast crossings of the field in diagonals; a few sparks of lightning that zigzag at the boat, and a few little bolts, slow, sent in every direction below her, from the top and from the sides.</summary>
     public static BossPhase ZigzagLightning() => Attack("AttackZigzagLightning", BossMovementType.Cross, new Vector2(300, 150),
         main: new BulletEmitterComponent
         {
-            IsActive = true, FireRate = 0.4f, BulletsPerVolley = 5, SpreadAngle = 50, BulletSpeed = 230, IsAimed = true, CurveRate = 62,
+            IsActive = true, FireRate = 0.7f, BulletsPerVolley = 3, SpreadAngle = 36, BulletSpeed = 190, IsAimed = true, CurveRate = 62,
             BulletScale = 0.9f, BulletStyle = BulletStyle.Spark, BulletBehavior = BulletBehavior.Zigzag,
         },
         patterns: new[]
         {
-            // little bolts from the boss in all the directions below her, every one at its own speed, some zigzagging
-            Pat.Every(0.08f, c =>
+            // little bolts from the boss in all the directions below her, slow, every one at its own speed, some zigzagging
+            Pat.Every(0.28f, c =>
             {
-                for (int k = 0; k < c.N(3, 1); k++)
-                {
-                    var bolt = new Shot(c.Count % 2 == 0 ? BulletStyle.BoltYellow : BulletStyle.BoltBlue, PatternContext.Rand(140, 300));
-                    if ((c.Count + k) % 3 == 0) bolt = bolt.Zigzagging(PatternContext.Rand(30, 55));
-                    c.Fire(c.Origin, 90 + PatternContext.Rand(-80, 80), bolt);
-                }
+                var bolt = new Shot(c.Count % 2 == 0 ? BulletStyle.BoltYellow : BulletStyle.BoltBlue, PatternContext.Rand(85, 165));
+                if (c.Count % 3 == 0) bolt = bolt.Zigzagging(PatternContext.Rand(30, 50));
+                c.Fire(c.Origin, 90 + PatternContext.Rand(-80, 80), bolt);
             }),
-            // bolts that fall from the top at random places and slants, quick
-            Pat.Every(0.14f, c => Pat.Rain(c, Edge.Top, 3, 70, new Shot(BulletStyle.BoltYellow, 250))),
-            // bolts from the sides, level and slanting
-            Pat.Every(0.22f, c => Pat.Rain(c, c.Count % 2 == 0 ? Edge.Left : Edge.Right, 3, 70, new Shot(BulletStyle.BoltBlue, 230))),
-            Pat.Every(1.6f, c => Pat.Aimed(c, c.Origin, 9, 90, new Shot(c.Count % 2 == 0 ? BulletStyle.BoltBlue : BulletStyle.BoltYellow, 290))).After(0.7f).NotOnEasy(),
-            Pat.Every(2.6f, c => Pat.Polygon(c, c.Origin, 6, 62, c.Count * 13f, 3, new Shot(BulletStyle.Spark, 1).Sized(0.9f).LaunchedOut(0.55f, 210))).After(1),
+            // bolts from the top at random places and slants
+            Pat.Every(0.45f, c => Pat.Rain(c, Edge.Top, 1, 70, new Shot(BulletStyle.BoltYellow, 130), scale: false)),
+            // bolts from the sides
+            Pat.Every(0.65f, c => Pat.Rain(c, c.Count % 2 == 0 ? Edge.Left : Edge.Right, 1, 70, new Shot(BulletStyle.BoltBlue, 120), scale: false)),
+            Pat.Every(3.0f, c => Pat.Aimed(c, c.Origin, 5, 70, new Shot(c.Count % 2 == 0 ? BulletStyle.BoltBlue : BulletStyle.BoltYellow, 160), scale: false)).After(1.2f).NotOnEasy(),
         });
 
     /// <summary>
-    /// The cat at play: she crosses the field in quick diagonals, throwing balls of yarn that bounce off the sides of the field, claw marks in combs that sweep across the boat, a hail of small beads from the sides,
-    /// and rings of pearls that open slowly.
+    /// The cat at play: she goes between the top left and the top right of the field and rests ten seconds at each. Balls of yarn that bounce off the sides of the field, claw marks in combs that go out
+    /// all round her, in every direction, turning a little each time, a hail of small beads from the sides, and a small ring of pearls.
     /// </summary>
-    public static BossPhase CatPlay() => Attack("AttackCatPlay", BossMovementType.Cross, new Vector2(300, 150), patterns: new[]
+    public static BossPhase CatPlay() => Attack("AttackCatPlay", BossMovementType.Shuttle, new Vector2(110, 130), patterns: new[]
     {
         Pat.Every(1.4f, c => Pat.Aimed(c, c.Origin, 9, 100, new Shot(c.Count % 2 == 0 ? BulletStyle.OrbViolet : BulletStyle.OrbPink, 200).Sized(1.2f).Bouncing(3))),
-        Pat.Every(1.1f, c => { for (int k = -1; k <= 1; k++) Pat.Comb(c, c.Origin + Pat.Dir(c.Aim + k * 26) * 30, c.Aim + k * 26, 5, 20, new Shot(BulletStyle.Claw, 220)); }).After(0.5f),
-        Pat.Every(0.12f, c => Pat.Rain(c, c.Count % 2 == 0 ? Edge.Left : Edge.Right, 2, 40, new Shot(BulletStyle.BeadWhite, 150).Sized(0.8f))),
-        Pat.Every(2.0f, c => Pat.Ring(c, c.Origin, 22, c.Count * 9f, new Shot(BulletStyle.BeadPink, 95).Sized(0.9f))).After(1),
-        Pat.Every(0.1f, c => Pat.Rain(c, Edge.Top, 2, 6, Drizzle(140))),
+        // the claw marks, in combs all round her
+        Pat.Every(1.3f, c =>
+        {
+            float turn = c.Count * 17f;
+            for (int k = 0; k < 6; k++) Pat.Comb(c, c.Origin + Pat.Dir(turn + 60f * k) * 34, turn + 60f * k, 5, 20, new Shot(BulletStyle.Claw, 200));
+        }).After(0.5f),
+        Pat.Every(0.2f, c => Pat.Rain(c, c.Count % 2 == 0 ? Edge.Left : Edge.Right, 1, 40, new Shot(BulletStyle.BeadWhite, 150).Sized(0.8f), scale: false)),
+        Pat.Every(2.0f, c => Pat.Ring(c, c.Origin, 7, c.Count * 9f, new Shot(BulletStyle.BeadPink, 95).Sized(0.9f), scale: false)).After(1),
+        Pat.Every(0.14f, c => Pat.Rain(c, Edge.Top, 1, 6, Drizzle(140), scale: false)),
     });
 
     /// <summary>
@@ -106,36 +105,52 @@ public static partial class Attacks
         main: new BulletEmitterComponent
         {
             IsActive = true, FireRate = 0.42f, BulletSpeed = 125, BulletScale = 1.9f, BulletStyle = BulletStyle.Hail,
-            Curtain = true, CurtainSlots = 24, CurtainGap = 66, CurtainSwing = 130, CurtainCentre = 300, CurtainPeriod = 7.5f,
+            Curtain = true, CurtainSlots = 24, CurtainGap = 120, CurtainSwing = 80, CurtainCentre = 300, CurtainPeriod = 6.5f,
         },
         sub: new BulletEmitterComponent
         {
             IsActive = true, FireRate = 1.1f, BulletsPerVolley = 1, SpreadAngle = 0, BulletSpeed = 140, IsAimed = true, BulletScale = 1.1f, BulletStyle = BulletStyle.Hail,
         });
 
-    /// <summary>The sky falls: curtains of hail with two gaps, one the mirror of the other, while triangles of stars hang about the field.</summary>
-    public static BossPhase SkyFalls() => Attack("AttackSkyFalls", BossMovementType.Roam, Centre,
+    /// <summary>
+    /// The sky falls: curtains of hail with two gaps, one the mirror of the other, while constellations hang about the field: little triangles of stars and, in the middle, tall triangles with a long edge that
+    /// goes straight down the middle of the field. The lines of every constellation take turns to open (of every three, one at a time), so that each closes and opens again while it hangs.
+    /// </summary>
+    public static BossPhase SkyFalls() => Attack("AttackSkyFalls", BossMovementType.Stationary, Centre,
         main: new BulletEmitterComponent
         {
-            IsActive = true, FireRate = 0.48f, BulletSpeed = 130, BulletScale = 1.9f, BulletStyle = BulletStyle.Hail,
-            Curtain = true, CurtainSlots = 24, CurtainGap = 82, CurtainSwing = 150, CurtainCentre = 300, CurtainPeriod = 8, CurtainMirror = true,
+            IsActive = true, FireRate = 0.96f, BulletSpeed = 130, BulletScale = 1.9f, BulletStyle = BulletStyle.Hail,
+            Curtain = true, CurtainSlots = 24, CurtainGap = 110, CurtainSwing = 60, CurtainCentre = 300, CurtainPeriod = 7, CurtainMirror = true,
         },
-        sub: new BulletEmitterComponent
+        patterns: new[]
         {
-            IsActive = true, FireRate = 2.4f, BulletsPerVolley = 3, SpreadAngle = 360, BulletSpeed = 170, SpinRate = 31, Acceleration = -240,
-            BulletScale = 1.0f, BulletStyle = BulletStyle.Star, BulletBehavior = BulletBehavior.Constellation, Link = true, LinkSkip = 1,
+            // little triangles thrown out of the boss
+            Pat.Every(4.8f, c => Pat.Constellation(c, c.Origin, 3, c.Count * 31f, 1, new Shot(BulletStyle.Star, 170).Constellation(240).Blinking(1.2f))),
+            // tall triangles in the middle: one edge very long, straight down the middle of the field; the stars go to their places and hang there
+            Pat.Every(4.8f, c =>
+            {
+                float x = c.MiddleX + (c.Count % 2 == 0 ? -34 : 34);
+                var star = new Shot(BulletStyle.Star, 100).Blinking(1.2f);
+                var slots = new[]
+                {
+                    Pat.StarTo(c, c.Origin, new Vector2(x, 200), star),
+                    Pat.StarTo(c, c.Origin, new Vector2(x, 560), star),
+                    Pat.StarTo(c, c.Origin, new Vector2(x + (c.Count % 2 == 0 ? 90 : -90), 380), star),
+                };
+                BulletSystem.LinkStars(c.Pool, slots, 1);
+            }).After(2.4f),
         });
 
-    /// <summary>The eclipse: she crosses the field in diagonals, hanging heptagrams of stars behind her, over a fine weave of hail.</summary>
-    public static BossPhase Eclipse() => Attack("AttackEclipse", BossMovementType.Cross, new Vector2(300, 150),
+    /// <summary>The eclipse: a curtain of hail with a gap that swings, and, from the two sides, a few little bolts of lightning, yellow and red, very slow, that cross the field.</summary>
+    public static BossPhase Eclipse() => Attack("AttackEclipse", BossMovementType.Stationary, new Vector2(300, 150),
         main: new BulletEmitterComponent
         {
-            IsActive = true, FireRate = 1.6f, BulletsPerVolley = 7, SpreadAngle = 360, BulletSpeed = 190, SpinRate = 17, Acceleration = -270,
-            BulletScale = 1.0f, BulletStyle = BulletStyle.Star, BulletBehavior = BulletBehavior.Constellation, Link = true, LinkSkip = 3,
-        },
-        sub: new BulletEmitterComponent
-        {
             IsActive = true, FireRate = 0.5f, BulletSpeed = 105, BulletScale = 1.9f, BulletStyle = BulletStyle.Hail,
-            Curtain = true, CurtainSlots = 24, CurtainGap = 78, CurtainSwing = 120, CurtainCentre = 300, CurtainPeriod = 8,
+            Curtain = true, CurtainSlots = 24, CurtainGap = 125, CurtainSwing = 80, CurtainCentre = 300, CurtainPeriod = 7,
+        },
+        patterns: new[]
+        {
+            Pat.Every(0.9f, c => Pat.Rain(c, c.Count % 2 == 0 ? Edge.Left : Edge.Right, 3, 36, new Shot(c.Count % 4 < 2 ? BulletStyle.BoltYellow : BulletStyle.BoltRed, 65))),
         });
+
 }

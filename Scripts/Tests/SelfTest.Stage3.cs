@@ -52,7 +52,7 @@ public static partial class SelfTest
         Eq(new World(withCards: false, stage: Stages.Three).StartingBossLives, 6);
         True(boss.Phases.Any(p => p.Movement == BossMovementType.Cross), "she crosses the field");
         True(boss.Phases.Any(p => p.Main.Curtain || p.Sub.Curtain), "curtains of hail that make the boat move in small steps");
-        True(boss.Phases.Any(p => p.Main.Link), "constellations");
+        True(boss.Phases.Any(p => p.Patterns.Count > 0), "figures of the new kind: pentagrams, bolts, yarn");
         True(boss.Phases.Any(p => p.Main.BulletBehavior == BulletBehavior.Zigzag), "lightning");
         True(boss.Name != Stages.Two.Boss.Name && boss.Name != Stages.One.Boss.Name, "her own name");
     }

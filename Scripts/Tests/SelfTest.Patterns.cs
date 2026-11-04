@@ -20,6 +20,7 @@ public static partial class SelfTest
         T("TheDifficultyScalesThePatterns", TheDifficultyScalesThePatterns);
         T("APatternWaitsForItsDelayAndRestsBetweenBursts", APatternWaitsForItsDelayAndRestsBetweenBursts);
         T("AFullPoolIsHandledWithoutAFuss", AFullPoolIsHandledWithoutAFuss);
+        T("TheAttacksThatMakeAWayAreWideAndTheBossStaysStill", TheAttacksThatMakeAWayAreWideAndTheBossStaysStill);
         T("TheWallsOfAMazeAreNotMovedByTheWind", TheWallsOfAMazeAreNotMovedByTheWind);
         T("APentagramFliesAsOneAndBursts", APentagramFliesAsOneAndBursts);
         T("EveryNewStyleOfBulletHasADrawing", EveryNewStyleOfBulletHasADrawing);
@@ -198,6 +199,31 @@ public static partial class SelfTest
         for (int i = 0; i < 100; i++) ctx.Fire(V(300, 100), i, new Shot(BulletStyle.OrbRed, 100));
         Eq(pool.Count(b => b.IsActive), 20, "no more than the pool holds");
         Eq(ctx.Fire(V(0, 0), 0, new Shot(BulletStyle.OrbRed, 1)), -1, "a shot with no room is refused");
+    }
+
+    private static void TheAttacksThatMakeAWayAreWideAndTheBossStaysStill()
+    {
+        // an attack that makes a way for the boat (a curtain with a gap, or cuts with lanes between them): the gap is never narrow, and the boss does not move; the gap swings only so far that it is always
+        // under the boss (the way leads to it)
+        int ways = 0;
+        foreach (var stage in Stages.All)
+            foreach (var phase in stage.Boss.Phases)
+            {
+                var curtains = new[] { phase.Main, phase.Sub }.Where(e => e.IsActive && e.Curtain).ToList();
+                bool cuts = phase.Slashes.IsActive && phase.Slashes.Count > 1;
+                if (curtains.Count == 0 && !cuts) continue;
+                ways++;
+                Eq(phase.Movement, BossMovementType.Stationary, $"{phase.AttackNameKey}: the boss stays still");
+                True(!phase.Dance, $"{phase.AttackNameKey}: and so do the two of a boss that is two");
+                foreach (var e in curtains)
+                {
+                    GreaterEq(e.CurtainGap, 110f, $"{phase.AttackNameKey}: the gap is not narrow");
+                    LessEq(e.CurtainSwing, e.CurtainMirror ? 60f : 80f, $"{phase.AttackNameKey}: the gap stays under the boss");
+                    Near(e.CurtainCentre, phase.Target.X, 1f, $"{phase.AttackNameKey}: and swings about it");
+                }
+                if (cuts) GreaterEq(phase.Slashes.Spacing - phase.Slashes.Width, 100f, $"{phase.AttackNameKey}: the lanes between the cuts are wide");
+            }
+        Greater(ways, 8, "there are many attacks of this kind");
     }
 
     private static void TheWallsOfAMazeAreNotMovedByTheWind()

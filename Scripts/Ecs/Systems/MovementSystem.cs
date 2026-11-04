@@ -95,6 +95,10 @@ public static partial class MovementSystem
                 SweepStep(boss, bounds, delta);
                 break;
 
+            case BossMovementType.Shuttle:
+                ShuttleStep(boss, delta);
+                break;
+
             case BossMovementType.Cross:
                 CrossStep(boss, delta);
                 break;

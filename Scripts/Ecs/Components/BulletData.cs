@@ -38,6 +38,9 @@ public struct BulletData
     public float LaunchAccel;
     public Vector2 Anchor;
     public float Radius, RadialSpeed, RadialAcceleration, Theta, Omega;
+    /// <summary>The place of this star in its constellation, and, if above 0, the seconds in which the lines of the constellation take turns to open (see <see cref="BulletSystem.Links"/>).</summary>
+    public int LinkIndex;
+    public float Blink;
 
     // The player's shots, as the cards change them.
     /// <summary>Damage multiplier on top of Damage.</summary>
@@ -56,6 +59,6 @@ public struct BulletData
         IsActive = false; Position = Vector2.Zero; Velocity = Vector2.Zero; Faction = Faction.Player; HitboxRadius = 0;
         Damage = 0; WindModifier = 1; Acceleration = 0; CurveRate = 0; Scale = 1; Behavior = BulletBehavior.Normal;
         Timer = 0; Chain = 0; Prev = -1; Style = BulletStyle.Fireball; Power = 1; Pierce = 0; BurstRadius = 0; BurstScale = 1; LastHit = -1;
-        Zoom = 1; Pull = Vector2.Zero; Fuse = 0; LaunchSpeed = 0; LaunchAngle = 0; SplitCount = 0; SplitSpread = 360; SplitSpeed = 0; ChildScale = 1; SplitAimed = false; ChildStyle = BulletStyle.Fireball; Bounces = 0; LaunchAccel = 0; Anchor = Vector2.Zero; Radius = 0; RadialSpeed = 0; RadialAcceleration = 0; Theta = 0; Omega = 0;
+        Zoom = 1; Pull = Vector2.Zero; Fuse = 0; LaunchSpeed = 0; LaunchAngle = 0; SplitCount = 0; SplitSpread = 360; SplitSpeed = 0; ChildScale = 1; SplitAimed = false; ChildStyle = BulletStyle.Fireball; Bounces = 0; LaunchAccel = 0; LinkIndex = 0; Blink = 0; Anchor = Vector2.Zero; Radius = 0; RadialSpeed = 0; RadialAcceleration = 0; Theta = 0; Omega = 0;
     }
 }
