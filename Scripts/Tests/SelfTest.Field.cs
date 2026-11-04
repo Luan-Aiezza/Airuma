@@ -54,7 +54,7 @@ public static partial class SelfTest
     private static void TheCurtainOfAWiderFieldHasNoPlaceToHideAtTheSides()
     {
         var boss = BossEntity.Create(ThaqaiBoss.Definition);
-        PhaseManagerSystem.ChangePhase(boss, 3);
+        PhaseManagerSystem.ChangePhase(boss, 6);
         boss.MovementType = BossMovementType.Stationary;
         var wide = new Rect2(-World.FieldExtraMax, 0, 600 + 2 * World.FieldExtraMax, 775);
         var pool = BulletSystem.NewPool();

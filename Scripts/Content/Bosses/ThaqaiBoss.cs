@@ -14,7 +14,7 @@ public static class ThaqaiBoss
         Builder.Calm(Attacks.HailCurtain()),
         Builder.Calm(Attacks.StarPentagram()),
         Builder.Calm(Attacks.ZigzagLightning()),
-        Builder.Calm(Attacks.FineWeave()),
+        Builder.Calm(Attacks.CatPlay()),
         Builder.Enraged(Attacks.SkyFalls()),
         Builder.Enraged(Attacks.Eclipse()));
 }

@@ -25,6 +25,8 @@ public struct Shot
     public BulletStyle ChildStyle;
     public int Bounces;
     public float WindFactor;
+    /// <summary>For a Launch whose heading is "away from this point" (a figure that flies as one and then bursts outward from its centre).</summary>
+    public Vector2 Anchor;
 
     /// <summary>How much of the wind the bullets of the patterns feel (the old emitters keep 0.5): a little, so that the wind is still felt, but not so much that a rain of bullets leaves a void at one side of the field.</summary>
     public const float DefaultWind = 0.15f;
@@ -57,6 +59,8 @@ public struct Shot
     public Shot Splitting(float fuse, int count, BulletStyle child, float speed, float spread = 360, bool aimed = false, float childScale = 1) { var s = this; s.Behavior = BulletBehavior.Split; s.Fuse = fuse; s.SplitCount = count; s.ChildStyle = child; s.SplitSpeed = speed; s.SplitSpread = spread; s.SplitAimed = aimed; s.ChildScale = childScale; return s; }
     /// <summary>A star of a constellation: it flies out, braking, hangs a while, linked by thin lines (which hurt) to the others of its volley, and falls.</summary>
     public Shot Constellation(float brake) { var s = this; s.Behavior = BulletBehavior.Constellation; s.Accel = -MathF.Abs(brake); return s; }
+    /// <summary>Flies as it was fired for `fuse` seconds and then bursts: every bullet of the figure goes off straight away from `centre` (where the centre of the figure is by then), at `speed`.</summary>
+    public Shot Scattering(float fuse, float speed, Vector2 centre, float accel = 0) { var s = this; s.Behavior = BulletBehavior.Launch; s.Fuse = fuse; s.LaunchSpeed = speed; s.LaunchAngle = float.NegativeInfinity; s.LaunchAccel = accel; s.Anchor = centre; return s; }
     public Shot Bouncing(int times) { var s = this; s.Behavior = BulletBehavior.Bounce; s.Bounces = times; return s; }
 }
 
@@ -75,6 +79,7 @@ public static partial class BulletSystem
         b.Fuse = shot.Fuse; b.LaunchSpeed = shot.LaunchSpeed; b.LaunchAngle = shot.LaunchAngle; b.LaunchAccel = shot.LaunchAccel;
         b.SplitCount = shot.SplitCount; b.SplitSpread = shot.SplitSpread; b.SplitSpeed = shot.SplitSpeed; b.ChildScale = shot.ChildScale; b.SplitAimed = shot.SplitAimed; b.ChildStyle = shot.ChildStyle;
         b.Bounces = shot.Bounces;
+        b.Anchor = shot.Anchor;
         b.WindModifier = shot.WindFactor;
         return i;
     }

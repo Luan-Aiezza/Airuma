@@ -15,6 +15,8 @@ public enum BulletStyle
     KunaiRed, KunaiBlue, KunaiGreen, KunaiYellow, KunaiViolet,
     StarBlue, StarGold, StarGreen, StarViolet, StarPink,
     GiantRed, GiantBlue, GiantGold, GiantGreen, GiantViolet, GiantWhite,
+    // little bolts of lightning (5 x 11), that point where they go
+    BoltYellow, BoltBlue,
 }
 
 /// <summary>Dance: the bullet sways to one side and the other on a fixed beat (see BulletSystem.DanceBeat). Zigzag: it turns by its curve's degrees every fraction of a second, to one side and the other, like lightning. Constellation: it is a star that flies out, stops, hangs a while linked by thin lines to other stars, and then falls. Burst: a great stone that flies and, after a moment, breaks into a ring of small ones.</summary>

@@ -281,6 +281,7 @@ public static class TextsEn
     ["AttackHailCurtain"] = "Hail: White Curtain",
     ["AttackStarPentagram"] = "Star: Pentagram",
     ["AttackZigzagLightning"] = "Lightning: Zigzag",
+    ["AttackCatPlay"] = "The Cat at Play: Bouncing Yarn",
     ["AttackFineWeave"] = "Ice: Fine Weave",
     ["AttackSkyFalls"] = "Storm: The Sky Falls",
     ["AttackEclipse"] = "Eclipse: The Covered Moon",

@@ -74,14 +74,14 @@ public static partial class SelfTest
         Greater(widest, 60f, "but it does move");
         // A row has a hole: a boat in the gap is never touched; a row has bullets elsewhere.
         var boss = BossEntity.Create(ThaqaiBoss.Definition);
-        PhaseManagerSystem.ChangePhase(boss, 3);          // the fine weave
+        PhaseManagerSystem.ChangePhase(boss, 6);          // the curtain of hail (the first attack)
         boss.MovementType = BossMovementType.Stationary;
         var pool = BulletSystem.NewPool();
         var player = new PlayerEntity();
         boss.EmitterMain.TimeSinceLastFire = 10;
         BulletSystem.UpdateBossWeapons(boss, player, pool, 0.001f);
         var row = pool.Where(b => b.IsActive).Select(b => b.Position.X).OrderBy(x => x).ToList();
-        Greater(row.Count, 20, "a row of hail");
+        Greater(row.Count, 15, "a row of hail");
         float widestHole = 0;
         for (int i = 1; i < row.Count; i++) widestHole = MathF.Max(widestHole, row[i] - row[i - 1]);
         Greater(widestHole, boss.EmitterMain.CurtainGap * 0.8f, "with a hole where the boat can pass");
@@ -97,21 +97,17 @@ public static partial class SelfTest
             else if (MathF.Abs(x - gapCentre) > boss.EmitterMain.CurtainGap / 2 + 14) True(blocked, "the row is a wall at " + x);
         }
         // The easy mode widens the gap, the hard one narrows it.
-        PhaseManagerSystem.ChangePhase(boss, 3, Difficulty.Easy); float easy = boss.EmitterMain.CurtainGap;
-        PhaseManagerSystem.ChangePhase(boss, 3, Difficulty.Hard); float hard = boss.EmitterMain.CurtainGap;
+        PhaseManagerSystem.ChangePhase(boss, 6, Difficulty.Easy); float easy = boss.EmitterMain.CurtainGap;
+        PhaseManagerSystem.ChangePhase(boss, 6, Difficulty.Hard); float hard = boss.EmitterMain.CurtainGap;
         Greater(easy, hard, "easy leaves a wider gap");
     }
 
     private static void ConstellationsHangLinkedAndTheirLinesHurtOnlyWhenStill()
     {
-        var boss = BossEntity.Create(ThaqaiBoss.Definition);
-        PhaseManagerSystem.ChangePhase(boss, 5);          // the pentagram
-        boss.MovementType = BossMovementType.Stationary;
-        boss.Transform.Position = V(300, 200);
         var pool = BulletSystem.NewPool();
         var player = new PlayerEntity();
-        boss.EmitterMain.TimeSinceLastFire = 10; boss.EmitterSub.IsActive = false;
-        BulletSystem.UpdateBossWeapons(boss, player, pool, 0.001f);
+        var boss = BossEntity.Create(ThaqaiBoss.Definition);
+        Pat.Constellation(Ctx(pool), V(300, 200), 5, 0, 2, new Shot(BulletStyle.Star, 175).Constellation(250));
         Eq(pool.Count(b => b.IsActive), 5, "five stars");
         Eq(BulletSystem.Links(pool).Count(), 5, "linked in a pentagram, each to the one two places before it");
         True(BulletSystem.Links(pool).All(l => !l.still), "they are flying out");

@@ -31,6 +31,7 @@ public static class BulletArt
         BulletStyle.Claw => (7, 11),
         BulletStyle.Rock => (7, 7),
         BulletStyle.Stalactite => (5, 13),
+        BulletStyle.BoltYellow or BulletStyle.BoltBlue => (5, 11),
         _ => FamilySize(style),
     };
 
@@ -43,7 +44,7 @@ public static class BulletArt
     /// <summary>Styles that are elongated or directional are rotated to face where the bullet is going.</summary>
     public static bool Rotates(BulletStyle style) => style switch
     {
-        BulletStyle.FlameDart or BulletStyle.LotusPetal or BulletStyle.FireSerpent or BulletStyle.LightBolt or BulletStyle.RiceRed or BulletStyle.Shard or BulletStyle.Claw or BulletStyle.Stalactite => true,
+        BulletStyle.FlameDart or BulletStyle.LotusPetal or BulletStyle.FireSerpent or BulletStyle.LightBolt or BulletStyle.RiceRed or BulletStyle.Shard or BulletStyle.Claw or BulletStyle.Stalactite or BulletStyle.BoltYellow or BulletStyle.BoltBlue => true,
         _ => Family(style) is Shape.Rice or Shape.Kunai,
     };
 
@@ -82,6 +83,8 @@ public static class BulletArt
             case BulletStyle.Claw: DrawClaw(c, frame); break;
             case BulletStyle.Rock: DrawRock(c, frame); break;
             case BulletStyle.Stalactite: DrawStalactite(c, frame); break;
+            case BulletStyle.BoltYellow: DrawBolt(c, frame, PixelColor.Hex(0xC88818), PixelColor.Hex(0xFFD84A), PixelColor.Hex(0xFFF8D0)); break;
+            case BulletStyle.BoltBlue: DrawBolt(c, frame, PixelColor.Hex(0x2A5FD8), PixelColor.Hex(0x6AA0FF), PixelColor.Hex(0xE8F4FF)); break;
             default: DrawFamily(c, style, frame); break;
         }
         return c;
@@ -362,6 +365,18 @@ public static class BulletArt
         Put(c, 0, 1, PixelColor.Clear); Put(c, 2, 1, PixelColor.Clear);
         Put(c, 1, 6, frame == 0 ? rim : body);
         Put(c, 0, 6, PixelColor.Clear); Put(c, 2, 6, PixelColor.Clear);
+    }
+
+    /// <summary>A little bolt of lightning, pointing up: a zigzag with a bright core, a glow of its colour round it, and a flicker of its tail on the second frame.</summary>
+    private static void DrawBolt(PixelCanvas c, int frame, PixelColor rim, PixelColor body, PixelColor core)
+    {
+        var path = frame == 0
+            ? new (int x, int y)[] { (3, 0), (3, 1), (2, 2), (1, 3), (2, 4), (3, 5), (3, 6), (2, 7), (1, 8), (2, 9), (2, 10) }
+            : new (int x, int y)[] { (3, 0), (2, 1), (2, 2), (1, 3), (1, 4), (2, 5), (3, 6), (3, 7), (2, 8), (1, 9), (2, 10) };
+        foreach (var (x, y) in path) { Put(c, x - 1, y, rim); Put(c, x + 1, y, rim); }
+        foreach (var (x, y) in path) Put(c, x, y, body);
+        for (int i = 0; i < path.Length; i += 2) Put(c, path[i].x, path[i].y, core);
+        Put(c, path[0].x, path[0].y, core);
     }
 
     // MARK: The danmaku family (colours and shapes)

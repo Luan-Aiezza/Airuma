@@ -46,6 +46,7 @@ public static class SfxBank
         BulletStyle.Fireball => Sound.Fireball,
         BulletStyle.FlameDart => Sound.FlameDart,
         BulletStyle.Spark => Sound.Spark,
+        BulletStyle.BoltYellow or BulletStyle.BoltBlue => Sound.Spark,
         BulletStyle.Star => Sound.Spark,
         BulletStyle.Hail => Sound.RiceRed,
         BulletStyle.Claw => Sound.Spark,

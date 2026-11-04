@@ -20,6 +20,8 @@ public static partial class SelfTest
         T("TheDifficultyScalesThePatterns", TheDifficultyScalesThePatterns);
         T("APatternWaitsForItsDelayAndRestsBetweenBursts", APatternWaitsForItsDelayAndRestsBetweenBursts);
         T("AFullPoolIsHandledWithoutAFuss", AFullPoolIsHandledWithoutAFuss);
+        T("TheWallsOfAMazeAreNotMovedByTheWind", TheWallsOfAMazeAreNotMovedByTheWind);
+        T("APentagramFliesAsOneAndBursts", APentagramFliesAsOneAndBursts);
         T("EveryNewStyleOfBulletHasADrawing", EveryNewStyleOfBulletHasADrawing);
     }
 
@@ -196,6 +198,48 @@ public static partial class SelfTest
         for (int i = 0; i < 100; i++) ctx.Fire(V(300, 100), i, new Shot(BulletStyle.OrbRed, 100));
         Eq(pool.Count(b => b.IsActive), 20, "no more than the pool holds");
         Eq(ctx.Fire(V(0, 0), 0, new Shot(BulletStyle.OrbRed, 1)), -1, "a shot with no room is refused");
+    }
+
+    private static void TheWallsOfAMazeAreNotMovedByTheWind()
+    {
+        // the curtains of the third boss (and of the last), and the walls of the patterns: with the strongest wind from the side they fall straight
+        var boss = BossEntity.Create(ThaqaiBoss.Definition);
+        PhaseManagerSystem.ChangePhase(boss, 6);                // the curtain of hail
+        boss.MovementType = BossMovementType.Stationary;
+        var pool = BulletSystem.NewPool();
+        boss.EmitterMain.TimeSinceLastFire = 10;
+        BulletSystem.UpdateBossWeapons(boss, new PlayerEntity(), pool, 0.001f);
+        var before = pool.Where(b => b.IsActive).Select(b => b.Position.X).OrderBy(x => x).ToList();
+        Greater(before.Count, 15, "a row of hail");
+        for (int i = 0; i < 120; i++) BulletSystem.MoveBullets(pool, new Rect2(-3000, -3000, 9000, 9000), 1 / 60f, V(105, 0), new PlayerEntity());
+        var after = pool.Where(b => b.IsActive).Select(b => b.Position.X).OrderBy(x => x).ToList();
+        for (int i = 0; i < before.Count; i++) Near(after[i], before[i], 0.01f, "the wall did not drift");
+        var walls = BulletSystem.NewPool();
+        Pat.Wall(Ctx(walls), Edge.Top, 24, 0.5f, 90, new Shot(BulletStyle.Hail, 110).Sized(1.9f));
+        True(walls.Where(b => b.IsActive).All(b => b.WindModifier == 0), "the walls of the patterns neither");
+    }
+
+    private static void APentagramFliesAsOneAndBursts()
+    {
+        var boss = BossEntity.Create(ThaqaiBoss.Definition);
+        PhaseManagerSystem.ChangePhase(boss, 5);                // the second attack: the great pentagrams
+        boss.MovementType = BossMovementType.Stationary;
+        boss.Transform.Position = V(300, 200);
+        var pool = BulletSystem.NewPool();
+        var player = new PlayerEntity(); player.Transform.Position = V(300, 650);
+        BulletSystem.UpdateBossWeapons(boss, player, pool, 0.001f);
+        var flying = pool.Where(b => b.IsActive && (b.Style == BulletStyle.Star || b.Style == BulletStyle.StarBlue || b.Style == BulletStyle.StarGold)).ToList();
+        Greater(flying.Count, 20, "a pentagram of many stars");
+        var field = new Rect2(-3000, -3000, 9000, 9000);
+        for (int i = 0; i < 60; i++) BulletSystem.MoveBullets(pool, field, 1 / 60f, V(60, 0), player);          // a second of flight, with a wind
+        var edge = pool.Where(b => b.IsActive && b.Behavior == BulletBehavior.Launch).ToList();
+        True(edge.Count >= 20, "the lines are still waiting to burst");
+        True(edge.All(b => b.Velocity.Y > 50), "and the figure flies at the boat as one");
+        for (int i = 0; i < 90; i++) BulletSystem.MoveBullets(pool, field, 1 / 60f, V(0, 0), player);
+        var burst = pool.Where(b => b.IsActive && b.Behavior == BulletBehavior.Normal && b.Velocity.Length() > 100).ToList();
+        True(burst.Count >= 20, "then the stars of its lines fly out");
+        var centre = burst.Select(b => b.Anchor).First();
+        True(burst.Where(b => b.Anchor == centre).All(b => (b.Position - centre).Dot(b.Velocity) > 0), "away from its centre");
     }
 
     private static void EveryNewStyleOfBulletHasADrawing()

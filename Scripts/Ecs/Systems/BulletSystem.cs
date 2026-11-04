@@ -252,7 +252,9 @@ public static partial class BulletSystem
             float x = field.Position.X + width * (i + 0.5f) / slots;
             bool inGap = MathF.Abs(x - gapX) < e.CurtainGap / 2 || (e.CurtainMirror && MathF.Abs(x - (2 * centre - gapX)) < e.CurtainGap / 2);
             if (inGap) continue;
-            FireBullet(pool, new Vector2(x, -12), 90, e.BulletSpeed, e.BulletStyle, e.BulletScale, e.Acceleration, e.CurveRate, e.BulletBehavior);
+            // (the wind does not move a wall of the maze: the gap would be taken from where the boat is going)
+            int slot = FireBullet(pool, new Vector2(x, -12), 90, e.BulletSpeed, e.BulletStyle, e.BulletScale, e.Acceleration, e.CurveRate, e.BulletBehavior);
+            if (slot >= 0) pool[slot].WindModifier = 0;
         }
     }
 
@@ -416,7 +418,8 @@ public static partial class BulletSystem
                 b.Timer += delta;
                 if (b.Timer >= b.Fuse)
                 {
-                    float heading = float.IsPositiveInfinity(b.LaunchAngle) ? Mathx.Degrees(MathF.Atan2(b.Velocity.Y, b.Velocity.X))
+                    float heading = float.IsNegativeInfinity(b.LaunchAngle) ? Mathx.Degrees(MathF.Atan2(b.Position.Y - b.Anchor.Y, b.Position.X - b.Anchor.X))
+                                  : float.IsPositiveInfinity(b.LaunchAngle) ? Mathx.Degrees(MathF.Atan2(b.Velocity.Y, b.Velocity.X))
                                   : (float.IsNaN(b.LaunchAngle) ? Mathx.Degrees(MathF.Atan2(player.Transform.Position.Y - b.Position.Y, player.Transform.Position.X - b.Position.X)) : b.LaunchAngle);
                     float h = Mathx.Radians(heading);
                     b.Velocity = new Vector2(MathF.Cos(h), MathF.Sin(h)) * b.LaunchSpeed;

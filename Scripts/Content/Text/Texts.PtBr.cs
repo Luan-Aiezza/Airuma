@@ -281,6 +281,7 @@ public static class TextsPtBr
     ["AttackHailCurtain"] = "Granizo: Cortina Branca",
     ["AttackStarPentagram"] = "Estrela: Pentagrama",
     ["AttackZigzagLightning"] = "Raio: Zigue-zague",
+    ["AttackCatPlay"] = "Brincadeira da Gata: Novelos que Quicam",
     ["AttackFineWeave"] = "Gelo: Tecido Fino",
     ["AttackSkyFalls"] = "Tempestade: O Céu Cai",
     ["AttackEclipse"] = "Eclipse: A Lua Coberta",
