@@ -34,6 +34,25 @@ public struct QuakeSpec
     public float Intensity;
 }
 
+/// <summary>
+/// A moon that advances from the boss to `Target` (in `Arrive` seconds) and stays there; every `Interval` seconds it warns for `Warn` seconds (it swells and glows) and then pulls the boat towards it for
+/// `Duration` seconds, up to `Pull` px/s (the boat, at 400 px/s, can pull away; held to the slow speed it cannot). Touching the moon hurts.
+/// </summary>
+public struct GravitySpec
+{
+    public bool IsActive;
+    public float Interval, Warn, Duration, Pull, Arrive, Radius;
+    public Vector2 Target;
+}
+
+/// <summary>What the scene needs to draw the moon of a gravity attack: where it is, how big, how near its pull (Warning 0...1, Pull 0...1 while it pulls).</summary>
+public struct MoonData
+{
+    public bool Active;
+    public Vector2 Position;
+    public float Radius, Warning, Pull;
+}
+
 public struct RoarSpec
 {
     public bool IsActive;
@@ -55,13 +74,23 @@ public struct SlashData
     public float Len;
     public bool Trail;
     public bool Trailed;
+    /// <summary>A laser, not a cut of claws: it is drawn as a beam of the colour `Tint`, it may turn about its origin (`Spin`, radians a second) and may keep to the boss (`Follow`, at `Offset` from it).</summary>
+    public bool Beam;
+    public Color Tint;
+    public float Spin;
+    /// <summary>A laser that goes transparent (and harmless) for the last `GhostFor` seconds of every `Blink` seconds, so that the boat may cross it. 0: never.</summary>
+    public float Blink;
+    public const float GhostFor = 0.8f;
+    public bool Follow;
+    public Vector2 Offset;
 
     public float TotalLength => Len > 0 ? Len : Length;
     public Vector2 Direction => new Vector2(MathF.Sin(Angle), MathF.Cos(Angle));
     public Vector2 Bottom => Top + Direction * TotalLength;
     public const float Length = 1300;
     public bool Warning => Age < Telegraph;
-    public bool Striking => Age >= Telegraph && Age < Telegraph + Strike;
+    public bool Ghost => Beam && Blink > 0 && Age >= Telegraph && (Age - Telegraph) % Blink >= Blink - GhostFor;
+    public bool Striking => Age >= Telegraph && Age < Telegraph + Strike && !Ghost;
     public const float Fade = 0.35f;
     public bool Gone => Age >= Telegraph + Strike + Fade;
 }
@@ -73,9 +102,14 @@ public sealed class BossSpecials
     public QuakeSpec Quake;
     public RoarSpec Roar;
     public float SlashClock, QuakeClock, RoarClock;
+    public GravitySpec Gravity;
+    /// <summary>The moon of a gravity attack: its age, where it is, the clock to its next pull, the warning and the pull left.</summary>
+    public float MoonAge, GravityClock, WarnLeft, PullLeft;
+    public Vector2 MoonStart, MoonPos;
+    public bool MoonStarted;
     /// <summary>Seconds of quake left (above 0: the screen shakes), and of the push of the roar.</summary>
     public float QuakeLeft, RoarLeft;
     public int Volleys;
 
-    public bool Any => Slashes.IsActive || Quake.IsActive || Roar.IsActive;
+    public bool Any => Slashes.IsActive || Quake.IsActive || Roar.IsActive || Gravity.IsActive;
 }

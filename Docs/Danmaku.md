@@ -23,3 +23,10 @@ Os ataques feitos com padrões simultâneos (3 a 12 padrões por ataque, densida
 ## Como testar sem o Godot
 
 Os testes (`Scripts/Tests`, em especial `SelfTest.Patterns.cs`) conferem a curva de ataques, que cada boss enche mais a tela que o anterior, e que as figuras mantêm a forma. No Godot: `Godot --headless --path . res://Scenes/selftest.tscn`.
+
+
+## Regra dos espaços (gaps)
+
+Entre as balas de um padrão de inimigo deve haver sempre espaço para o barco: a hitbox do barco tem 8 px, e o vão (borda a borda das hitboxes) deve ser de 2x a 3x isso: no mínimo `Pat.MinGap` (16 px) e, havendo espaço, `Pat.ComfortGap` (24 px). Como a hitbox de uma bala tem ~10 px, os centros ficam a `Pat.MinCentre` (30 px) ou mais.
+Na prática: anéis/leques devem abrir (ângulo ≥ 16 graus entre vizinhos nos leques), camadas devem ter velocidades bem distintas, galáxias (`PolarRing`) precisam de `radialSpeed x intervalo ≥ 30 px`, anéis que "mirram" depois de parar usam `Turning(3, ...)` (todos voam paralelos, a partir do ponto de origem, sem convergir) e a chuva rejeita gotas coladas (`PatternContext.IsFree`). Medição: `sim gaps <fase>` (mediana do vão por ataque) e o teste `TheBulletsOfStageFiveKeepRoomForTheBoat`.
+Lasers longos podem ficar transparentes e inofensivos (`blink: 2` em `Pat.Laser`: últimos 0,8 s de cada 2 s).

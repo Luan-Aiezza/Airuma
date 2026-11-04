@@ -42,6 +42,7 @@ public partial class GameScene : Node2D
     private BurstEffect _burst;
     private readonly ConstellationLines _constellations = new();
     private readonly SlashEffect _slashes = new();
+    private readonly MoonEffect _moon = new();
     private readonly List<Sprite2D> _enemyNodes = new();
     /// <summary>What the water shows of each spirit: a flipped, tinted copy under it.</summary>
     private readonly List<Sprite2D> _enemyMirrors = new();

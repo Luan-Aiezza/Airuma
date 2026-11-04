@@ -48,9 +48,19 @@ public static partial class SelfTest
         {
             int Total(Difficulty d)
             {
-                var boss = new BossEntity(IrysshBoss.Definition) { Transform = new Transform2DComponent(), Health = new HealthComponent { Lives = lives } };
+                // the bullets the attack fires in a few seconds (the boss does not move)
+                var boss = BossEntity.Create(Stages.One.Boss);
                 PhaseManagerSystem.ChangePhase(boss, lives, d);
-                return (boss.EmitterMain.IsActive ? boss.EmitterMain.BulletsPerVolley : 0) + (boss.EmitterSub.IsActive ? boss.EmitterSub.BulletsPerVolley : 0);
+                boss.MovementType = BossMovementType.Stationary;
+                boss.Transform.Position = V(300, 140);
+                var pool = BulletSystem.NewPool(); var player = PlayerEntity.Create(); player.Transform.Position = V(300, 650);
+                int fired = 0;
+                for (int i = 0; i < 60 * 12; i++)
+                {
+                    BulletSystem.UpdateBossWeapons(boss, player, pool, 1f / 60, d);
+                    for (int k = 0; k < pool.Length; k++) if (pool[k].IsActive && pool[k].Fresh) { fired++; pool[k].Fresh = false; }
+                }
+                return fired;
             }
             True(Total(Difficulty.Easy) < Total(Difficulty.Normal), $"phase with {lives} lives: easy has fewer");
             True(Total(Difficulty.Hard) > Total(Difficulty.Normal), $"phase with {lives} lives: hard has more");

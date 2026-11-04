@@ -43,6 +43,11 @@ public struct BulletData
     public float Blink;
     /// <summary>If above 0, the speed the bullet settles back to after something has pushed it (the great boulders, after a roar), and which the roar pushes.</summary>
     public float Cruise;
+    // The turns (see BulletBehavior.Turn): how it turns (0: by a fixed angle more, 1: towards the boat, plus the angle, 2: to an absolute heading), the seconds between turns, how many, the angle, the speed after, and the state.
+    public int TurnMode, TurnTimes, TurnCount;
+    public float TurnInterval, TurnRotation, TurnSpeed, TurnBase, TurnHeading;
+    // A burst of extra speed at the start that dies away (pop), and a curve/acceleration that lasts only a while (ex).
+    public float PopSpeed, PopTime, PopLeft, ExFor, ExClock;
 
     // The player's shots, as the cards change them.
     /// <summary>Damage multiplier on top of Damage.</summary>
@@ -61,6 +66,6 @@ public struct BulletData
         IsActive = false; Position = Vector2.Zero; Velocity = Vector2.Zero; Faction = Faction.Player; HitboxRadius = 0;
         Damage = 0; WindModifier = 1; Acceleration = 0; CurveRate = 0; Scale = 1; Behavior = BulletBehavior.Normal;
         Timer = 0; Chain = 0; Prev = -1; Style = BulletStyle.Fireball; Power = 1; Pierce = 0; BurstRadius = 0; BurstScale = 1; LastHit = -1;
-        Zoom = 1; Pull = Vector2.Zero; Fuse = 0; LaunchSpeed = 0; LaunchAngle = 0; SplitCount = 0; SplitSpread = 360; SplitSpeed = 0; ChildScale = 1; SplitAimed = false; ChildStyle = BulletStyle.Fireball; Bounces = 0; LaunchAccel = 0; LinkIndex = 0; Blink = 0; Cruise = 0; Anchor = Vector2.Zero; Radius = 0; RadialSpeed = 0; RadialAcceleration = 0; Theta = 0; Omega = 0;
+        Zoom = 1; Pull = Vector2.Zero; Fuse = 0; LaunchSpeed = 0; LaunchAngle = 0; SplitCount = 0; SplitSpread = 360; SplitSpeed = 0; ChildScale = 1; SplitAimed = false; ChildStyle = BulletStyle.Fireball; Bounces = 0; LaunchAccel = 0; LinkIndex = 0; Blink = 0; Cruise = 0; TurnMode = 0; TurnTimes = 0; TurnCount = 0; TurnInterval = 0; TurnRotation = 0; TurnSpeed = 0; TurnBase = 0; TurnHeading = 0; PopSpeed = 0; PopTime = 0; PopLeft = 0; ExFor = 0; ExClock = 0; Anchor = Vector2.Zero; Radius = 0; RadialSpeed = 0; RadialAcceleration = 0; Theta = 0; Omega = 0;
     }
 }

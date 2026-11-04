@@ -68,7 +68,7 @@ public static partial class SelfTest
         PlayStage(world);
         Eq(world.Boss.Health.Lives, Stages.One.Boss.Lives);
         Eq(world.Boss.MovementType, BossMovementType.Transition);
-        True(world.Boss.EmitterMain.IsActive);
+        True(world.Boss.EmitterMain.IsActive || world.Boss.Patterns.Length > 0, "it fires");
         Less(world.Boss.Transform.Position.Y, 140);
         StepN(world, 60 * 3);
         Near(world.Boss.Transform.Position.Y, 140, 25, "and settles");

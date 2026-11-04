@@ -27,6 +27,69 @@ public static class Pat
     /// <summary>A sine wave with the given period.</summary>
     public static float Wave(float time, float period) => MathF.Sin(MathF.Tau * time / period);
 
+    // MARK: Rings and fans, the way Touhou 6 shoots them
+
+    /// <summary>How a volley is laid out (the modes of the bullet instructions of the Touhou 6 scripts).</summary>
+    public enum Aim { FanAimed, Fan, CircleAimed, Circle, OffsetCircleAimed, OffsetCircle, RandomAngle, RandomSpeed, Random }
+
+    /// <summary>
+    /// A volley laid out as the scripts of Touhou 6 do it: `layers` layers of `count` bullets each. The speed goes from `speed1` (the first layer) towards `speed2` (the last). In a fan, `angle2` is the angle between
+    /// neighbours (they go out alternately to the two sides of the middle one); in a circle, `angle2` is how much each layer is turned from the one before (layers of rings that make a spiral), and `angle1` turns it
+    /// all. The aimed modes add the angle to the boat. (A random mode takes the angle between `angle1 - angle2`... as the original does: from `angle1` for `angle2` degrees.)
+    /// </summary>
+    public static void Shoot(PatternContext c, Vector2 at, Aim aim, int count, int layers, float angle1, float angle2, float speed1, float speed2, in Shot shot, bool scale = true)
+    {
+        if (scale) count = c.N(count, 1);
+        if (layers < 1) layers = 1;
+        float toBoat = c.AimFrom(at);
+        for (int layer = 0; layer < layers; layer++)
+            for (int i = 0; i < count; i++)
+            {
+                float speed = speed1 - (speed1 - speed2) * layer / layers;
+                float angle = 0;
+                switch (aim)
+                {
+                    case Aim.FanAimed:
+                    case Aim.Fan:
+                        angle = (count & 1) == 1 ? ((i + 1) / 2) * angle2 : (i / 2) * angle2 + angle2 * 0.5f;
+                        if ((i & 1) == 1) angle = -angle;
+                        if (aim == Aim.FanAimed) angle += toBoat;
+                        angle += angle1;
+                        break;
+                    case Aim.CircleAimed:
+                    case Aim.Circle:
+                        angle = (aim == Aim.CircleAimed ? toBoat : 0) + i * 360f / count + layer * angle2 + angle1;
+                        break;
+                    case Aim.OffsetCircleAimed:
+                    case Aim.OffsetCircle:
+                        angle = (aim == Aim.OffsetCircleAimed ? toBoat : 0) + 180f / count + i * 360f / count + angle1;
+                        break;
+                    case Aim.RandomAngle: angle = angle1 + PatternContext.Rand(0, angle2); break;
+                    case Aim.RandomSpeed: speed = PatternContext.Rand(speed2, speed1); angle = i * 360f / count + layer * angle2 + angle1; break;
+                    default: angle = angle1 + PatternContext.Rand(0, angle2); speed = PatternContext.Rand(speed2, speed1); break;
+                }
+                c.Fire(at, angle, shot.Speeded(speed));
+            }
+    }
+
+    // MARK: Lasers
+
+    /// <summary>
+    /// A laser: a straight beam from `from` along `heading` (degrees), through and beyond the whole field. First a thin line of its colour warns of it for `warn` seconds; then it strikes for `strike` seconds, `width`
+    /// px thick; then it fades. It may turn about its origin (`spin`, degrees a second) and may go with the boss (`follow`).
+    /// </summary>
+    public static void Laser(PatternContext c, Vector2 from, float heading, float width, float warn, float strike, Color tint, float spin = 0, bool follow = false, float blink = 0)
+    {
+        if (c.Slashes == null) return;
+        float h = Mathx.Radians(heading);
+        float time = c.Difficulty == Difficulty.Easy ? 1.25f : (c.Difficulty == Difficulty.Hard ? 0.9f : 1);
+        c.Slashes.Add(new SlashData
+        {
+            Top = from, Angle = MathF.PI / 2 - h, Telegraph = warn * time, Strike = strike, Width = width, Leader = true, Len = 2300, Beam = true, Tint = tint,
+            Spin = -Mathx.Radians(spin), Follow = follow, Blink = blink, Offset = follow ? from - c.Origin : Vector2.Zero,
+        });
+    }
+
     // MARK: Rings and fans
 
     /// <summary>`n` bullets evenly round, the first at `start` degrees.</summary>
@@ -220,8 +283,23 @@ public static class Pat
     {
         if (scale) n = c.N(n, 1);
         for (int k = 0; k < n; k++)
-            c.Fire(EdgePoint(c, edge, PatternContext.Rand(-RainReach, 1 + RainReach)), Inward(edge) + PatternContext.Rand(-spread / 2, spread / 2), shot.Speeded(shot.Speed * PatternContext.Rand(0.8f, 1.2f)));
+        {
+            // a drop is not let fall next to another that has only just come out: the gaps rule (see MinGap)
+            Vector2 at = Vector2.Zero; bool free = false;
+            for (int attempt = 0; attempt < 4 && !free; attempt++)
+            {
+                at = EdgePoint(c, edge, PatternContext.Rand(-RainReach, 1 + RainReach));
+                free = c.IsFree(at, MinCentre, 140);
+            }
+            if (free) c.Fire(at, Inward(edge) + PatternContext.Rand(-spread / 2, spread / 2), shot.Speeded(shot.Speed * PatternContext.Rand(0.9f, 1.1f)));
+        }
     }
+
+    /// <summary>
+    /// THE GAPS RULE: between two bullets of an enemy pattern there must always be room for the boat. The boat's hitbox is 8 px across, and the gap (edge to edge of the hitboxes) must be 2 to 3 times that: at least
+    /// <see cref="MinGap"/> (16) and, when there is room, <see cref="ComfortGap"/> (24). A bullet's hitbox is about 10 px across, so the centres of two bullets are kept at least <see cref="MinCentre"/> apart.
+    /// </summary>
+    public const float PlayerHitbox = 8, MinGap = 16, ComfortGap = 24, MinCentre = 30;
 
     /// <summary>`n` bullets evenly along an edge (the part of it from `from` to `to`, 0...1), all going in.</summary>
     public static void Along(PatternContext c, Edge edge, int n, float from, float to, in Shot shot, float tilt = 0, bool scale = true, float ripple = 0)

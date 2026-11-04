@@ -11,12 +11,29 @@ public static class SpecialsSystem
     /// <summary>Starts the specials of an attack: the first of each comes a little after the attack begins. Easy gives more time to react, hard less.</summary>
     public static BossSpecials Begin(BossPhase phase, Difficulty difficulty)
     {
-        var s = new BossSpecials { Slashes = phase.Slashes, Quake = phase.Quake, Roar = phase.Roar };
+        var s = new BossSpecials { Slashes = phase.Slashes, Quake = phase.Quake, Roar = phase.Roar, Gravity = phase.Gravity };
         float time = difficulty == Difficulty.Easy ? 1.2f : (difficulty == Difficulty.Hard ? 0.85f : 1);
         if (s.Slashes.IsActive) { s.Slashes.Telegraph *= difficulty == Difficulty.Easy ? 1.25f : (difficulty == Difficulty.Hard ? 0.88f : 1); s.Slashes.Interval *= time; s.SlashClock = s.Slashes.Interval * 0.4f; }
         if (s.Quake.IsActive) { s.Quake.Interval *= time; s.QuakeClock = s.Quake.Interval * 0.4f; }
         if (s.Roar.IsActive) { s.Roar.Interval *= time; s.Roar.Push *= difficulty == Difficulty.Easy ? 0.8f : 1; s.RoarClock = s.Roar.Interval * 0.5f; }
+        if (s.Gravity.IsActive)
+        {
+            s.Gravity.Interval *= time; s.Gravity.Pull *= difficulty == Difficulty.Easy ? 0.75f : (difficulty == Difficulty.Hard ? 1.1f : 1);
+            s.Gravity.Warn *= difficulty == Difficulty.Easy ? 1.25f : 1; s.GravityClock = s.Gravity.Interval * 0.4f;
+        }
         return s;
+    }
+
+    /// <summary>The moon of a gravity attack, as the scene and the hits need it.</summary>
+    public static MoonData Moon(BossSpecials s) => !s.Gravity.IsActive || !s.MoonStarted
+        ? default
+        : new MoonData { Active = true, Position = s.MoonPos, Radius = s.Gravity.Radius, Warning = s.WarnLeft > 0 ? 1 - s.WarnLeft / Math.Max(0.01f, s.Gravity.Warn) : 0, Pull = s.PullLeft > 0 ? Math.Min(1, s.PullLeft / 0.4f) * Math.Min(1, (s.Gravity.Duration - s.PullLeft) / 0.4f + 0.15f) : 0 };
+
+    /// <summary>The moon is a body: touching it hurts.</summary>
+    public static bool HitByMoon(BossSpecials s, PlayerEntity player)
+    {
+        var moon = Moon(s);
+        return moon.Active && moon.Position.DistanceTo(player.Transform.Position) < moon.Radius * 0.85f + player.Hitbox.Radius;
     }
 
     /// <summary>How hard the screen shakes now (0: not at all).</summary>
@@ -40,6 +57,8 @@ public static class SpecialsSystem
             var slash = slashes[i];
             float before = slash.Age;
             slash.Age += delta;
+            if (slash.Spin != 0) slash.Angle += slash.Spin * delta;                           // a laser that turns
+            if (slash.Follow) slash.Top = boss.Transform.Position + slash.Offset;            // one that goes with the boss
             if (slash.Leader && before < slash.Telegraph && slash.Age >= slash.Telegraph) events.Add(WorldEvent.SlashStruck());
             // after the cut, the line lets go of a trail of bullets that spread out
             if (slash.Trail && !slash.Trailed && pool != null && slash.Age >= slash.Telegraph + slash.Strike) { slash.Trailed = true; LeaveTrail(slash, pool, rng); }
@@ -76,6 +95,34 @@ public static class SpecialsSystem
             {
                 s.RoarClock += delta;
                 if (s.RoarClock >= s.Roar.Interval) { s.RoarClock = 0; s.RoarLeft = s.Roar.Seconds; events.Add(WorldEvent.Roared(boss.Transform.Position)); ShoveBoulders(boss, pool, s.Roar.Push); }
+            }
+        }
+        if (s.Gravity.IsActive)
+        {
+            var g = s.Gravity;
+            if (!s.MoonStarted) { s.MoonStarted = true; s.MoonStart = boss.Transform.Position; s.MoonPos = s.MoonStart; s.MoonAge = 0; }
+            s.MoonAge += delta;
+            float u = Math.Clamp(s.MoonAge / Math.Max(0.1f, g.Arrive), 0, 1);
+            s.MoonPos = s.MoonStart.Lerp(g.Target, u * u * (3 - 2 * u));
+            if (u >= 1)
+            {
+                if (s.PullLeft > 0)
+                {
+                    s.PullLeft = Math.Max(0, s.PullLeft - delta);
+                    var towards = s.MoonPos - player.Transform.Position;
+                    float envelope = Math.Min(1, s.PullLeft / 0.4f) * Math.Min(1, (g.Duration - s.PullLeft) / 0.4f + 0.15f);
+                    if (towards.LengthSquared() > 1) push += towards.Normalized() * g.Pull * envelope;
+                }
+                else if (s.WarnLeft > 0)
+                {
+                    s.WarnLeft = Math.Max(0, s.WarnLeft - delta);
+                    if (s.WarnLeft <= 0) s.PullLeft = g.Duration;
+                }
+                else
+                {
+                    s.GravityClock += delta;
+                    if (s.GravityClock >= g.Interval) { s.GravityClock = 0; s.WarnLeft = g.Warn; }
+                }
             }
         }
         return push;

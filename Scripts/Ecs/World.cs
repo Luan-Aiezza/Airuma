@@ -90,6 +90,8 @@ public partial class World
     // The claws, the quake and the roar of the boss (see SpecialsSystem)
     /// <summary>The slashes of the boss's claws that are on the field (a warning, then a strike, then a fading scar).</summary>
     public List<SlashData> Slashes { get; } = new List<SlashData>();
+    /// <summary>The moon of a gravity attack (Active: false when there is none).</summary>
+    public MoonData Moon { get; private set; }
     /// <summary>How hard the screen shakes now (0: not at all).</summary>
     public float Shake { get; private set; }
 
@@ -263,7 +265,7 @@ public partial class World
         // 1. Input and spawners
         Player.Input = input;
         BulletSystem.UpdatePlayerWeapons(Player, Bullets, delta, Effects);
-        if (bossActive) BulletSystem.UpdateBossWeapons(Boss, Player, Bullets, delta, Difficulty, Field, TwinBody);
+        if (bossActive) BulletSystem.UpdateBossWeapons(Boss, Player, Bullets, delta, Difficulty, Field, TwinBody, Slashes);
         foreach (var enemy in Enemies) EnemySystem.Fire(enemy, Player.Transform.Position, Bullets, PlayArea, delta, Difficulty);
 
         // 2. Movement
@@ -275,8 +277,9 @@ public partial class World
         {
             roarPush = SpecialsSystem.Update(Boss, Player, Slashes, delta, _events, _cardRandom, Bullets);
             Shake = SpecialsSystem.Shake(Boss.Specials);
+            Moon = SpecialsSystem.Moon(Boss.Specials);
         }
-        else { Slashes.Clear(); Shake = 0; }
+        else { Slashes.Clear(); Shake = 0; Moon = default; }
         if (roarPush != Vector2.Zero)
         {
             var f = Field;
@@ -320,7 +323,7 @@ public partial class World
             _events.Add(WorldEvent.WardBroke());
         }
         UpdateHealth(delta, bossActive);
-        if (bossActive && Player.Health.InvincibilityTimer <= 0 && !Player.Bomb.IsActive && SpecialsSystem.HitBySlash(Slashes, Player)) CombatSystem.Hurt(Player, 1, 0);
+        if (bossActive && Player.Health.InvincibilityTimer <= 0 && !Player.Bomb.IsActive && (SpecialsSystem.HitBySlash(Slashes, Player) || SpecialsSystem.HitByMoon(Boss.Specials, Player))) CombatSystem.Hurt(Player, 1, 0);
         if (Twin != null) Twin.Health = Boss.Health;
         BulletSystem.ReportFresh(Bullets, _events);
 

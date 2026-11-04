@@ -38,6 +38,7 @@ public partial class SlashEffect : Node2D
             var bottom = Layout.ScenePoint(s.Bottom);
             var dir = (bottom - top).Normalized();
             var normal = new Vector2(-dir.Y, dir.X);
+            if (s.Beam) { DrawLaser(s, top, bottom, dir, normal); continue; }
             if (s.Warning)
             {
                 // A thin red line that blinks faster as the cut comes near, and three little marks at its head, like the points of the claws.
@@ -67,6 +68,43 @@ public partial class SlashEffect : Node2D
             DrawColoredPolygon(poly.ToArray(), new Color(0.78f, 0.06f, 0.08f, 0.92f * fade));
             DrawLine(top, bottom, new Color(1f, 0.9f, 0.85f, fade), Math.Max(2, half * 0.35f));
             DrawLine(top, bottom, new Color(1f, 0.45f, 0.4f, 0.6f * fade), Math.Max(3, half * 0.7f));
+        }
+    }
+
+    /// <summary>
+    /// A laser: a thin dashed line of its colour that warns (blinking quicker as it comes); then a beam with a glow round it, a body of its colour, a white core, a flare at its origin and sparks that run along it;
+    /// then it thins and fades.
+    /// </summary>
+    private void DrawLaser(SlashData s, Vector2 top, Vector2 bottom, Vector2 dir, Vector2 normal)
+    {
+        var tint = s.Tint;
+        if (s.Warning)
+        {
+            float u = s.Age / s.Telegraph;
+            float blink = 0.4f + 0.4f * MathF.Sin(_clock * (10 + 24 * u));
+            var warn = new Color(tint.R, tint.G, tint.B, Math.Clamp(blink * (0.5f + u), 0, 1));
+            for (float d = 0; d < s.TotalLength; d += 28) DrawLine(top + dir * d, top + dir * (d + 16), warn, 2 + 2 * u);
+            DrawCircle(top, 8 + 8 * u, new Color(tint.R, tint.G, tint.B, 0.45f));
+            return;
+        }
+        float t = s.Age - s.Telegraph;
+        float fade = t < s.Strike ? 1 : Math.Clamp(1 - (t - s.Strike) / SlashData.Fade, 0, 1);
+        if (s.Ghost) fade *= 0.16f;        // transparent: the boat may cross it
+        float grow = Math.Clamp(t / 0.08f, 0, 1);
+        float half = s.Width / 2 * (0.3f + 0.7f * grow) * (t < s.Strike ? 1 : 0.25f + 0.75f * fade);
+        float flick = 0.9f + 0.1f * MathF.Sin(_clock * 60);
+        DrawLine(top, bottom, new Color(tint.R, tint.G, tint.B, 0.18f * fade), half * 3.2f);
+        DrawLine(top, bottom, new Color(tint.R, tint.G, tint.B, 0.4f * fade), half * 2.1f);
+        DrawLine(top, bottom, new Color(tint.R, tint.G, tint.B, 0.9f * fade * flick), half * 1.4f);
+        DrawLine(top, bottom, new Color(1, 1, 1, 0.95f * fade), Math.Max(2, half * 0.7f));
+        DrawCircle(top, half * 1.9f, new Color(tint.R, tint.G, tint.B, 0.45f * fade));
+        DrawCircle(top, half * 1.1f, new Color(1, 1, 1, 0.9f * fade));
+        // sparks that run along the beam and fly off its edges
+        for (int k = 0; k < 26; k++)
+        {
+            float d = ((_clock * (500 + k * 31) + k * 97) % s.TotalLength);
+            float side = ((k * 37) % 13 - 6) / 6f;
+            DrawRect(new Rect2(top + dir * d + normal * (side * half * 1.6f) - new Vector2(2, 2), new Vector2(4, 4)), new Color(1, 1, 1, 0.8f * fade));
         }
     }
 }

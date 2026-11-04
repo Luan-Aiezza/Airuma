@@ -51,9 +51,9 @@ public static partial class SelfTest
         Eq(boss.Phases.Count(p => p.Enraged), 2);
         Eq(new World(withCards: false, stage: Stages.Three).StartingBossLives, 6);
         True(boss.Phases.Any(p => p.Movement == BossMovementType.Cross), "she crosses the field");
-        True(boss.Phases.Any(p => p.Main.Curtain || p.Sub.Curtain), "curtains of hail that make the boat move in small steps");
+        True(boss.Phases.Any(p => p.AttackNameKey == "AttackHailCurtain"), "curtains of hail that make the boat move in small steps");
         True(boss.Phases.Any(p => p.Patterns.Count > 0), "figures of the new kind: pentagrams, bolts, yarn");
-        True(boss.Phases.Any(p => p.Main.BulletBehavior == BulletBehavior.Zigzag), "lightning");
+        True(boss.Phases.Any(p => p.AttackNameKey == "AttackZigzagLightning"), "lightning");
         True(boss.Name != Stages.Two.Boss.Name && boss.Name != Stages.One.Boss.Name, "her own name");
     }
 
@@ -73,33 +73,29 @@ public static partial class SelfTest
         LessEq(widest, 160f * 1.0f, "the gap never goes faster than the boat can while focusing (160 px/s)");
         Greater(widest, 60f, "but it does move");
         // A row has a hole: a boat in the gap is never touched; a row has bullets elsewhere.
-        var boss = BossEntity.Create(ThaqaiBoss.Definition);
-        PhaseManagerSystem.ChangePhase(boss, 6);          // the curtain of hail (the first attack)
-        boss.MovementType = BossMovementType.Stationary;
         var pool = BulletSystem.NewPool();
-        var player = new PlayerEntity();
-        boss.EmitterMain.TimeSinceLastFire = 10;
-        BulletSystem.UpdateBossWeapons(boss, player, pool, 0.001f);
+        Pat.Wall(Ctx(pool), Edge.Top, 24, 0.5f, 170, new Shot(BulletStyle.Hail, 100).Sized(1.9f));
         var row = pool.Where(b => b.IsActive).Select(b => b.Position.X).OrderBy(x => x).ToList();
         Greater(row.Count, 15, "a row of hail");
         float widestHole = 0;
         for (int i = 1; i < row.Count; i++) widestHole = MathF.Max(widestHole, row[i] - row[i - 1]);
-        Greater(widestHole, boss.EmitterMain.CurtainGap * 0.8f, "with a hole where the boat can pass");
+        Greater(widestHole, 170 * 0.8f, "with a hole where the boat can pass");
         Greater(widestHole, 2 * PlayerEntity.Create().Hitbox.Radius + 20, "wider than the boat's heart");
         // A row is a wall: the boat cannot slip between two hailstones, only through the gap (checked every few pixels across the field).
-        float gapCentre = BulletSystem.CurtainGapCentre(boss.EmitterMain);
+        float gapCentre = width / 2;
         var hail = pool.Where(b => b.IsActive).ToList();
         for (float x = 10; x < width - 10; x += 3)
         {
             bool blocked = hail.Any(b => MathF.Abs(b.Position.X - x) < b.HitboxRadius + PlayerEntity.Create().Hitbox.Radius);
-            bool inGap = MathF.Abs(x - gapCentre) < boss.EmitterMain.CurtainGap / 2 - 14;
+            bool inGap = MathF.Abs(x - gapCentre) < 170 / 2 - 14;
             if (inGap) True(!blocked, "the gap is open at " + x);
-            else if (MathF.Abs(x - gapCentre) > boss.EmitterMain.CurtainGap / 2 + 14) True(blocked, "the row is a wall at " + x);
+            else if (MathF.Abs(x - gapCentre) > 170 / 2 + 14) True(blocked, "the row is a wall at " + x);
         }
         // The easy mode widens the gap, the hard one narrows it.
-        PhaseManagerSystem.ChangePhase(boss, 6, Difficulty.Easy); float easy = boss.EmitterMain.CurtainGap;
-        PhaseManagerSystem.ChangePhase(boss, 6, Difficulty.Hard); float hard = boss.EmitterMain.CurtainGap;
-        Greater(easy, hard, "easy leaves a wider gap");
+        var easyPool = BulletSystem.NewPool(); var hardPool = BulletSystem.NewPool();
+        Pat.Wall(Ctx(easyPool, null, Difficulty.Easy), Edge.Top, 24, 0.5f, 170, new Shot(BulletStyle.Hail, 100).Sized(1.9f));
+        Pat.Wall(Ctx(hardPool, null, Difficulty.Hard), Edge.Top, 24, 0.5f, 170, new Shot(BulletStyle.Hail, 100).Sized(1.9f));
+        Less(easyPool.Count(b => b.IsActive), hardPool.Count(b => b.IsActive) + 1, "easy leaves a wider gap (fewer hailstones in the row)");
     }
 
     private static void ConstellationsHangLinkedAndTheirLinesHurtOnlyWhenStill()

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Godot;
 
 public static partial class BulletSystem
@@ -6,9 +7,10 @@ public static partial class BulletSystem
     private static readonly PatternContext Context = new PatternContext();
 
     /// <summary>Runs the patterns of the boss's attack: each has its own clock, begins after its delay, rests between bursts and fires every interval.</summary>
-    private static void RunPatterns(BossEntity boss, PlayerEntity player, BulletData[] pool, float delta, Difficulty difficulty, Rect2 field, BossEntity twin)
+    private static void RunPatterns(BossEntity boss, PlayerEntity player, BulletData[] pool, float delta, Difficulty difficulty, Rect2 field, BossEntity twin, List<SlashData> slashes = null)
     {
         var c = Context;
+        c.Slashes = slashes;
         c.Pool = pool; c.Player = player.Transform.Position; c.Field = field; c.Difficulty = difficulty; c.Pressure = boss.PatternPressure; c.Speed = boss.PatternSpeed;
         float rate = MathF.Sqrt(MathF.Max(0.1f, boss.PatternPressure));
         var runs = boss.Patterns;

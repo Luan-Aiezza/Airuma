@@ -21,6 +21,8 @@ public enum BulletStyle
     MossBoulder, Bite,
     // a giant stalactite (16 x 40, a spike of 64 x 160 px), drawn with care, that points where it goes
     GiantStalactite,
+    // music: little notes (7 x 11, that sway, they do not turn) in gold, pink and cyan, and a pair of beamed notes (9 x 11) in gold
+    NoteGold, NotePink, NoteCyan, NoteBeamed,
 }
 
 /// <summary>Dance: the bullet sways to one side and the other on a fixed beat (see BulletSystem.DanceBeat). Zigzag: it turns by its curve's degrees every fraction of a second, to one side and the other, like lightning. Constellation: it is a star that flies out, stops, hangs a while linked by thin lines to other stars, and then falls. Burst: a great stone that flies and, after a moment, breaks into a ring of small ones.</summary>
@@ -35,6 +37,8 @@ public enum BulletBehavior
     Bounce,
     /// <summary>Moves on a polar track round `Anchor`: radius and angle both change with time (spiral arms, rosettes, wheels). Its velocity is only for the picture.</summary>
     Polar,
+    /// <summary>Slows evenly to a stop in `TurnInterval` seconds and then turns (by an angle more, towards the boat, or to a set heading) and sets off again at `TurnSpeed`; again, `TurnTimes` times. (Of the bullets of Touhou: the ones that stop, then turn.)</summary>
+    Turn,
 }
 
 /// <summary>Where a slash of the boss's claws is aimed: through the boat, at random, alternating from one side to the other, or from ANY direction (through the boat, at any angle).</summary>

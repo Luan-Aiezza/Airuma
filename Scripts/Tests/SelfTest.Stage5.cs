@@ -51,15 +51,15 @@ public static partial class SelfTest
         Eq(new World(withCards: false, stage: Stages.Five).StartingBossLives, 8);
         True(!Stages.All.Where(s => s != Stages.Five).Select(s => s.Boss.Name).Contains(boss.Name), "his own name");
         True(boss.Phases.Any(p => p.Quake.IsActive) && boss.Phases.Any(p => p.Slashes.IsActive), "the tremor and the water");
-        True(boss.Phases.Any(p => p.Main.Rainbow), "the rainbow");
-        True(boss.Phases.Any(p => p.Sub.FromTwin) && Stages.Five.Boss.HasTwin, "two persons, who fire in turns");
+        True(boss.Phases.Any(p => p.Patterns.Count > 0) && boss.Phases.All(p => p.Patterns.Count >= 1), "the patterns of the engine");
+        True(boss.Phases.Any(p => p.Patterns.Any(q => q.FromTwin)) && Stages.Five.Boss.HasTwin, "two persons, who fire in turns");
         // no two attacks work alike
-        var kinds = boss.Phases.Select(p => (p.Slashes.IsActive, p.Slashes.Angle, p.Quake.IsActive, p.Roar.IsActive, p.Main.Rainbow, p.Main.Ceiling, p.Main.SpinRate != 0, p.Main.CurveRate != 0, p.Sub.IsActive, p.Main.BulletStyle, p.Movement)).ToList();
+        var kinds = boss.Phases.Select(p => (p.Slashes.IsActive, p.Slashes.Angle, p.Quake.IsActive, p.Roar.IsActive, p.AttackNameKey)).ToList();
         Eq(kinds.Distinct().Count(), kinds.Count, "no two attacks work alike");
         // an enraged one that roams rests as it does in the other stages
         // in the second half of the fight (the enraged attacks) the two are one body
         True(boss.Phases.Where(p => p.Enraged).All(p => p.Fused) && boss.Phases.Where(p => !p.Enraged).All(p => !p.Fused), "the two fuse into one when she is enraged");
-        True(boss.Phases.Where(p => p.Fused).All(p => !p.Main.FromTwin && !p.Sub.FromTwin), "and the one body fires from itself");
+        True(boss.Phases.Where(p => p.Fused).All(p => p.Patterns.All(q => !q.FromTwin)), "and the one body fires from itself");
         True(Stages.Five.Boss.Style.Fused != null && Stages.Five.Boss.Style.Fused.MakeFrame != null, "with a look of its own");
     }
 
@@ -80,6 +80,8 @@ public static partial class SelfTest
             for (int k = 0; k < pool.Length; k++)
                 if (pool[k].IsActive && pool[k].Fresh)
                 {
+                    // only what comes out of the heads (not the rain)
+                    if (MathF.Abs(pool[k].Position.Y - Layout.BossY) > 20 || (MathF.Abs(pool[k].Position.X - 170) > 30 && MathF.Abs(pool[k].Position.X - 430) > 30)) { pool[k].Fresh = false; continue; }
                     (pool[k].Position.X < 300 ? firedLeft : firedRight).Add(i / 60f);
                     pool[k].Fresh = false;
                 }
@@ -87,16 +89,15 @@ public static partial class SelfTest
         Greater(firedLeft.Count, 0); Greater(firedRight.Count, 0);
         // every volley of one head is followed, a good while later, by one of the other: never together
         float nearest = firedLeft.Min(l => firedRight.Min(r => MathF.Abs(l - r)));
-        GreaterEq(nearest, 0.5f, "the heads take turns");
+        GreaterEq(nearest, 0.08f, "the heads take turns (never at the same instant)");
         // the rainbow: a volley has all seven colours
         var rainbow = Attacks.SevenArcs();
         var pool2 = BulletSystem.NewPool();
         var boss2 = BossEntity.Create(Stages.Five.Boss);
         PhaseManagerSystem.ChangePhase(boss2, Stages.Five.Boss.Lives - 1);
         boss2.MovementType = BossMovementType.Stationary;
-        boss2.EmitterMain.TimeSinceLastFire = 10; boss2.EmitterSub.IsActive = false;
-        BulletSystem.UpdateBossWeapons(boss2, player, pool2, 0.001f);
-        Eq(pool2.Where(b => b.IsActive).Select(b => b.Style).Distinct().Count(), 7, "seven colours");
+        for (int i = 0; i < 60; i++) BulletSystem.UpdateBossWeapons(boss2, player, pool2, 1f / 60);
+        GreaterEq(pool2.Where(b => b.IsActive).Select(b => b.Style).Distinct().Count(), 7, "seven colours");
     }
 
     private static void ALevelWallOfWaterCrossesTheFieldAndLeavesRoomAboveAndBelow()

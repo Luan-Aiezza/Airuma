@@ -8,6 +8,8 @@ using Godot;
 public sealed class PatternContext
 {
     public BulletData[] Pool;
+    /// <summary>The lines of the boss's cuts and lasers (a laser is one of these, drawn as a beam).</summary>
+    public System.Collections.Generic.List<SlashData> Slashes;
     /// <summary>The body the bullets come from (the boss, or its twin).</summary>
     public Vector2 Origin;
     public Vector2 Player;
@@ -45,6 +47,20 @@ public sealed class PatternContext
     public float Gap(float width) => width * (Difficulty == Difficulty.Easy ? 1.35f : (Difficulty == Difficulty.Hard ? 0.88f : 1f));
 
     public static float Rand(float low, float high) => low + (float)Random.Shared.NextDouble() * (high - low);
+
+    /// <summary>True when no enemy bullet within `band` px of `at` (along the Y axis) is closer than `distance` to it.</summary>
+    public bool IsFree(Vector2 at, float distance, float band)
+    {
+        float d2 = distance * distance;
+        for (int i = 0; i < Pool.Length; i++)
+        {
+            ref var b = ref Pool[i];
+            if (!b.IsActive || b.Faction != Faction.Boss) continue;
+            float dy = b.Position.Y - at.Y, dx = b.Position.X - at.X;
+            if (MathF.Abs(dy) <= band && dx * dx + dy * dy < d2) return false;
+        }
+        return true;
+    }
 
     public int Fire(Vector2 at, float angle, in Shot shot)
     {

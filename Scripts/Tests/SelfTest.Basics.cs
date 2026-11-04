@@ -118,9 +118,7 @@ public static partial class SelfTest
         var world = new World(withCards: false);
         world.SkipToBoss();
         Eq(world.Boss.MovementType, BossMovementType.Transition);
-        True(world.Boss.EmitterMain.IsActive);
-        Eq(world.Boss.EmitterMain.BulletsPerVolley, 3, "three arms of fire");
-        True(world.Boss.EmitterSub.IsActive, "and a ring between them");
+        Eq(world.Boss.Patterns.Length, 2, "three arms of fire, and a ring between them");
 
         // No boss bullets while the 2s transition runs.
         StepN(world, 60);
@@ -420,7 +418,7 @@ public static partial class SelfTest
         {
             var world = new World(practicePhase: phase);
             Eq(world.Boss.Health.Lives, attacks + 1 - phase);
-            True(world.Boss.EmitterMain.IsActive);
+            True(world.Boss.EmitterMain.IsActive || world.Boss.Patterns.Length > 0, "it fires");
         }
         Eq(new World(practicePhase: 99).Boss.Health.Lives, 1, "the phase is kept in range");
         Eq(new World(withCards: false).Boss.Health.Lives, attacks, "a normal run is unchanged");

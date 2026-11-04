@@ -52,6 +52,7 @@ public static class SfxBank
         BulletStyle.Claw => Sound.Spark,
         BulletStyle.Rock or BulletStyle.Stalactite or BulletStyle.MossBoulder or BulletStyle.GiantStalactite => Sound.Rock,
         BulletStyle.Bite => Sound.Slash,
+        BulletStyle.NoteGold or BulletStyle.NotePink or BulletStyle.NoteCyan or BulletStyle.NoteBeamed => Sound.OrbGreen,
         BulletStyle.Shard => Sound.RiceRed,
         BulletStyle.VenomOrb => Sound.VenomOrb,
         BulletStyle.LotusPetal => Sound.LotusPetal,

@@ -173,7 +173,7 @@ public static partial class SelfTest
     private static void EveryAttackOfUkhumoIsDifferent()
     {
         // what each attack asks of the player: the set of mechanics it uses must not be the same as any other's
-        var kinds = Stages.Four.Boss.Phases.Select(p => (p.Slashes.IsActive, p.Slashes.Angle != 0, p.Quake.IsActive, p.Roar.IsActive, p.Main.BulletBehavior, p.Main.BulletStyle, p.Main.Ceiling)).ToList();
+        var kinds = Stages.Four.Boss.Phases.Select(p => (p.Slashes.IsActive, p.Slashes.Angle != 0, p.Quake.IsActive, p.Roar.IsActive, p.Slashes.Aim, p.Slashes.Count, p.Patterns.Count)).ToList();
         Eq(kinds.Distinct().Count(), kinds.Count, "no two attacks work alike");
         Greater(kinds.Count(k => k.Item1 || k.Item3 || k.Item4), 5, "most attacks have a mechanic beyond bullets");
     }

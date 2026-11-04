@@ -35,6 +35,8 @@ public static class BulletArt
         BulletStyle.MossBoulder => (64, 64),
         BulletStyle.Bite => (24, 24),
         BulletStyle.GiantStalactite => (16, 40),
+        BulletStyle.NoteGold or BulletStyle.NotePink or BulletStyle.NoteCyan => (7, 11),
+        BulletStyle.NoteBeamed => (9, 11),
         _ => FamilySize(style),
     };
 
@@ -90,6 +92,10 @@ public static class BulletArt
             case BulletStyle.MossBoulder: DrawMossBoulder(c, frame); break;
             case BulletStyle.Bite: DrawBite(c, frame); break;
             case BulletStyle.GiantStalactite: DrawGiantStalactite(c, frame); break;
+            case BulletStyle.NoteGold: DrawNote(c, frame, PixelColor.Hex(0xA8700C), PixelColor.Hex(0xFFD24A), PixelColor.Hex(0xFFF6C8)); break;
+            case BulletStyle.NotePink: DrawNote(c, frame, PixelColor.Hex(0x9A2864), PixelColor.Hex(0xFF70B8), PixelColor.Hex(0xFFE0F0)); break;
+            case BulletStyle.NoteCyan: DrawNote(c, frame, PixelColor.Hex(0x1C7898), PixelColor.Hex(0x5CD8F0), PixelColor.Hex(0xE0FAFF)); break;
+            case BulletStyle.NoteBeamed: DrawNoteBeamed(c, frame, PixelColor.Hex(0xA8700C), PixelColor.Hex(0xFFD24A), PixelColor.Hex(0xFFF6C8)); break;
             case BulletStyle.BoltRed: DrawBolt(c, frame, PixelColor.Hex(0x9A1020), PixelColor.Hex(0xFF3A3A), PixelColor.Hex(0xFFE0D8)); break;
             case BulletStyle.BoltBlue: DrawBolt(c, frame, PixelColor.Hex(0x2A5FD8), PixelColor.Hex(0x6AA0FF), PixelColor.Hex(0xE8F4FF)); break;
             default: DrawFamily(c, style, frame); break;
@@ -506,6 +512,37 @@ public static class BulletArt
         foreach (var (x, y) in path) Put(c, x, y, body);
         for (int i = 0; i < path.Length; i += 2) Put(c, path[i].x, path[i].y, core);
         Put(c, path[0].x, path[0].y, core);
+    }
+
+    /// <summary>A little note: a head, a stem and a flag that flutters (two frames).</summary>
+    private static void DrawNote(PixelCanvas c, int frame, PixelColor rim, PixelColor body, PixelColor light)
+    {
+        var head = new (int x, int y)[] { (1, 8), (2, 8), (3, 8), (0, 9), (1, 9), (2, 9), (3, 9), (0, 10), (1, 10), (2, 10) };
+        var stem = new (int x, int y)[] { (3, 1), (3, 2), (3, 3), (3, 4), (3, 5), (3, 6), (3, 7) };
+        var flag = frame == 0 ? new (int x, int y)[] { (4, 1), (5, 2), (5, 3), (4, 4) } : new (int x, int y)[] { (4, 1), (5, 2), (5, 3), (5, 4) };
+        foreach (var (x, y) in head) for (int dx = -1; dx <= 1; dx++) for (int dy = -1; dy <= 1; dy++) Put(c, x + dx, y + dy, rim);
+        foreach (var (x, y) in stem) { Put(c, x - 1, y, rim); Put(c, x + 1, y, rim); }
+        foreach (var (x, y) in flag) { Put(c, x + 1, y, rim); Put(c, x, y + 1, rim); }
+        foreach (var (x, y) in head) Put(c, x, y, body);
+        foreach (var (x, y) in stem) Put(c, x, y, body);
+        foreach (var (x, y) in flag) Put(c, x, y, body);
+        Put(c, 1, 9, light); Put(c, 2, 8, light); Put(c, 3, 2, light);
+    }
+
+    /// <summary>A pair of beamed notes: two heads, two stems and a bar between them.</summary>
+    private static void DrawNoteBeamed(PixelCanvas c, int frame, PixelColor rim, PixelColor body, PixelColor light)
+    {
+        var heads = new (int x, int y)[] { (1, 8), (2, 8), (0, 9), (1, 9), (2, 9), (1, 10), (2, 10), (5, 7), (6, 7), (4, 8), (5, 8), (6, 8), (5, 9), (6, 9) };
+        var bar = new (int x, int y)[] { (3, 1), (4, 1), (5, 1), (6, 1), (7, 1), (7, 2), (3, 2), (4, 2), (5, 2), (6, 2), (7, 2) };
+        int sway = frame == 0 ? 0 : 1;
+        var stems = new (int x, int y)[] { (3, 3), (3, 4), (3, 5), (3, 6), (3, 7), (7, 3), (7, 4), (7, 5), (7, 6) };
+        foreach (var (x, y) in heads) for (int dx = -1; dx <= 1; dx++) for (int dy = -1; dy <= 1; dy++) Put(c, x + dx, y + dy, rim);
+        foreach (var (x, y) in bar) { Put(c, x, y - 1, rim); Put(c, x, y + 1, rim); }
+        foreach (var (x, y) in stems) { Put(c, x - 1, y, rim); Put(c, x + 1, y, rim); }
+        foreach (var (x, y) in heads) Put(c, x, y, body);
+        foreach (var (x, y) in stems) Put(c, x, y, body);
+        foreach (var (x, y) in bar) Put(c, x, y, sway == 0 ? body : light);
+        Put(c, 1, 9, light); Put(c, 5, 8, light);
     }
 
     // MARK: The danmaku family (colours and shapes)

@@ -1,7 +1,6 @@
 /// <summary>
-/// The boss of stage 6, a PROTOTYPE to fit the flow of the stage into: Mama Killa, the Moon, who took Illari so that the night would never end. Six attacks (4 calm and 2 enraged:
-/// the crescent moon and then the full one). For now she wears borrowed art (the divine person of stage 5) and the attacks of the cat of the stars (stage 3), whose mistress she is,
-/// ending with the eclipse; the attacks of the phases of the moon, with the tide that turns the wind, are still to be made.
+/// The boss of stage 6, a PROTOTYPE to fit the flow of the stage into: Mama Killa, the Moon, who took Illari so that the night would never end. Ten attacks (6 calm and 4 enraged): the phases of the moon,
+/// from the new moon to the eternal night (see Attacks.Cosmos.cs).
 /// </summary>
 public static class KillaBoss
 {
@@ -26,15 +25,15 @@ public static class KillaBoss
     private static BossDefinition Build()
     {
         var definition = Builder.Build(
-            Builder.Calm(Grounded(Attacks.StarPentagram())),
-            Builder.Calm(Grounded(Attacks.ZigzagLightning())),
-            Builder.Calm(Grounded(Attacks.FineWeave())),
-            Builder.Calm(Grounded(Attacks.HailCurtain())),
+            Builder.Calm(Grounded(Attacks.KillaNewMoon())),
             Builder.Calm(Grounded(Attacks.KillaCrescent())),
             Builder.Calm(Grounded(Attacks.KillaTide())),
-            Builder.Enraged(Grounded(Attacks.SkyFalls())),
-            Builder.Enraged(Grounded(Attacks.Eclipse())),
+            Builder.Calm(Grounded(Attacks.KillaFullMoon())),
+            Builder.Calm(Grounded(Attacks.KillaConstellations())),
+            Builder.Calm(Grounded(Attacks.KillaSilverRain())),
+            Builder.Enraged(Grounded(Attacks.KillaWaning())),
             Builder.Enraged(Grounded(Attacks.KillaEclipse())),
+            Builder.Enraged(Grounded(Attacks.KillaPentagram())),
             Builder.Enraged(Grounded(Attacks.KillaEternalNight())));
         definition.StandY = StandY;
         return definition;

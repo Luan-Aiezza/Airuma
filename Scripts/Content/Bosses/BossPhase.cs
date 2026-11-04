@@ -56,6 +56,8 @@ public sealed class BossPhase
     public SlashSpec Slashes;
     public QuakeSpec Quake;
     public RoarSpec Roar;
+    /// <summary>A moon that comes to the middle and pulls the boat (see <see cref="GravitySpec"/>).</summary>
+    public GravitySpec Gravity;
 
     /// <summary>The attack is a lunge that only drops embers in its wake: easy has none, normal has what easy would have, hard what normal would.</summary>
     public bool EmbersOneStepDown;

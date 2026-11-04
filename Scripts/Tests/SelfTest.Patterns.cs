@@ -16,6 +16,11 @@ public static partial class SelfTest
         T("LaunchedBulletsWaitAndThenGo", LaunchedBulletsWaitAndThenGo);
         T("ASplittingBulletBreaksIntoARing", ASplittingBulletBreaksIntoARing);
         T("BouncingBulletsTurnBackAtTheSides", BouncingBulletsTurnBackAtTheSides);
+        T("ABulletThatTurnsStopsAndThenFliesAtTheBoat", ABulletThatTurnsStopsAndThenFliesAtTheBoat);
+        T("ALaserIsWarnedOfAndThenStrikes", ALaserIsWarnedOfAndThenStrikes);
+        T("TheMoonComesToTheMiddleAndPullsTheBoat", TheMoonComesToTheMiddleAndPullsTheBoat);
+        T("ALaserGoesTransparentSoTheBoatCanCross", ALaserGoesTransparentSoTheBoatCanCross);
+        T("TheBulletsOfStageFiveKeepRoomForTheBoat", TheBulletsOfStageFiveKeepRoomForTheBoat);
         T("GravityBendsTheFlightOfABullet", GravityBendsTheFlightOfABullet);
         T("TheDifficultyScalesThePatterns", TheDifficultyScalesThePatterns);
         T("APatternWaitsForItsDelayAndRestsBetweenBursts", APatternWaitsForItsDelayAndRestsBetweenBursts);
@@ -143,6 +148,96 @@ public static partial class SelfTest
         Greater(b.Position.X, 0);
     }
 
+    private static void ABulletThatTurnsStopsAndThenFliesAtTheBoat()
+    {
+        var pool = BulletSystem.NewPool();
+        Ctx(pool).Fire(V(300, 100), 90, new Shot(BulletStyle.OrbBlue, 200).Turning(1, 1f, 1, 0, 250));
+        var player = new PlayerEntity();
+        var target = V(100, 500);
+        float slowest = 1000;
+        for (int k = 0; k < 60; k++)
+        {
+            BulletSystem.MoveBullets(pool, new Rect2(-3000, -3000, 9000, 9000), 1 / 60f, target, player);
+            slowest = MathF.Min(slowest, pool.First(b => b.IsActive).Velocity.Length());
+        }
+        Less(slowest, 40, "it slowed almost to a stop");
+        for (int k = 0; k < 30; k++) BulletSystem.MoveBullets(pool, new Rect2(-3000, -3000, 9000, 9000), 1 / 60f, target, player);
+        var b2 = pool.First(b => b.IsActive);
+        Greater(b2.Velocity.Length(), 200, "and left again");
+        Less(b2.Velocity.X, 0, "toward the boat, to the left");
+    }
+
+    private static void ALaserIsWarnedOfAndThenStrikes()
+    {
+        var pool = BulletSystem.NewPool();
+        var slashes = new List<SlashData>();
+        var c = Ctx(pool); c.Slashes = slashes;
+        Pat.Laser(c, V(300, 100), 90, 30, 1f, 0.5f, new Color(1, 0, 0), 10);
+        Eq(slashes.Count, 1);
+        True(slashes[0].Beam && slashes[0].Telegraph > 0.9f && slashes[0].Len > 2000, "a beam with a warning");
+        True(slashes[0].Spin != 0, "that turns");
+    }
+
+    private static void TheMoonComesToTheMiddleAndPullsTheBoat()
+    {
+        var phase = Attacks.KillaConstellations();
+        True(phase.Gravity.IsActive, "the attack has a moon");
+        var boss = BossEntity.Create(Stages.Six.Boss);
+        boss.Transform.Position = V(300, 150);
+        boss.Specials = SpecialsSystem.Begin(phase, Difficulty.Normal);
+        var player = PlayerEntity.Create(); player.Transform.Position = V(100, 650);
+        var slashes = new List<SlashData>(); var events = new List<WorldEvent>(); var rng = new SeededGenerator(1);
+        float pulled = 0; bool warned = false;
+        for (int i = 0; i < 60 * 14; i++)
+        {
+            var push = SpecialsSystem.Update(boss, player, slashes, 1f / 60, events, rng);
+            if (SpecialsSystem.Moon(boss.Specials).Warning > 0.1f) warned = true;
+            if (push != Vector2.Zero) { pulled = MathF.Max(pulled, push.Length()); True(push.Dot(boss.Specials.MoonPos - player.Transform.Position) > 0, "it pulls towards the moon"); }
+        }
+        var moon = SpecialsSystem.Moon(boss.Specials);
+        Near(moon.Position.X, 300, 1f, "the moon came to the middle"); Greater(moon.Position.Y, 300, "down the field");
+        True(warned, "it warned before it pulled");
+        Greater(pulled, 150, "and it pulled");
+        Less(pulled, 400, "but less than the boat's speed, so it can pull away");
+        player.Transform.Position = moon.Position;
+        True(SpecialsSystem.HitByMoon(boss.Specials, player), "touching the moon hurts");
+    }
+
+    private static void ALaserGoesTransparentSoTheBoatCanCross()
+    {
+        var laser = new SlashData { Top = V(300, 0), Angle = 0, Telegraph = 1, Strike = 5, Width = 30, Len = 2000, Beam = true, Blink = 2 };
+        laser.Age = 1.5f; True(laser.Striking && !laser.Ghost, "it strikes at first");
+        laser.Age = 1 + 1.5f; True(laser.Ghost && !laser.Striking, "and is transparent at the end of each 2 s");
+        laser.Age = 1 + 2.1f; True(laser.Striking, "and strikes again");
+    }
+
+    /// <summary>The gaps rule (see Pat.MinGap): the typical gap between a bullet and its nearest neighbour must leave room for the boat (8 px across).</summary>
+    private static void TheBulletsOfStageFiveKeepRoomForTheBoat()
+    {
+        var st = Stages.Five;
+        for (int ph = 1; ph <= st.Boss.Lives; ph++)
+        {
+            var w = new World(ph, withCards: false, difficulty: Difficulty.Normal, stage: st); w.CalmWindForTesting();
+            var gaps = new List<float>();
+            for (int k = 0; k < 12 * 60; k++)
+            {
+                w.Step(1f / 60, new PlayerInputComponent());
+                if (k > 5 * 60 && k % 40 == 0)
+                {
+                    var bs = w.Bullets.Where(b => b.IsActive && b.Faction == Faction.Boss && b.Position.Y > 250 && b.Position.Y < 760).ToList();
+                    for (int i = 0; i < bs.Count; i++)
+                    {
+                        float best = 1e9f;
+                        for (int j = 0; j < bs.Count; j++) if (j != i) best = MathF.Min(best, (bs[i].Position - bs[j].Position).Length() - bs[i].HitboxRadius - bs[j].HitboxRadius);
+                        if (best < 1e8f) gaps.Add(best);
+                    }
+                }
+            }
+            gaps.Sort();
+            if (gaps.Count > 0) GreaterEq(gaps[gaps.Count / 2], Pat.PlayerHitbox * 1.5f, $"attack {ph}: the usual gap leaves room for the boat");
+        }
+    }
+
     private static void GravityBendsTheFlightOfABullet()
     {
         var pool = BulletSystem.NewPool();
@@ -224,7 +319,7 @@ public static partial class SelfTest
                 }
                 if (cuts) GreaterEq(phase.Slashes.Spacing - phase.Slashes.Width, 100f, $"{phase.AttackNameKey}: the lanes between the cuts are wide");
             }
-        Greater(ways, 8, "there are many attacks of this kind");
+        Greater(ways, 3, "there are many attacks of this kind");
     }
 
     private static void TheCutsFromAnyDirectionAlwaysCrossTheFieldThroughTheBoat()

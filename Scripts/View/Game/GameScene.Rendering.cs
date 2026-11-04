@@ -56,6 +56,8 @@ public partial class GameScene : Node2D
         AddChild(_constellations);
         _slashes.ZIndex = Z(4.3f);          // the claws cut over the bullets
         AddChild(_slashes);
+        _moon.ZIndex = Z(4.2f);             // the moon that pulls: over the bullets
+        AddChild(_moon);
         _burst.ZIndex = Z(2.6f);
         AddChild(_burst);
 
@@ -226,6 +228,7 @@ public partial class GameScene : Node2D
         SyncMirrors();
         _constellations.Update(_bombDelta, BulletSystem.Links(World.Bullets));
         _slashes.Show(World.Slashes, _bombDelta);
+        _moon.Show(World.Moon, World.Player.Transform.Position, _bombDelta);
         // The quake: the whole picture shakes, more and less.
         Position = World.Shake > 0 ? new Vector2((_rng.Randf() - 0.5f) * 10 * World.Shake, (_rng.Randf() - 0.5f) * 10 * World.Shake) : Vector2.Zero;
 

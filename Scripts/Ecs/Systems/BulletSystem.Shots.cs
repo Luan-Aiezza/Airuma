@@ -29,6 +29,9 @@ public struct Shot
     public Vector2 Anchor;
     public float Blink;
     public float Cruise;
+    public int TurnMode, TurnTimes;
+    public float TurnInterval, TurnRotation, TurnSpeed;
+    public float PopSpeed, PopTime, ExFor;
 
     /// <summary>How much of the wind the bullets of the patterns feel (the old emitters keep 0.5): a little, so that the wind is still felt, but not so much that a rain of bullets leaves a void at one side of the field.</summary>
     public const float DefaultWind = 0.15f;
@@ -67,6 +70,12 @@ public struct Shot
     public Shot Blinking(float seconds) { var s = this; s.Blink = seconds; return s; }
     /// <summary>It can be pushed (a roar shoves it hard), and settles back to its own speed afterwards.</summary>
     public Shot Heavy() { var s = this; s.Cruise = s.Speed; return s; }
+    /// <summary>It slows evenly to a stop in `interval` seconds and then TURNS (`mode`: 0 by `rotation` degrees more, 1 towards the boat plus `rotation`, 2 to the heading `rotation`) and sets off at `speed` (0: at the speed it was fired); `times` times.</summary>
+    public Shot Turning(int mode, float interval, int times, float rotation, float speed = 0) { var s = this; s.Behavior = BulletBehavior.Turn; s.TurnMode = mode; s.TurnInterval = interval; s.TurnTimes = times; s.TurnRotation = rotation; s.TurnSpeed = speed > 0 ? speed : s.Speed; return s; }
+    /// <summary>It is shot out with `extra` px/s more than its speed, and the extra dies away in `seconds`: the little burst of a bullet leaving the boss.</summary>
+    public Shot Popping(float extra = 300, float seconds = 0.27f) { var s = this; s.PopSpeed = extra; s.PopTime = seconds; return s; }
+    /// <summary>Its curve and its acceleration last only `seconds`: after that it flies straight, at the speed it has by then.</summary>
+    public Shot EasingOutAfter(float seconds) { var s = this; s.ExFor = seconds; return s; }
     public Shot Bouncing(int times) { var s = this; s.Behavior = BulletBehavior.Bounce; s.Bounces = times; return s; }
 }
 
@@ -88,6 +97,9 @@ public static partial class BulletSystem
         b.Anchor = shot.Anchor;
         b.Blink = shot.Blink;
         b.Cruise = shot.Cruise;
+        b.TurnMode = shot.TurnMode; b.TurnTimes = shot.TurnTimes; b.TurnInterval = shot.TurnInterval; b.TurnRotation = shot.TurnRotation; b.TurnSpeed = shot.TurnSpeed;
+        b.TurnBase = shot.Speed; b.TurnHeading = Mathx.Radians(angle);
+        b.PopSpeed = shot.PopSpeed; b.PopTime = shot.PopTime; b.PopLeft = shot.PopTime; b.ExFor = shot.ExFor;
         b.WindModifier = shot.WindFactor;
         return i;
     }

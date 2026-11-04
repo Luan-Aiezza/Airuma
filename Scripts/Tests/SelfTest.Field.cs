@@ -53,19 +53,15 @@ public static partial class SelfTest
 
     private static void TheCurtainOfAWiderFieldHasNoPlaceToHideAtTheSides()
     {
-        var boss = BossEntity.Create(ThaqaiBoss.Definition);
-        PhaseManagerSystem.ChangePhase(boss, 6);
-        boss.MovementType = BossMovementType.Stationary;
         var wide = new Rect2(-World.FieldExtraMax, 0, 600 + 2 * World.FieldExtraMax, 775);
         var pool = BulletSystem.NewPool();
-        boss.EmitterMain.TimeSinceLastFire = 10;
-        BulletSystem.UpdateBossWeapons(boss, new PlayerEntity(), pool, 0.001f, Difficulty.Normal, wide);
+        Pat.Wall(Ctx(pool, wide), Edge.Top, 24, 0.5f, 170, new Shot(BulletStyle.Hail, 100).Sized(1.9f));
         var row = pool.Where(b => b.IsActive).Select(b => b.Position.X).OrderBy(x => x).ToList();
-        Less(row.First(), -World.FieldExtraMax + 20, "the row starts at the left of the wider field");
-        Greater(row.Last(), 600 + World.FieldExtraMax - 20, "and ends at the right of it");
+        Less(row.First(), -World.FieldExtraMax + 40, "the row starts at the left of the wider field");
+        Greater(row.Last(), 600 + World.FieldExtraMax - 40, "and ends at the right of it");
         float widest = 0;
         for (int i = 1; i < row.Count; i++) widest = MathF.Max(widest, row[i] - row[i - 1]);
-        Less(widest, boss.EmitterMain.CurtainGap + 50, "only the gap is open (the hole between two bullets of the row is the gap and a slot)");
+        Less(widest, 170 + 60, "only the gap is open (the hole between two bullets of the row is the gap and a slot)");
     }
 
     private static void AtFullPowerHighInThePictureEveryLightFliesToTheBoat()

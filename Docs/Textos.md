@@ -546,7 +546,7 @@ Este documento reúne **todos os textos que aparecem no jogo**, com o contexto d
 | Chave | Português (PT-BR) | Inglês (EN) | Contexto |
 | --- | --- | --- | --- |
 | `Stage6Title` | Fase 6 | Stage 6 | Título da fase 6, mostrado quando ela começa. |
-| `KillaName` | Mama Killa | Mama Killa | Nome de personagem da fase (mostrado no título do chefe e nas falas). |
+| `KillaName` | Killa | Killa | Nome de personagem da fase (mostrado no título do chefe e nas falas). |
 | `IllariName` | Illari | Illari | Nome de personagem da fase (mostrado no título do chefe e nas falas). |
 
 ### Ataques do chefe
@@ -580,7 +580,7 @@ A Killa ainda usa os ataques da fase 3 (Thaqai); os nomes são os mesmos daquela
 
 | Chave | Português (PT-BR) | Inglês (EN) | Contexto |
 | --- | --- | --- | --- |
-| `S6Meet01` | Mama Killa, se me permite. | Mama Killa, if you please. | 1ª fala; quem fala: o chefe da fase; expressão neutra. |
+| `S6Meet01` | Killa, se me permite. | Killa, if you please. | 1ª fala; quem fala: o chefe da fase; expressão neutra. |
 | `S6Meet02` | E vocês são o barquinho que incomodou a minha gata. | And you are the little boat that bothered my cat. | 2ª fala; quem fala: o chefe da fase; expressão irritada. |
 | `S6Meet03` | Ei! Cadê a Illari? Ela estava bem aqui! | Hey! Where is Illari? She was right here! | 3ª fala; quem fala: Atli; expressão surpresa. |
 | `S6Meet04` | Mandei para um lugar sossegado. Lutar com moça dormindo no meio é deselegante. | I sent her somewhere quiet. Fighting with a girl asleep in the middle is unseemly. | 4ª fala; quem fala: o chefe da fase; expressão neutra. |
@@ -685,9 +685,16 @@ Cada carta tem um nome (**Título**) e uma descrição curta do que ela faz (**D
 | `RestartsLeft` | Reinícios restantes: | Restarts left: | Texto sem contexto catalogado ainda. |
 | `GameOver` | Game Over | Game Over | Texto sem contexto catalogado ainda. |
 | `GameOverMusic` | ♪ Luz que se apaga - game over | ♪ Light going out - game over | Texto sem contexto catalogado ainda. |
+| `AttackCatPlay` | Brincadeira da Gata: Novelos que Quicam | The Cat at Play: Bouncing Yarn | Texto sem contexto catalogado ainda. |
 | `AttackKillaCrescent` | Lua Crescente: Os Chifres de Prata | Crescent Moon: The Horns of Silver | Texto sem contexto catalogado ainda. |
 | `AttackKillaTide` | Maré Lunar: O Rio do Céu | Lunar Tide: The River of the Sky | Texto sem contexto catalogado ainda. |
 | `AttackKillaEclipse` | Eclipse Total: O Sol Coberto | Total Eclipse: The Covered Sun | Texto sem contexto catalogado ainda. |
+| `AttackKillaNewMoon` | Lua Nova: O Céu Sem Lua | New Moon: The Moonless Sky | Texto sem contexto catalogado ainda. |
+| `AttackKillaFullMoon` | Lua Cheia: O Olho de Prata | Full Moon: The Eye of Silver | Texto sem contexto catalogado ainda. |
+| `AttackKillaConstellations` | Constelações: O Mapa das Estrelas | Constellations: The Map of the Stars | Texto sem contexto catalogado ainda. |
+| `AttackKillaSilverRain` | Chuva de Prata: Os Raios da Lua | Silver Rain: The Rays of the Moon | Texto sem contexto catalogado ainda. |
+| `AttackKillaWaning` | Lua Minguante: A Sombra Cresce | Waning Moon: The Shadow Grows | Texto sem contexto catalogado ainda. |
+| `AttackKillaPentagram` | Pentagrama Lunar: A Estrela de Cinco Pontas | Lunar Pentagram: The Five-Pointed Star | Texto sem contexto catalogado ainda. |
 | `AttackKillaEternalNight` | Noite Eterna | Eternal Night | Texto sem contexto catalogado ainda. |
 | `BadEnd1` | Barrados na fronteira, Atli e Ukhumo voltaram ao rio, e a noite não terminou. | Turned back at the border, Atli and Ukhumo returned to the river, and the night did not end. | Texto sem contexto catalogado ainda. |
 | `BadEnd2` | Atli: Faz quanto tempo que a gente está parado aqui, Ukhumo? | Atli: How long have we been sitting here, Ukhumo? | Texto sem contexto catalogado ainda. |

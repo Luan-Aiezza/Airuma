@@ -151,7 +151,7 @@ public static partial class BulletSystem
         }
     }
 
-    public static void UpdateBossWeapons(BossEntity boss, PlayerEntity player, BulletData[] pool, float delta, Difficulty difficulty = Difficulty.Normal, Rect2? field = null, BossEntity twin = null)
+    public static void UpdateBossWeapons(BossEntity boss, PlayerEntity player, BulletData[] pool, float delta, Difficulty difficulty = Difficulty.Normal, Rect2? field = null, BossEntity twin = null, List<SlashData> slashes = null)
     {
         // No shooting during the breather between phases.
         if (boss.MovementType == BossMovementType.Transition) return;
@@ -165,7 +165,7 @@ public static partial class BulletSystem
         if (boss.EmitterSub.IsActive)
             ProcessEmitter(boss, player, ref boss.EmitterSub, pool, delta, field ?? World.PlayArea, twin);
         if (boss.Patterns.Length > 0)
-            RunPatterns(boss, player, pool, delta, difficulty, field ?? World.PlayArea, twin);
+            RunPatterns(boss, player, pool, delta, difficulty, field ?? World.PlayArea, twin, slashes);
     }
 
     /// <summary>The spray where the dolphin leaps out: a fan of bullets going up and out from the water.</summary>
@@ -448,6 +448,46 @@ public static partial class BulletSystem
                     b.IsActive = false;
                     continue;
                 }
+            }
+
+            if (b.Behavior == BulletBehavior.Turn)
+            {
+                // slows evenly to a stop over the interval, then turns and goes off again
+                b.Timer += delta;
+                float into = b.Timer - b.TurnInterval * b.TurnCount;
+                if (into >= b.TurnInterval)
+                {
+                    float heading = b.TurnMode switch
+                    {
+                        1 => MathF.Atan2(player.Transform.Position.Y - b.Position.Y, player.Transform.Position.X - b.Position.X) + Mathx.Radians(b.TurnRotation),
+                        2 => Mathx.Radians(b.TurnRotation),
+                        // from the point where the ring was fired, so that the whole ring flies the same way and keeps the gaps between its bullets
+                        3 => MathF.Atan2(player.Transform.Position.Y - b.Anchor.Y, player.Transform.Position.X - b.Anchor.X) + Mathx.Radians(b.TurnRotation),
+                        _ => b.TurnHeading + Mathx.Radians(b.TurnRotation),
+                    };
+                    b.TurnHeading = heading; b.TurnBase = b.TurnSpeed;
+                    b.TurnCount++;
+                    if (b.TurnCount >= b.TurnTimes) b.Behavior = BulletBehavior.Normal;
+                    b.Velocity = new Vector2(MathF.Cos(heading), MathF.Sin(heading)) * b.TurnSpeed;
+                }
+                else
+                {
+                    float speed = b.TurnBase * (1 - into / b.TurnInterval);
+                    b.Velocity = new Vector2(MathF.Cos(b.TurnHeading), MathF.Sin(b.TurnHeading)) * speed;
+                }
+            }
+
+            if (b.PopLeft > 0)
+            {
+                // the burst of speed at the start dies away
+                float share = b.PopLeft / b.PopTime;
+                b.Position += Mathx.Norm(b.Velocity) * b.PopSpeed * share * delta;
+                b.PopLeft -= delta;
+            }
+            if (b.ExFor > 0)
+            {
+                b.ExClock += delta;
+                if (b.ExClock >= b.ExFor) { b.CurveRate = 0; b.Acceleration = 0; b.ExFor = 0; }
             }
 
             if (b.Pull != Vector2.Zero) b.Velocity += b.Pull * delta;
