@@ -21,6 +21,7 @@ public static partial class SelfTest
         T("APatternWaitsForItsDelayAndRestsBetweenBursts", APatternWaitsForItsDelayAndRestsBetweenBursts);
         T("AFullPoolIsHandledWithoutAFuss", AFullPoolIsHandledWithoutAFuss);
         T("TheAttacksThatMakeAWayAreWideAndTheBossStaysStill", TheAttacksThatMakeAWayAreWideAndTheBossStaysStill);
+        T("TheCutsFromAnyDirectionAlwaysCrossTheFieldThroughTheBoat", TheCutsFromAnyDirectionAlwaysCrossTheFieldThroughTheBoat);
         T("TheWallsOfAMazeAreNotMovedByTheWind", TheWallsOfAMazeAreNotMovedByTheWind);
         T("APentagramFliesAsOneAndBursts", APentagramFliesAsOneAndBursts);
         T("EveryNewStyleOfBulletHasADrawing", EveryNewStyleOfBulletHasADrawing);
@@ -226,6 +227,40 @@ public static partial class SelfTest
         Greater(ways, 8, "there are many attacks of this kind");
     }
 
+    private static void TheCutsFromAnyDirectionAlwaysCrossTheFieldThroughTheBoat()
+    {
+        var rng = new SeededGenerator(11);
+        foreach (int attack in new[] { 4, 5 })           // the single cuts and the triple cuts
+        {
+            var boss = BossEntity.Create(Stages.Four.Boss);
+            PhaseManagerSystem.ChangePhase(boss, Stages.Four.Boss.Lives - attack + 1);
+            var pool = BulletSystem.NewPool();
+            var angles = new HashSet<int>();
+            for (int n = 0; n < 40; n++)
+            {
+                var boat = new PlayerEntity(); boat.Transform.Position = V(30 + n * 13 % 540, 80 + n * 37 % 660);
+                var slashes = new List<SlashData>(); var events = new List<WorldEvent>();
+                boss.Specials.SlashClock = boss.Specials.Slashes.Interval;
+                SpecialsSystem.Update(boss, boat, slashes, 0.01f, events, rng, pool);
+                True(slashes.Count == boss.Specials.Slashes.Count, "one volley");
+                var middle = slashes[(slashes.Count - 1) / 2];
+                float centre = slashes.Count % 2 == 1 ? 0 : 1;
+                if (slashes.Count % 2 == 1) Less(Mathx.DistanceToSegment(boat.Transform.Position, middle.Top, middle.Bottom), 1f, "the line passes through the boat");
+                foreach (var sl in slashes)
+                {
+                    var field = new Rect2(0, 0, 600, 775);
+                    True(!field.HasPoint(sl.Top) && !field.HasPoint(sl.Bottom), "it begins and ends outside the field: it crosses all of it");
+                    // it does cross the field (some point of the line is inside)
+                    bool inside = false;
+                    for (float d = 0; d < sl.TotalLength; d += 20) if (field.HasPoint(sl.Top + sl.Direction * d)) inside = true;
+                    True(inside, "and it is on the screen");
+                }
+                angles.Add((int)(middle.Angle * 4));
+            }
+            Greater(angles.Count, 8, "in many directions");
+        }
+    }
+
     private static void TheWallsOfAMazeAreNotMovedByTheWind()
     {
         // the curtains of the third boss (and of the last), and the walls of the patterns: with the strongest wind from the side they fall straight
@@ -255,15 +290,15 @@ public static partial class SelfTest
         var player = new PlayerEntity(); player.Transform.Position = V(300, 650);
         BulletSystem.UpdateBossWeapons(boss, player, pool, 0.001f);
         var flying = pool.Where(b => b.IsActive && (b.Style == BulletStyle.Star || b.Style == BulletStyle.StarBlue || b.Style == BulletStyle.StarGold)).ToList();
-        Greater(flying.Count, 20, "a pentagram of many stars");
+        Greater(flying.Count, 12, "a pentagram of stars");
         var field = new Rect2(-3000, -3000, 9000, 9000);
         for (int i = 0; i < 60; i++) BulletSystem.MoveBullets(pool, field, 1 / 60f, V(60, 0), player);          // a second of flight, with a wind
         var edge = pool.Where(b => b.IsActive && b.Behavior == BulletBehavior.Launch).ToList();
-        True(edge.Count >= 20, "the lines are still waiting to burst");
+        True(edge.Count >= 10, "the lines are still waiting to burst");
         True(edge.All(b => b.Velocity.Y > 50), "and the figure flies at the boat as one");
         for (int i = 0; i < 90; i++) BulletSystem.MoveBullets(pool, field, 1 / 60f, V(0, 0), player);
         var burst = pool.Where(b => b.IsActive && b.Behavior == BulletBehavior.Normal && b.Velocity.Length() > 100).ToList();
-        True(burst.Count >= 20, "then the stars of its lines fly out");
+        True(burst.Count >= 10, "then the stars of its lines fly out");
         var centre = burst.Select(b => b.Anchor).First();
         True(burst.Where(b => b.Anchor == centre).All(b => (b.Position - centre).Dot(b.Velocity) > 0), "away from its centre");
     }

@@ -451,6 +451,12 @@ public static partial class BulletSystem
             }
 
             if (b.Pull != Vector2.Zero) b.Velocity += b.Pull * delta;
+            if (b.Cruise > 0)
+            {
+                // pushed harder than its pace: it slows back to it
+                float sp = b.Velocity.Length();
+                if (sp > b.Cruise) b.Velocity = Mathx.Norm(b.Velocity) * MathF.Max(b.Cruise, sp - 150 * delta);
+            }
 
             if (b.Acceleration != 0)
             {

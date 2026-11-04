@@ -32,6 +32,9 @@ public static class BulletArt
         BulletStyle.Rock => (7, 7),
         BulletStyle.Stalactite => (5, 13),
         BulletStyle.BoltYellow or BulletStyle.BoltBlue or BulletStyle.BoltRed => (5, 11),
+        BulletStyle.MossBoulder => (64, 64),
+        BulletStyle.Bite => (24, 24),
+        BulletStyle.GiantStalactite => (16, 40),
         _ => FamilySize(style),
     };
 
@@ -44,7 +47,7 @@ public static class BulletArt
     /// <summary>Styles that are elongated or directional are rotated to face where the bullet is going.</summary>
     public static bool Rotates(BulletStyle style) => style switch
     {
-        BulletStyle.FlameDart or BulletStyle.LotusPetal or BulletStyle.FireSerpent or BulletStyle.LightBolt or BulletStyle.RiceRed or BulletStyle.Shard or BulletStyle.Claw or BulletStyle.Stalactite or BulletStyle.BoltYellow or BulletStyle.BoltBlue or BulletStyle.BoltRed => true,
+        BulletStyle.FlameDart or BulletStyle.LotusPetal or BulletStyle.FireSerpent or BulletStyle.LightBolt or BulletStyle.RiceRed or BulletStyle.Shard or BulletStyle.Claw or BulletStyle.Stalactite or BulletStyle.BoltYellow or BulletStyle.BoltBlue or BulletStyle.BoltRed or BulletStyle.Bite or BulletStyle.GiantStalactite => true,
         _ => Family(style) is Shape.Rice or Shape.Kunai,
     };
 
@@ -84,6 +87,9 @@ public static class BulletArt
             case BulletStyle.Rock: DrawRock(c, frame); break;
             case BulletStyle.Stalactite: DrawStalactite(c, frame); break;
             case BulletStyle.BoltYellow: DrawBolt(c, frame, PixelColor.Hex(0xC88818), PixelColor.Hex(0xFFD84A), PixelColor.Hex(0xFFF8D0)); break;
+            case BulletStyle.MossBoulder: DrawMossBoulder(c, frame); break;
+            case BulletStyle.Bite: DrawBite(c, frame); break;
+            case BulletStyle.GiantStalactite: DrawGiantStalactite(c, frame); break;
             case BulletStyle.BoltRed: DrawBolt(c, frame, PixelColor.Hex(0x9A1020), PixelColor.Hex(0xFF3A3A), PixelColor.Hex(0xFFE0D8)); break;
             case BulletStyle.BoltBlue: DrawBolt(c, frame, PixelColor.Hex(0x2A5FD8), PixelColor.Hex(0x6AA0FF), PixelColor.Hex(0xE8F4FF)); break;
             default: DrawFamily(c, style, frame); break;
@@ -366,6 +372,128 @@ public static class BulletArt
         Put(c, 0, 1, PixelColor.Clear); Put(c, 2, 1, PixelColor.Clear);
         Put(c, 1, 6, frame == 0 ? rim : body);
         Put(c, 0, 6, PixelColor.Clear); Put(c, 2, 6, PixelColor.Clear);
+    }
+
+    /// <summary>
+    /// A great boulder covered with moss, 64 x 64 (256 px, about three times the boat): a rough round of grey rock lit from the upper left, cracked, with the moss thick on its upper side and creeping down
+    /// in patches, and a little dithered rim.
+    /// </summary>
+    private static void DrawMossBoulder(PixelCanvas c, int frame)
+    {
+        var rock = new[] { PixelColor.Hex(0xD6CEC0), PixelColor.Hex(0xAEA292), PixelColor.Hex(0x84786A), PixelColor.Hex(0x5C5248), PixelColor.Hex(0x3A322A), PixelColor.Hex(0x221C16) };
+        var moss = new[] { PixelColor.Hex(0xA8E070), PixelColor.Hex(0x6CB84A), PixelColor.Hex(0x3E8A36), PixelColor.Hex(0x245A28) };
+        const float cx = 32, cy = 32, r = 30;
+        float Edge(float a) => r * (1 + 0.05f * MathF.Sin(a * 3 + 0.7f) + 0.035f * MathF.Sin(a * 7 + 2.1f) + 0.02f * MathF.Sin(a * 13));
+        for (int y = 0; y < 64; y++)
+            for (int x = 0; x < 64; x++)
+            {
+                float dx = x + 0.5f - cx, dy = y + 0.5f - cy;
+                float d = MathF.Sqrt(dx * dx + dy * dy), a = MathF.Atan2(dy, dx);
+                float e = Edge(a);
+                if (d > e) continue;
+                float u = d / e;
+                // the light from the upper left on a sphere
+                float nz = MathF.Sqrt(MathF.Max(0, 1 - u * u));
+                float light = (-dx / e * 0.55f - dy / e * 0.6f + nz * 0.58f);
+                float t = Math.Clamp((1 - light) * 0.62f + (Bayer.Threshold(x, y) - 0.5f) * 0.22f, 0, 0.999f);
+                var color = rock[(int)(t * (rock.Length - 1) + 0.5f)];
+                if (u > 0.93f) color = rock[rock.Length - 1];
+                // the moss: thick on the upper half, in patches that reach down the sides
+                float patch = 0.5f + 0.25f * MathF.Sin(x * 0.31f + 1.3f) + 0.25f * MathF.Sin(y * 0.37f - 0.4f) + 0.18f * MathF.Sin((x + y) * 0.23f);
+                float height = 1 - (dy / e + 1) / 2;                        // 1 at the top, 0 at the bottom
+                if (u < 0.96f && patch * (0.45f + 1.0f * height) > 0.52f + (Bayer.Threshold(x + 3, y) - 0.5f) * 0.2f)
+                {
+                    int m = Math.Clamp((int)((1 - light) * 1.9f + (Bayer.Threshold(x, y) - 0.5f) * 0.7f), 0, 3);
+                    color = moss[m];
+                }
+                c[x, y] = color;
+            }
+        // cracks
+        var crack = rock[rock.Length - 1];
+        foreach (var path in new[] { new[] { (30, 20), (28, 28), (31, 34), (27, 42), (29, 50) }, new[] { (44, 30), (40, 36), (43, 42), (38, 48) }, new[] { (18, 36), (22, 40), (20, 46) } })
+            for (int i = 0; i + 1 < path.Length; i++)
+            {
+                var (x0, y0) = path[i]; var (x1, y1) = path[i + 1];
+                int n = Math.Max(Math.Abs(x1 - x0), Math.Abs(y1 - y0));
+                for (int k = 0; k <= n; k++) { int x = x0 + (x1 - x0) * k / Math.Max(1, n), y = y0 + (y1 - y0) * k / Math.Max(1, n); if (c.Contains(x, y) && c[x, y].A > 0) c[x, y] = crack; }
+            }
+        if (frame == 1) foreach (var (x, y) in new[] { (22, 18), (23, 18), (22, 19) }) c[x, y] = rock[0];
+    }
+
+    /// <summary>
+    /// A giant stalactite, 16 x 40, point up (it falls point first): a tapering spike of cave rock with a broken, jagged base, lit from the left (a pale edge on the lit side, the dark side cool and blue),
+    /// layers of mineral across it, cracks, little veins of ore, wet glints, a dithered gradient of light along its length, and a drop that gathers at its tip on the second frame.
+    /// </summary>
+    private static void DrawGiantStalactite(PixelCanvas c, int frame)
+    {
+        var tone = new[] { PixelColor.Hex(0xE9E1D2), PixelColor.Hex(0xC4B8A4), PixelColor.Hex(0x978B79), PixelColor.Hex(0x6B6152), PixelColor.Hex(0x4A4D54), PixelColor.Hex(0x30343E), PixelColor.Hex(0x1C1E26) };
+        const int w = 16, h = 40;
+        float Half(int y) => y < 4 ? 0.8f + y * 0.5f : 2.8f + (y - 4) * 0.135f + 0.35f * MathF.Sin(y * 0.55f);          // the width of the spike, from its point down to the base
+        for (int y = 1; y < h; y++)
+        {
+            float hw = Half(y);
+            float broken = y > h - 4 ? (y - (h - 4)) * 0.0f : 0;
+            for (int x = 0; x < w; x++)
+            {
+                float t = (x + 0.5f - w / 2f) / Math.Max(hw, 0.5f);                          // -1 at the left edge, 1 at the right
+                if (MathF.Abs(t) > 1) continue;
+                // the jagged break of the base
+                if (y > h - 5 && ((x * 7 + y * 3) % 5 == 0 || (x + y) % 6 == 0) && y > h - 3 + (x % 3) - 2) continue;
+                float lit = 0.5f - 0.5f * t;                                                 // 1 on the lit side
+                float along = 1 - y / (float)h;                                              // paler towards the point
+                float v = (1 - lit) * 0.78f + (1 - along) * 0.14f + ((y / 5) % 2 == 0 ? 0.045f : -0.03f);       // the layers
+                v += (Bayer.Threshold(x, y) - 0.5f) * 0.2f;
+                int i = Math.Clamp((int)(v * 5.6f), 0, 4);
+                if (t > 0.5f && i > 2) i = 4 + (i - 3);                                      // the dark side is cool
+                var col = tone[Math.Min(i, 5)];
+                if (MathF.Abs(t) > 0.86f) col = t < 0 ? tone[0] : tone[6];                  // the edges: pale on the left, black on the right
+                c[x, y] = col;
+            }
+        }
+        // the point: a bright tip
+        c[8, 0] = tone[0]; c[7, 1] = tone[0]; c[8, 1] = tone[1]; c[9, 1] = tone[2];
+        // cracks and veins of ore
+        foreach (var path in new[] { new[] { (9, 12), (8, 16), (9, 20), (8, 25) }, new[] { (6, 22), (7, 27), (6, 33) }, new[] { (10, 28), (9, 33), (10, 37) } })
+            for (int i = 0; i + 1 < path.Length; i++)
+            {
+                var (x0, y0) = path[i]; var (x1, y1) = path[i + 1];
+                for (int k = 0; k <= Math.Abs(y1 - y0); k++) { int y = y0 + (y1 - y0) * k / Math.Max(1, Math.Abs(y1 - y0)), x = x0 + (x1 - x0) * k / Math.Max(1, Math.Abs(y1 - y0)); if (c.Contains(x, y) && c[x, y].A > 0) c[x, y] = tone[6]; }
+            }
+        foreach (var (x, y) in new[] { (7, 18), (8, 19), (7, 30), (8, 31) }) if (c[x, y].A > 0) c[x, y] = PixelColor.Hex(0x7FD8E8);      // a vein of pale blue ore
+        // wet glints on the lit side
+        foreach (var (x, y) in new[] { (6, 8), (5, 15), (5, 23), (4, 31) }) if (c[x, y].A > 0) c[x, y] = PixelColor.Hex(0xFFFFFF);
+        // a drop at the tip on the second frame
+        if (frame == 1) { c[8, 0] = PixelColor.Hex(0xBFE8F4); }
+    }
+
+    /// <summary>A great bite, 24 x 24: a red disc with a wedge bitten out of the front (it points up), white teeth along the two edges of the wedge, and a glint that bares them on the second frame.</summary>
+    private static void DrawBite(PixelCanvas c, int frame)
+    {
+        var body = new[] { PixelColor.Hex(0xFF6A5A), PixelColor.Hex(0xE0281C), PixelColor.Hex(0xA81420), PixelColor.Hex(0x6A0A14) };
+        var tooth = PixelColor.Hex(0xFFF6EC); var toothShade = PixelColor.Hex(0xD8C8B8);
+        float half = Mathx.Radians(frame == 0 ? 44 : 50);                        // the wedge: it opens and shuts a little
+        for (int y = 0; y < 24; y++)
+            for (int x = 0; x < 24; x++)
+            {
+                float dx = x + 0.5f - 12, dy = y + 0.5f - 13;
+                float d = MathF.Sqrt(dx * dx + dy * dy);
+                if (d > 11.2f) continue;
+                float a = MathF.Atan2(dx, -dy);                                    // from straight up
+                if (MathF.Abs(a) < half && d > 2.5f) continue;                      // the bite
+                int i = Math.Min(3, (int)(d / 11.2f * 4));
+                c[x, y] = body[3 - Math.Min(3, (int)((1 - d / 11.2f) * 4.2f))];
+            }
+        // the teeth: triangles along the two edges of the wedge
+        for (int side = -1; side <= 1; side += 2)
+            for (int k = 0; k < 4; k++)
+            {
+                float dist = 4.5f + k * 2.1f;
+                float a = side * (half + 0.06f);
+                int px = (int)MathF.Round(12 + MathF.Sin(a) * dist), py = (int)MathF.Round(13 - MathF.Cos(a) * dist);
+                // a tooth: a white triangle pointing into the mouth, with a shade under it
+                Put(c, px, py, tooth); Put(c, px - side, py, tooth); Put(c, px, py - 1, tooth); Put(c, px - 2 * side, py + 1, tooth);
+                Put(c, px + side, py, toothShade); Put(c, px - side, py + 1, toothShade);
+            }
     }
 
     /// <summary>A little bolt of lightning, pointing up: a zigzag with a bright core, a glow of its colour round it, and a flicker of its tail on the second frame.</summary>

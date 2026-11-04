@@ -28,6 +28,7 @@ public struct Shot
     /// <summary>For a Launch whose heading is "away from this point" (a figure that flies as one and then bursts outward from its centre).</summary>
     public Vector2 Anchor;
     public float Blink;
+    public float Cruise;
 
     /// <summary>How much of the wind the bullets of the patterns feel (the old emitters keep 0.5): a little, so that the wind is still felt, but not so much that a rain of bullets leaves a void at one side of the field.</summary>
     public const float DefaultWind = 0.15f;
@@ -64,6 +65,8 @@ public struct Shot
     public Shot Scattering(float fuse, float speed, Vector2 centre, float accel = 0) { var s = this; s.Behavior = BulletBehavior.Launch; s.Fuse = fuse; s.LaunchSpeed = speed; s.LaunchAngle = float.NegativeInfinity; s.LaunchAccel = accel; s.Anchor = centre; return s; }
     /// <summary>The lines of the constellation take turns to open: of every three, one is open at a time, each for `seconds`.</summary>
     public Shot Blinking(float seconds) { var s = this; s.Blink = seconds; return s; }
+    /// <summary>It can be pushed (a roar shoves it hard), and settles back to its own speed afterwards.</summary>
+    public Shot Heavy() { var s = this; s.Cruise = s.Speed; return s; }
     public Shot Bouncing(int times) { var s = this; s.Behavior = BulletBehavior.Bounce; s.Bounces = times; return s; }
 }
 
@@ -84,6 +87,7 @@ public static partial class BulletSystem
         b.Bounces = shot.Bounces;
         b.Anchor = shot.Anchor;
         b.Blink = shot.Blink;
+        b.Cruise = shot.Cruise;
         b.WindModifier = shot.WindFactor;
         return i;
     }

@@ -31,7 +31,7 @@ public static class SpecialsSystem
     /// Moves the clocks on, begins a volley of slashes, a quake or a roar when it is time, ages the slashes and drops those that have faded.
     /// Returns the push (px/s) that the roar gives the boat at this moment.
     /// </summary>
-    public static Vector2 Update(BossEntity boss, PlayerEntity player, List<SlashData> slashes, float delta, List<WorldEvent> events, SeededGenerator rng)
+    public static Vector2 Update(BossEntity boss, PlayerEntity player, List<SlashData> slashes, float delta, List<WorldEvent> events, SeededGenerator rng, BulletData[] pool = null)
     {
         var s = boss.Specials;
         // Ageing: a slash strikes when its warning is over.
@@ -41,6 +41,8 @@ public static class SpecialsSystem
             float before = slash.Age;
             slash.Age += delta;
             if (slash.Leader && before < slash.Telegraph && slash.Age >= slash.Telegraph) events.Add(WorldEvent.SlashStruck());
+            // after the cut, the line lets go of a trail of bullets that spread out
+            if (slash.Trail && !slash.Trailed && pool != null && slash.Age >= slash.Telegraph + slash.Strike) { slash.Trailed = true; LeaveTrail(slash, pool, rng); }
             if (slash.Gone) slashes.RemoveAt(i); else slashes[i] = slash;
         }
 
@@ -73,10 +75,47 @@ public static class SpecialsSystem
             else
             {
                 s.RoarClock += delta;
-                if (s.RoarClock >= s.Roar.Interval) { s.RoarClock = 0; s.RoarLeft = s.Roar.Seconds; events.Add(WorldEvent.Roared(boss.Transform.Position)); }
+                if (s.RoarClock >= s.Roar.Interval) { s.RoarClock = 0; s.RoarLeft = s.Roar.Seconds; events.Add(WorldEvent.Roared(boss.Transform.Position)); ShoveBoulders(boss, pool, s.Roar.Push); }
             }
         }
         return push;
+    }
+
+    /// <summary>Whether a line through `point` along `dir` crosses the field (some part of it is on the screen).</summary>
+    private static bool CrossesField(Vector2 point, Vector2 dir)
+    {
+        var field = new Rect2(0, 0, 600, 775);
+        for (float d = -1100; d <= 1100; d += 20) if (field.HasPoint(point + dir * d)) return true;
+        return false;
+    }
+
+    /// <summary>The roar pushes the great boulders too, away from her and harder than it pushes the boat: they go quicker for a moment and settle back to their pace.</summary>
+    private static void ShoveBoulders(BossEntity boss, BulletData[] pool, float push)
+    {
+        if (pool == null) return;
+        for (int i = 0; i < pool.Length; i++)
+        {
+            ref BulletData b = ref pool[i];
+            if (!b.IsActive || b.Cruise <= 0) continue;
+            var away = b.Position - boss.Transform.Position;
+            if (away.LengthSquared() < 1) away = new Vector2(0, 1);
+            b.Velocity += away.Normalized() * push * 1.3f;
+        }
+    }
+
+    /// <summary>The trail of a cut: small bullets all along the line, each going off to one side or the other, one after another, at its own speed.</summary>
+    private static void LeaveTrail(SlashData slash, BulletData[] pool, SeededGenerator rng)
+    {
+        var dir = slash.Direction;
+        float heading = Mathx.Degrees(MathF.Atan2(dir.Y, dir.X));
+        int k = 0;
+        for (float d = 0; d < slash.TotalLength; d += 34)
+        {
+            var p = slash.Top + dir * d;
+            if (p.X < -10 || p.X > 610 || p.Y < -10 || p.Y > 785) continue;
+            float side = k++ % 2 == 0 ? 90 : -90;
+            BulletSystem.Fire(pool, p, heading + side + rng.Range(-28f, 28f), new Shot(BulletStyle.BeadRed, rng.Range(55f, 130f)).Sized(0.9f));
+        }
     }
 
     /// <summary>A volley: `Count` parallel slashes, the middle one through the boat (or at random, or alternating from side to side), each warned of before it strikes.</summary>
@@ -85,7 +124,7 @@ public static class SpecialsSystem
         var spec = s.Slashes;
         s.Volleys++;
         float sign = spec.Aim == SlashAim.Alternate && s.Volleys % 2 == 0 ? -1 : 1;
-        float angle = Mathx.Radians(spec.Angle) * sign;
+        float angle = spec.Aim == SlashAim.Anywhere ? rng.Range(0f, MathF.Tau) : Mathx.Radians(spec.Angle) * sign;
         var dir = new Vector2(MathF.Sin(angle), MathF.Cos(angle));
         // the point the middle slash goes through
         Vector2 through = spec.Aim switch
@@ -94,6 +133,21 @@ public static class SpecialsSystem
             SlashAim.Random => new Vector2(rng.Range(160f, 440f), rng.Range(250f, 550f)),
             _ => new Vector2((s.Volleys % 2 == 0 ? 190 : 410) + rng.Range(-30f, 30f), 400),
         };
+        if (spec.Aim == SlashAim.Anywhere)
+        {
+            // from any direction, always through the boat and across the whole field: the line is long enough to leave the field at both ends from wherever the boat is
+            var at = new Vector2(Math.Clamp(player.Transform.Position.X, 20, 580), Math.Clamp(player.Transform.Position.Y, 20, 755));
+            var across0 = new Vector2(dir.Y, -dir.X);
+            for (int k = 0; k < spec.Count; k++)
+            {
+                float offset = (k - (spec.Count - 1) / 2f) * spec.Spacing;
+                // a cut beside the middle one that would pass outside the field (the boat at the edge, the cuts along it) goes to the other side of it
+                if (!CrossesField(at + across0 * offset, dir)) offset = -offset;
+                if (!CrossesField(at + across0 * offset, dir)) offset = 0;
+                slashes.Add(new SlashData { Top = at + across0 * offset - dir * 1100, Angle = angle, Telegraph = spec.Telegraph, Strike = spec.Strike, Width = spec.Width, Leader = k == 0, Len = 2200, Trail = spec.Trail });
+            }
+            return;
+        }
         const float topY = -40;
         // A slash that is nearly level (a wall of water) begins off the side of the field instead of above it.
         var middleTop = MathF.Abs(dir.Y) < 0.35f ? through - dir * 700 : through - dir * ((through.Y - topY) / dir.Y);
@@ -101,7 +155,7 @@ public static class SpecialsSystem
         for (int k = 0; k < spec.Count; k++)
         {
             float offset = (k - (spec.Count - 1) / 2f) * spec.Spacing;
-            slashes.Add(new SlashData { Top = middleTop + across * offset, Angle = angle, Telegraph = spec.Telegraph, Strike = spec.Strike, Width = spec.Width, Leader = k == 0 });
+            slashes.Add(new SlashData { Top = middleTop + across * offset, Angle = angle, Telegraph = spec.Telegraph, Strike = spec.Strike, Width = spec.Width, Leader = k == 0, Trail = spec.Trail });
         }
     }
 

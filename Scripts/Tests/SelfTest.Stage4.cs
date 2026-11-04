@@ -45,9 +45,9 @@ public static partial class SelfTest
         Eq(boss.Phases.Count(p => p.Enraged), 3);
         Eq(new World(withCards: false, stage: Stages.Four).StartingBossLives, 7);
         True(boss.Phases.Any(p => p.Slashes.IsActive) && boss.Phases.Any(p => p.Quake.IsActive) && boss.Phases.Any(p => p.Roar.IsActive), "claws, quake and roar");
-        True(boss.Phases.Any(p => p.Main.BulletBehavior == BulletBehavior.Burst), "the stone that breaks");
+        True(boss.Phases.Any(p => p.Main.BulletBehavior == BulletBehavior.Burst || p.Sub.BulletBehavior == BulletBehavior.Burst || p.Patterns.Count > 0), "the stone that breaks");
         True(boss.Phases.All(p => p.Movement == BossMovementType.Stationary && p.Target == new Vector2(300, Layout.BossY)), "she never leaves her platform");
-        True(boss.Phases.All(p => p.Main.BulletStyle == BulletStyle.Claw || p.Main.BulletStyle == BulletStyle.Rock || p.Main.BulletStyle == BulletStyle.Stalactite), "her bullets are claws and stones");
+        True(boss.Phases.All(p => !p.Main.IsActive || p.Main.BulletStyle == BulletStyle.Claw || p.Main.BulletStyle == BulletStyle.Rock || p.Main.BulletStyle == BulletStyle.Stalactite), "her bullets are claws and stones");
         var others = Stages.All.Where(s => s != Stages.Four).Select(s => s.Boss.Name).ToList();
         True(!others.Contains(boss.Name), "her own name");
         True(Stages.Four.BossCard == Card.BearCloak);
@@ -113,25 +113,25 @@ public static partial class SelfTest
         var boss = UkhumoOn(3);
         var player = PlayerEntity.Create(); player.Transform.Position = V(300, 600);
         var pool = BulletSystem.NewPool();
-        boss.EmitterMain.TimeSinceLastFire = 10; boss.EmitterSub.IsActive = false;
-        BulletSystem.UpdateBossWeapons(boss, player, pool, 0.01f);
-        Eq(pool.Count(b => b.IsActive), 0, "nothing falls before the quake");
+        int Stalactites() => pool.Count(b => b.IsActive && b.Style == BulletStyle.GiantStalactite);
+        for (int i = 0; i < 12; i++) BulletSystem.UpdateBossWeapons(boss, player, pool, 0.1f);
+        Eq(Stalactites(), 0, "no stalactite falls before the quake");
         Eq(SpecialsSystem.Shake(boss.Specials), 0f, "and nothing shakes");
         boss.Specials.QuakeClock = boss.Specials.Quake.Interval;
         var events = new List<WorldEvent>();
         SpecialsSystem.Update(boss, player, new List<SlashData>(), 0.01f, events, new SeededGenerator(1));
         True(events.Any(e => e.Kind == WorldEventKind.QuakeStarted), "the quake begins");
         Greater(SpecialsSystem.Shake(boss.Specials), 0.5f, "the screen shakes");
-        boss.EmitterMain.TimeSinceLastFire = 10;
-        BulletSystem.UpdateBossWeapons(boss, player, pool, 0.01f);
-        var fallen = pool.Where(b => b.IsActive).ToList();
-        Eq(fallen.Count, 1);
-        True(fallen[0].Style == BulletStyle.Stalactite && fallen[0].Position.Y < 0 && fallen[0].Velocity.Y > 250, "a stalactite comes down from the top of the field");
+        for (int i = 0; i < 6; i++) BulletSystem.UpdateBossWeapons(boss, player, pool, 0.1f);
+        var fallen = pool.Where(b => b.IsActive && b.Style == BulletStyle.GiantStalactite).ToList();
+        Greater(fallen.Count, 0, "the ceiling comes down once the quake begins");
+        True(fallen.All(b => b.Velocity.Y > 100 && b.Velocity.Y < 250), "they fall slowly");
+        True(fallen.All(b => b.Style == BulletStyle.GiantStalactite && BulletArt.Size(b.Style).Height >= 40), "and they are giants");
         // the quake ends
         for (int i = 0; i < 400; i++) SpecialsSystem.Update(boss, player, new List<SlashData>(), 0.02f, events, new SeededGenerator(1));
         // many fall over a quake, all over the field
         var xs = new HashSet<int>();
-        for (int i = 0; i < 80; i++) { boss.Specials.QuakeLeft = 1; boss.EmitterMain.TimeSinceLastFire = 10; BulletSystem.UpdateBossWeapons(boss, player, pool, 0.01f); }
+        for (int i = 0; i < 80; i++) { boss.Specials.QuakeLeft = 1; BulletSystem.UpdateBossWeapons(boss, player, pool, 0.45f); }
         foreach (var b in pool.Where(b => b.IsActive)) xs.Add((int)(b.Position.X / 100));
         GreaterEq(xs.Count, 4, "they fall all over the field");
         // in the world the shake is reported

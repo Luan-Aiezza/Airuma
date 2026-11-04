@@ -273,7 +273,7 @@ public partial class World
         Vector2 roarPush = Vector2.Zero;
         if (bossActive && Boss.MovementType != BossMovementType.Transition && Boss.Health.Lives > 0)
         {
-            roarPush = SpecialsSystem.Update(Boss, Player, Slashes, delta, _events, _cardRandom);
+            roarPush = SpecialsSystem.Update(Boss, Player, Slashes, delta, _events, _cardRandom, Bullets);
             Shake = SpecialsSystem.Shake(Boss.Specials);
         }
         else { Slashes.Clear(); Shake = 0; }

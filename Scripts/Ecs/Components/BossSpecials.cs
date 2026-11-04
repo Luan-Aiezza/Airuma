@@ -21,6 +21,8 @@ public struct SlashSpec
     /// <summary>The lean of the slashes from straight down, in degrees (positive: the bottom goes to the right).</summary>
     public float Angle;
     public SlashAim Aim;
+    /// <summary>After each cut, the line where it cut lets go of a trail of bullets that spread out.</summary>
+    public bool Trail;
 }
 
 public struct QuakeSpec
@@ -49,9 +51,14 @@ public struct SlashData
     /// <summary>The first of its volley (it is the one that makes the sound).</summary>
     public bool Leader;
     public bool Struck;
+    /// <summary>How long the line is (px): 1300 down the field; a cut from any direction is long enough to cross the whole field from wherever it passes through.</summary>
+    public float Len;
+    public bool Trail;
+    public bool Trailed;
 
+    public float TotalLength => Len > 0 ? Len : Length;
     public Vector2 Direction => new Vector2(MathF.Sin(Angle), MathF.Cos(Angle));
-    public Vector2 Bottom => Top + Direction * Length;
+    public Vector2 Bottom => Top + Direction * TotalLength;
     public const float Length = 1300;
     public bool Warning => Age < Telegraph;
     public bool Striking => Age >= Telegraph && Age < Telegraph + Strike;

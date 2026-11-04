@@ -17,6 +17,10 @@ public enum BulletStyle
     GiantRed, GiantBlue, GiantGold, GiantGreen, GiantViolet, GiantWhite,
     // little bolts of lightning (5 x 11), that point where they go
     BoltYellow, BoltBlue, BoltRed,
+    // a great boulder covered with moss (64 x 64: about three times the boat) and a great bite, a jaw with its teeth (24 x 24), that points where it goes
+    MossBoulder, Bite,
+    // a giant stalactite (16 x 40, a spike of 64 x 160 px), drawn with care, that points where it goes
+    GiantStalactite,
 }
 
 /// <summary>Dance: the bullet sways to one side and the other on a fixed beat (see BulletSystem.DanceBeat). Zigzag: it turns by its curve's degrees every fraction of a second, to one side and the other, like lightning. Constellation: it is a star that flies out, stops, hangs a while linked by thin lines to other stars, and then falls. Burst: a great stone that flies and, after a moment, breaks into a ring of small ones.</summary>
@@ -33,8 +37,8 @@ public enum BulletBehavior
     Polar,
 }
 
-/// <summary>Where a slash of the boss's claws is aimed: through the boat, at random, or alternating from one side to the other.</summary>
-public enum SlashAim { Player, Random, Alternate }
+/// <summary>Where a slash of the boss's claws is aimed: through the boat, at random, alternating from one side to the other, or from ANY direction (through the boat, at any angle).</summary>
+public enum SlashAim { Player, Random, Alternate, Anywhere }
 
 /// <summary>Shuttle: goes between the top left and the top right of the field, and rests a long while (10 seconds) at each before it goes back. Cross: fast legs across the field, diagonal and straight, with a rest at the end of each. Sweep: fires a great jet of water down the field while crossing it. Roam: glides about the field in every direction. Dive: sinks, travels unseen under the water (a shadow shows where) and leaps out.</summary>
 public enum BossMovementType { Patrol, Stationary, Dash, Transition, Roam, Dive, Sweep, Cross, Shuttle }

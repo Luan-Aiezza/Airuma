@@ -44,7 +44,7 @@ public partial class SlashEffect : Node2D
                 float u = s.Age / s.Telegraph;
                 float blink = 0.45f + 0.4f * MathF.Sin(_clock * (12 + 22 * u));
                 var warn = new Color(1f, 0.16f, 0.1f, Math.Clamp(blink * (0.5f + u), 0, 1));
-                for (float d = 0; d < SlashData.Length; d += 34) DrawLine(top + dir * d, top + dir * (d + 20), warn, 3 + 2 * u);
+                for (float d = 0; d < s.TotalLength; d += 34) DrawLine(top + dir * d, top + dir * (d + 20), warn, 3 + 2 * u);
                 foreach (int k in new[] { -1, 0, 1 }) DrawLine(top + dir * 40 + normal * (k * 9), top + dir * 62 + normal * (k * 9), new Color(1, 0.6f, 0.5f, warn.A), 3);
                 continue;
             }
@@ -54,7 +54,7 @@ public partial class SlashEffect : Node2D
             float half = s.Width / 2 * (0.4f + 0.6f * grow) * (t < s.Strike ? 1 : 0.35f + 0.65f * fade);
             // the jagged band: teeth on both edges
             var left = new List<Vector2>(); var right = new List<Vector2>();
-            int steps = (int)(SlashData.Length / 16);
+            int steps = (int)(s.TotalLength / 16);
             for (int i = 0; i <= steps; i++)
             {
                 var p = top + dir * (i * 16f);
