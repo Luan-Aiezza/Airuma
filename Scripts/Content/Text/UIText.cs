@@ -69,6 +69,7 @@ public static class UIText
     public static string Stage4Music => Loc.Get(nameof(Stage4Music));
     public static string Boss4Music => Loc.Get(nameof(Boss4Music));
     public static string Stage5Music => Loc.Get(nameof(Stage5Music));
+    public static string Boss6Music => Loc.Get(nameof(Boss6Music));
     public static string Boss5Music => Loc.Get(nameof(Boss5Music));
     public static string Stage6Music => Loc.Get(nameof(Stage6Music));
     public static string IntroHint => Loc.Get(nameof(IntroHint));

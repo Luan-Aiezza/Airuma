@@ -120,10 +120,10 @@ public static partial class SelfTest
         var player = new PlayerEntity();
         var pool = BulletSystem.NewPool();
         bool wasUnder = false, rose = false; var shadow = V(-1, -1);
-        for (int i = 0; i < 60 * 12 && !rose; i++)
+        for (int i = 0; i < 60 * 20 && !rose; i++)
         {
             // The boat moves a little at first, then stays: the shadow follows it and then stops.
-            var boat = i < 60 * 5 ? V(420, 520) : V(100, 300);
+            var boat = i < 60 * (MovementSystem.DiveSurfaceSeconds + 2) ? V(420, 520) : V(100, 300);
             MovementSystem.MoveBoss(boss, World.PlayArea, 1 / 60f, boat);
             if (boss.Dive.Submerged)
             {

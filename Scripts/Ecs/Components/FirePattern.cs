@@ -1,6 +1,7 @@
+using System;
 using Godot;
 
-public enum FirePatternKind { None, Aimed, Ring, Fan, Spiral }
+public enum FirePatternKind { None, Aimed, Ring, Fan, Spiral, Custom }
 
 /// <summary>How an enemy shoots, for as long as a ScheduledPattern lasts.</summary>
 public struct FirePattern
@@ -31,6 +32,10 @@ public struct FirePattern
     public FirePattern Zigzag(float curve) { var p = this; p.Behavior = BulletBehavior.Zigzag; p.Curve = curve; p.AlternateCurve = false; return p; }
     /// <summary>Bullets that dance (see <see cref="BulletBehavior.Dance"/>): they sway on the beat, and with `alternate` neighbours sway against each other.</summary>
     public FirePattern Dancing(float curve, bool alternate = true) { var p = this; p.Behavior = BulletBehavior.Dance; p.Curve = curve; p.AlternateCurve = alternate; return p; }
+
+    /// <summary>A figure of the library (<see cref="Pat"/>) fired from the spirit every `interval` seconds: the context says where the spirit is and where the boat is, and how many times it has fired.</summary>
+    public Action<PatternContext> Figure;
+    public static FirePattern Custom(float interval, Action<PatternContext> figure) => new FirePattern { Kind = FirePatternKind.Custom, Interval = interval, Figure = figure };
 
     public static FirePattern None => new FirePattern { Kind = FirePatternKind.None, Interval = 1 };
     /// <summary>A single bullet at the player.</summary>

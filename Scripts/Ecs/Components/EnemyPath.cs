@@ -1,6 +1,6 @@
 using Godot;
 
-public enum EnemyPathKind { Straight, Sine, Arc, Dive }
+public enum EnemyPathKind { Straight, Sine, Arc, Dive, SideSine }
 
 /// <summary>How an enemy moves. All of them start off-screen.</summary>
 public struct EnemyPath
@@ -18,6 +18,9 @@ public struct EnemyPath
     public float Hold;
     public Vector2 Exit;
 
+    /// <summary>Crosses the field level, in the direction of `velocity`, swaying up and down: the conga line that comes in from the side.</summary>
+    public static EnemyPath SideSine(Vector2 velocity, float amplitude, float frequency) =>
+        new EnemyPath { Kind = EnemyPathKind.SideSine, Velocity = velocity, Amplitude = amplitude, Frequency = frequency };
     /// <summary>A constant velocity.</summary>
     public static EnemyPath Straight(Vector2 velocity) => new EnemyPath { Kind = EnemyPathKind.Straight, Velocity = velocity };
     /// <summary>Moves down at speed, swaying from side to side.</summary>

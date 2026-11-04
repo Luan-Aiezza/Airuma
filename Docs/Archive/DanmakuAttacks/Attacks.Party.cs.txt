@@ -1,0 +1,94 @@
+using Godot;
+
+/// <summary>
+/// The attacks of the party (stage 2, Baylo, the dancing dolphin): confetti, balloons and streamers, all in the colours of a carnival, and every bullet that sways on the beat of half a second. They are
+/// the first attacks made of several patterns at once (two or three, later four): rings that turn against each other, fans, curtains and wheels, balloons that burst into rings, streams from the sides,
+/// and, from the water, bubbles that rise from below and fountains that fall in arcs.
+/// </summary>
+public static partial class Attacks
+{
+    private static readonly Shot Balloon = new Shot(BulletStyle.GiantRed, 90).Hitting(34);
+
+    /// <summary>Two rings that turn against each other, neighbours swaying against each other, while the dancer roams the field; a fan of streamers at the boat between the beats, and streamers from the sides.</summary>
+    public static BossPhase PartyTwoStep() => Attack("AttackDoubleStep", BossMovementType.Roam, Centre, patterns: new[]
+    {
+        Pat.Every(Pat.Beat, c =>
+        {
+            float a = c.Count * 11;
+            Pat.Ring(c, c.Origin, 14, a, new Shot(BulletStyle.OrbViolet, 130).Sized(0.9f));
+            Pat.Ring(c, c.Origin, 14, 13 - a, new Shot(BulletStyle.OrbCyan, 105).Sized(0.9f).Dancing(100), alternate: true);
+        }),
+        Pat.Every(Pat.Beat * 3, c => Pat.Aimed(c, c.Origin, 7, 64, new Shot(BulletStyle.RiceYellow, 235).Sized(0.9f))).After(Pat.Beat),
+        Pat.Every(Pat.Beat * 2, c =>
+        {
+            bool left = c.Count % 2 == 0;
+            Pat.Along(c, left ? Edge.Left : Edge.Right, 8, 0.04f, 0.6f, new Shot(Rices[c.Count % Rices.Length], 150).Sized(0.9f).Dancing(70), tilt: left ? 14 : -14);
+        }).After(Pat.Beat * 0.5f),
+    })
+        .Pressured(0.85f);
+
+    /// <summary>Confetti falls from the whole top of the field in every colour; aimed bursts of streamers, a serpentine of beads from the dancer, and now and then a balloon that bursts into a ring.</summary>
+    public static BossPhase ConfettiRain() => Attack("AttackConfettiRain", BossMovementType.Roam, Centre, patterns: new[]
+    {
+        Pat.Every(0.1f, c => Pat.Rain(c, Edge.Top, 3, 16, new Shot(Beads[c.Count % Beads.Length], 125).Sized(0.8f).Dancing(60))),
+        Pat.Every(Pat.Beat * 2, c => Pat.Aimed(c, c.Origin, 11, 100, new Shot(BulletStyle.RiceBlue, 215).Sized(0.9f).Dancing(80), alternate: true)),
+        Pat.Every(0.14f, c => Pat.Ring(c, c.Origin, 2, c.Count * 9f, new Shot(BulletStyle.BeadPink, 115).Sized(0.8f), scale: false)),
+        Pat.Every(Pat.Beat * 4, c =>
+        {
+            var at = Pat.EdgePoint(c, Edge.Top, PatternContext.Rand(0.12f, 0.88f));
+            c.Fire(at, 90 + PatternContext.Rand(-12, 12), new Shot(BulletStyle.GiantGold, 80).Hitting(34).Splitting(1.9f, 16, BulletStyle.OrbYellow, 105));
+        }).After(2).NotOnEasy(),
+    })
+        .Pressured(0.77f);
+
+    /// <summary>A turning wheel of petals that open as roses, thin counter-turning arms of orbs, balloons from the top corners that burst, and lines of beads that sway in from the sides.</summary>
+    public static BossPhase SambaWheel() => Attack("AttackSambaWheel", BossMovementType.Roam, Centre, patterns: new[]
+    {
+        Pat.Every(Pat.Beat, c => Pat.Rose(c, c.Origin, 6, 36, c.Count * (c.Count % 2 == 0 ? 9 : -9), 0.55f, new Shot(BulletStyle.LotusPetal, 130).Dancing(60))),
+        Pat.Every(0.1f, c => Pat.Ring(c, c.Origin, 2, -c.Count * 17f, new Shot(BulletStyle.OrbGreen, 150).Sized(0.8f), scale: false)),
+        Pat.Every(Pat.Beat * 3, c =>
+        {
+            bool left = c.Count % 2 == 0;
+            var at = Pat.EdgePoint(c, Edge.Top, left ? 0.08f : 0.92f);
+            c.Fire(at, left ? 65 : 115, Balloon.Styled(left ? BulletStyle.GiantRed : BulletStyle.GiantBlue).Splitting(1.7f, 18, BulletStyle.OrbYellow, 110));
+        }).After(1),
+        Pat.Every(Pat.Beat * 4, c => Pat.Along(c, c.Count % 2 == 0 ? Edge.Left : Edge.Right, 10, 0.05f, 0.75f, new Shot(BulletStyle.BeadCyan, 140).Sized(0.9f).Dancing(90), tilt: c.Count % 2 == 0 ? 8 : -8)).After(2).NotOnEasy(),
+    })
+        .Pressured(0.58f);
+
+    /// <summary>
+    /// The dolphin dives and a shadow lies under the boat, following it a while and then holding still; he comes out of the water at the shadow, with a fan of spray. While he is on the surface: rings that
+    /// sway, bubbles that rise from the bottom, a fountain from each lower corner that falls in arcs, and (hard) a three-way at the boat.
+    /// </summary>
+    public static BossPhase GreatLeap() => Attack("AttackDolphinLeap", BossMovementType.Dive, new Vector2(300, MovementSystem.DiveTopY), patterns: new[]
+    {
+        Pat.Every(Pat.Beat, c => Pat.Ring(c, c.Origin, 12, c.Count * 9f, new Shot(BulletStyle.OrbPink, 130).Dancing(90), alternate: true)),
+        Pat.Every(0.3f, c => Pat.Rain(c, Edge.Bottom, 3, 30, new Shot(BulletStyle.BeadCyan, 85).Sized(0.9f))),
+        Pat.Every(Pat.Beat * 5, c =>
+        {
+            Pat.Arc(c, new Vector2(c.Left, c.Bottom + 14), 9, -62, 36, new Shot(BulletStyle.BeadBlue, 430).Pulled(new Vector2(0, 260)));
+            Pat.Arc(c, new Vector2(c.Right, c.Bottom + 14), 9, -118, 36, new Shot(BulletStyle.BeadBlue, 430).Pulled(new Vector2(0, 260)));
+        }).After(1),
+        Pat.Every(1.0f, c => Pat.Aimed(c, c.Origin, 3, 30, new Shot(BulletStyle.OrbGreen, 260).Sized(0.8f))).OnlyOnHard(),
+    })
+        .With(1.35f,
+            TopRain(0.12f, 3, BulletStyle.BeadYellow, 120),
+            SideRain(0.15f, 2, BulletStyle.BeadPink, 150));
+
+    /// <summary>
+    /// A great, wide jet of water, swept across the field from one edge to the other and back. The boss crosses the field; behind it, curtains of water drops with a gap that swings, a fountain from
+    /// each lower corner, balloons of water at the boat that burst into rings, and streams from the sides.
+    /// </summary>
+    public static BossPhase WaterJet() => Attack("AttackPartyWave", BossMovementType.Sweep, new Vector2(300, MovementSystem.SweepY), patterns: new[]
+    {
+        Pat.Every(0.6f, c => Pat.Wall(c, Edge.Top, 26, 0.5f + 0.34f * Pat.Triangle(c.Time, 9), 135, new Shot(BulletStyle.OrbBlue, 115).Sized(0.9f))),
+        Pat.Every(Pat.Beat * 4, c =>
+        {
+            Pat.Arc(c, new Vector2(c.Left, c.Bottom + 14), 11, -62, 44, new Shot(BulletStyle.BeadCyan, 440).Pulled(new Vector2(0, 260)));
+            Pat.Arc(c, new Vector2(c.Right, c.Bottom + 14), 11, -118, 44, new Shot(BulletStyle.BeadCyan, 440).Pulled(new Vector2(0, 260)));
+        }).After(1),
+        Pat.Every(Pat.Beat * 3, c => c.Fire(c.Origin, c.Aim, new Shot(BulletStyle.GiantBlue, 95).Hitting(34).Splitting(1.4f, 14, BulletStyle.OrbCyan, 120))).After(2),
+        Pat.Every(Pat.Beat * 2, c => Pat.Along(c, c.Count % 2 == 0 ? Edge.Left : Edge.Right, 7, 0.1f, 0.6f, new Shot(BulletStyle.RiceCyan, 160).Dancing(70), tilt: c.Count % 2 == 0 ? 12 : -12)).NotOnEasy(),
+    })
+        .Pressured(1.00f);
+}

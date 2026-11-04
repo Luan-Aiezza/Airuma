@@ -1,0 +1,142 @@
+using Godot;
+
+/// <summary>
+/// The attacks of the cave (stage 4, Ukhumo, the hungry bear girl, who never leaves the rock platform where she is trapped: she cannot swim). They are the attacks of an animal, of claws and of brute force,
+/// and each is different from the others in what it asks of the player, not only in its bullets:
+///   the claws        slashes cut down the field, warned of by a thin line (<see cref="SlashSpec"/>), and combs of claw marks sweep in from the sides;
+///   the roar         she roars and the boat is pushed away from her, into the bullets (<see cref="RoarSpec"/>);
+///   the quake        she stamps, the whole screen shakes and stalactites fall from the ceiling in crowds (<see cref="QuakeSpec"/>);
+///   the boulder      a great stone is thrown that breaks in the air into a ring of small ones.
+/// Each is three to five patterns at once, with the specials on top of them.
+/// </summary>
+public static partial class Attacks
+{
+    private static Shot Claws(float speed) => new Shot(BulletStyle.Claw, speed);
+    private static Shot Drip(float speed) => new Shot(BulletStyle.Stalactite, speed).Sized(1.3f);
+    private static Shot Boulder(float speed, float fuse, int pieces) => new Shot(BulletStyle.Rock, speed).Zoomed(3f).Hitting(26).Splitting(fuse, pieces, BulletStyle.Rock, 150, childScale: 0.8f);
+    private static Shot Ice(float speed) => new Shot(BulletStyle.BeadCyan, speed).Sized(0.9f);
+
+    /// <summary>Three red slashes cut down the field, each warned of by a thin line; fans of claw marks fly at the boat, combs of claw marks sweep in slanting from the sides, stalactites drip from the ceiling, and rings of stones.</summary>
+    public static BossPhase ClawRake() => Attack("AttackClawRake", BossMovementType.Stationary, Centre,
+        slashes: new SlashSpec { IsActive = true, Interval = 2.6f, Telegraph = 0.95f, Strike = 0.22f, Width = 34, Spacing = 125, Count = 3, Angle = 0, Aim = SlashAim.Player },
+        patterns: new[]
+        {
+            Pat.Every(1.4f, c => Pat.Aimed(c, c.Origin, 9, 64, Claws(190))),
+            Pat.Every(1.3f, c =>
+            {
+                bool left = c.Count % 2 == 0;
+                Pat.Comb(c, new Vector2(left ? c.Left - 14 : c.Right + 14, PatternContext.Rand(60, 380)), left ? 28 : 152, 11, 30, Claws(205));
+            }).After(0.5f),
+            Pat.Every(0.12f, c => Pat.Rain(c, Edge.Top, 3, 6, Drip(300))),
+            Pat.Every(1.9f, c => Pat.Ring(c, c.Origin, 30, c.Count * 9f, new Shot(BulletStyle.Rock, 105).Sized(0.8f))).After(1),
+            Pat.Every(0.12f, c => Pat.Rain(c, Edge.Top, 2, 8, Ice(160))),
+            Pat.Every(2.2f, c => Pat.Rose(c, c.Origin, 8, 40, c.Count * 10f, 0.5f, new Shot(BulletStyle.OrbOrange, 115).Sized(0.9f))).After(1.2f),
+        })
+            .With(0.93f,
+                TopRain(0.1f, 3, BulletStyle.BeadCyan, 150));
+
+    /// <summary>The roar: every few seconds she roars and the boat is thrown back from her, into rings of claw marks, windmills of fire, the stones she flings and the drip of the roof.</summary>
+    public static BossPhase RoarOfTheMountain() => Attack("AttackRoar", BossMovementType.Stationary, Centre,
+        roar: new RoarSpec { IsActive = true, Interval = 3.6f, Push = 240, Seconds = 0.55f },
+        patterns: new[]
+        {
+            Pat.Every(1.5f, c => Pat.Ring(c, c.Origin, 24, c.Count * 7.5f, Claws(125))),
+            Pat.Every(1.1f, c => Pat.Aimed(c, c.Origin, 1, 0, new Shot(BulletStyle.Rock, 215).Sized(1.1f), scale: false)),
+            Pat.Every(2.4f, c => Pat.Spokes(c, c.Origin, 5, 4, c.Count * 14f, 24, new Shot(BulletStyle.OrbOrange, 95).Sized(0.9f))).After(0.6f),
+            Pat.Every(0.22f, c => Pat.Rain(c, Edge.Top, 2, 8, Ice(170))),
+            Pat.Every(3.0f, c => Pat.Comb(c, new Vector2(c.MiddleX, -14), 90, 9, 62, Claws(150), ripple: 0.05f)).After(2).NotOnEasy(),
+        })
+            .With(1.31f,
+                TopRain(0.1f, 3, BulletStyle.BeadCyan, 150),
+                SideRain(0.12f, 2, BulletStyle.BeadWhite, 170),
+                Pat.Every(0.1f, c => Pat.Rain(c, Edge.Top, 2, 6, Drip(300))));
+
+    /// <summary>The stamp: she strikes the ground, the whole screen shakes for a few seconds and stalactites fall from the ceiling in crowds; between the quakes, stones at the boat, roses of ice, and great stones from the roof.</summary>
+    public static BossPhase Stomp() => Attack("AttackStomp", BossMovementType.Stationary, Centre,
+        quake: new QuakeSpec { IsActive = true, Interval = 3.2f, Duration = 3.4f, Intensity = 1f },
+        patterns: new[]
+        {
+            Pat.Every(0.09f, c => Pat.Rain(c, Edge.Top, 3, 5, Drip(330))).OnQuake(),
+            Pat.Every(1.0f, c => Pat.Aimed(c, c.Origin, 1, 0, new Shot(BulletStyle.Rock, 190), scale: false)),
+            Pat.Every(1.8f, c => Pat.Rose(c, c.Origin, 8, 32, c.Count * 11f, 0.5f, Ice(120))),
+            Pat.Every(3.4f, c => c.Fire(Pat.EdgePoint(c, Edge.Top, PatternContext.Rand(0.15f, 0.85f)), 90, Boulder(130, 1.5f, 14))).After(1.5f),
+            Pat.Every(2.6f, c => Pat.Spokes(c, c.Origin, 6, 3, c.Count * -12f, 26, new Shot(BulletStyle.OrbOrange, 100).Sized(0.9f))).After(1).NotOnEasy(),
+        })
+            .With(1.36f,
+                TopRain(0.1f, 3, BulletStyle.BeadCyan, 150),
+                SideRain(0.12f, 2, BulletStyle.BeadWhite, 170),
+                Pat.Every(0.16f, c => Pat.Rain(c, Edge.Top, 2, 6, Drip(300))));
+
+    /// <summary>Brute force: she throws great stones at the boat that break in the air into rings of small ones; now and then a single heavy claw comes down, combs of claw marks from the sides, and a slow ring of stones turns.</summary>
+    public static BossPhase BruteForce() => Attack("AttackBruteForce", BossMovementType.Stationary, Centre,
+        slashes: new SlashSpec { IsActive = true, Interval = 3.8f, Telegraph = 1.0f, Strike = 0.25f, Width = 46, Spacing = 0, Count = 1, Angle = 0, Aim = SlashAim.Player },
+        patterns: new[]
+        {
+            Pat.Every(2.3f, c => c.Fire(c.Origin, c.Aim, Boulder(185, 1.3f, 16))),
+            Pat.Every(2.0f, c => Pat.Comb(c, new Vector2(c.Count % 2 == 0 ? c.Left - 14 : c.Right + 14, PatternContext.Rand(80, 300)), c.Count % 2 == 0 ? 25 : 155, 8, 34, Claws(200))).After(1),
+            Pat.Every(0.5f, c => Pat.Ring(c, c.Origin, 2, c.Count * 13f, new Shot(BulletStyle.Rock, 100).Sized(0.8f), scale: false)),
+            Pat.Every(0.25f, c => Pat.Rain(c, Edge.Top, 2, 6, Drip(280))),
+        })
+            .With(1.17f,
+                TopRain(0.1f, 3, BulletStyle.BeadCyan, 150),
+                SideRain(0.1f, 2, BulletStyle.BeadWhite, 170),
+                Pat.Every(1.7f, c => Pat.Rose(c, c.Origin, 8, 40, c.Count * 12f, 0.5f, new Shot(BulletStyle.OrbOrange, 115).Sized(0.9f))).After(1),
+                Pat.Every(2.6f, c => Pat.Spokes(c, c.Origin, 6, 4, c.Count * 13f, 24, new Shot(BulletStyle.OrbOrange, 100).Sized(0.9f))).After(1.5f),
+            Pat.Every(0.35f, c => Pat.Rain(c, Edge.Bottom, 2, 8, Drip(190))));
+
+    /// <summary>Fury, the claws crossed: the cuts come on the slant, three at a time, from one side and then from the other, quicker, over wide fans of claw marks and two combs that cross from the top corners.</summary>
+    public static BossPhase CrossingClaws() => Attack("AttackCrossingClaws", BossMovementType.Stationary, Centre,
+        slashes: new SlashSpec { IsActive = true, Interval = 1.8f, Telegraph = 0.8f, Strike = 0.2f, Width = 30, Spacing = 105, Count = 3, Angle = 30, Aim = SlashAim.Alternate },
+        patterns: new[]
+        {
+            Pat.Every(2.0f, c => Pat.Aimed(c, c.Origin, 9, 70, Claws(230))),
+            Pat.Every(2.4f, c =>
+            {
+                Pat.Comb(c, new Vector2(c.Left + 20, -14), 62, 8, 34, Claws(190));
+                Pat.Comb(c, new Vector2(c.Right - 20, -14), 118, 8, 34, Claws(190));
+            }).After(0.5f),
+            Pat.Every(0.18f, c => Pat.Rain(c, Edge.Top, 2, 8, Drip(330))),
+            Pat.Every(2.2f, c => Pat.Ring(c, c.Origin, 20, c.Count * 8f, new Shot(BulletStyle.Rock, 115).Sized(0.8f))).After(1),
+            Pat.Every(3.0f, c => Pat.Rose(c, c.Origin, 8, 40, c.Count * 9f, 0.5f, new Shot(BulletStyle.OrbOrange, 120).Sized(0.9f))).After(1.5f),
+        })
+            .With(1.51f,
+                TopRain(0.1f, 3, BulletStyle.BeadCyan, 150),
+                SideRain(0.12f, 2, BulletStyle.BeadWhite, 170));
+
+    /// <summary>Fury, the cave comes down: the screen shakes almost without a pause, stalactites fall in a crowd and great stones fall that break in a ring, hexagons of fire are laid out and let go, and now and then a roar throws the boat back.</summary>
+    public static BossPhase CaveIn() => Attack("AttackCaveIn", BossMovementType.Stationary, Centre,
+        quake: new QuakeSpec { IsActive = true, Interval = 1.0f, Duration = 4.4f, Intensity = 1.4f },
+        roar: new RoarSpec { IsActive = true, Interval = 5.0f, Push = 210, Seconds = 0.5f },
+        patterns: new[]
+        {
+            Pat.Every(0.07f, c => Pat.Rain(c, Edge.Top, 4, 5, Drip(360))).OnQuake(),
+            Pat.Every(0.55f, c => c.Fire(Pat.EdgePoint(c, Edge.Top, PatternContext.Rand(0.1f, 0.9f)), 90, Boulder(200, 1.3f, 12))).OnQuake(),
+            Pat.Every(2.6f, c => Pat.Polygon(c, c.Origin, 6, 70, c.Count * 17f, 3, new Shot(BulletStyle.OrbOrange, 1).Sized(0.9f).LaunchedOut(0.6f, 170))).After(1),
+            Pat.Every(1.6f, c => Pat.Aimed(c, c.Origin, 5, 40, Claws(220))),
+            Pat.Every(0.9f, c => Pat.Ring(c, c.Origin, 2, c.Count * 17f, Ice(120), scale: false)),
+        })
+            .With(1.29f,
+                TopRain(0.1f, 3, BulletStyle.BeadCyan, 150),
+                SideRain(0.12f, 2, BulletStyle.BeadWhite, 170),
+                Pat.Every(0.25f, c => Pat.Rain(c, Edge.Top, 2, 6, Drip(300))),
+            Pat.Every(0.35f, c => Pat.Rain(c, Edge.Bottom, 2, 8, Drip(190))));
+
+    /// <summary>Fury, the feast: everything at once. Great stones that break, rings and windmills, combs from every side, hexagons of fire, short quakes, four slanting cuts at a time and a roar.</summary>
+    public static BossPhase Feast() => Attack("AttackFeast", BossMovementType.Stationary, Centre,
+        slashes: new SlashSpec { IsActive = true, Interval = 2.3f, Telegraph = 0.85f, Strike = 0.22f, Width = 30, Spacing = 95, Count = 4, Angle = 12, Aim = SlashAim.Alternate },
+        quake: new QuakeSpec { IsActive = true, Interval = 4.5f, Duration = 2.2f, Intensity = 1.1f },
+        roar: new RoarSpec { IsActive = true, Interval = 7.0f, Push = 220, Seconds = 0.5f },
+        patterns: new[]
+        {
+            Pat.Every(2.8f, c => c.Fire(c.Origin, c.Aim, Boulder(195, 1.3f, 18))),
+            Pat.Every(2.2f, c => Pat.Ring(c, c.Origin, 20, c.Count * 9f, Claws(140))),
+            Pat.Every(2.4f, c => Pat.Spokes(c, c.Origin, 6, 4, c.Count * 13f, 24, new Shot(BulletStyle.OrbOrange, 95).Sized(0.9f))).After(0.8f),
+            Pat.Every(2.2f, c => Pat.Comb(c, new Vector2(c.Count % 2 == 0 ? c.Left - 14 : c.Right + 14, PatternContext.Rand(70, 320)), c.Count % 2 == 0 ? 28 : 152, 8, 32, Claws(205))).After(1.2f),
+            Pat.Every(0.1f, c => Pat.Rain(c, Edge.Top, 3, 6, Drip(340))).OnQuake(),
+            Pat.Every(3.2f, c => Pat.Star(c, c.Origin, 5, 2, 90, c.Count * 21f, 4, new Shot(BulletStyle.BeadCyan, 1).Sized(0.9f).LaunchedOut(0.7f, 160))).After(1.5f),
+        })
+            .With(1.68f,
+                TopRain(0.1f, 3, BulletStyle.BeadCyan, 150),
+                SideRain(0.12f, 2, BulletStyle.BeadWhite, 170),
+            Pat.Every(0.35f, c => Pat.Rain(c, Edge.Bottom, 2, 8, Drip(190))));
+}

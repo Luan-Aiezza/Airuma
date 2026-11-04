@@ -22,7 +22,7 @@ public partial class DiveVisuals : Node2D
         AddChild(_ring);
     }
 
-    /// <summary>A soft dark disc, `size` px across, for the shadow under the boat.</summary>
+    /// <summary>A soft red disc, `size` px across, that marks where the boss will come out of the water.</summary>
     private static ImageTexture MakeShadowTexture(int size)
     {
         var img = Image.CreateEmpty(size, size, false, Image.Format.Rgba8);
@@ -31,7 +31,7 @@ public partial class DiveVisuals : Node2D
             {
                 float dx = (x + 0.5f - size / 2f) / (size / 2f), dy = (y + 0.5f - size / 2f) / (size / 2f);
                 float d = MathF.Sqrt(dx * dx + dy * dy);
-                img.SetPixel(x, y, new Color(0.02f, 0.05f, 0.12f, d >= 1 ? 0 : 0.85f * Mathf.Clamp((1 - d) * 3, 0, 1)));
+                img.SetPixel(x, y, new Color(0.92f, 0.08f, 0.1f, d >= 1 ? 0 : 0.7f * Mathf.Clamp((1 - d) * 3, 0, 1) * (0.55f + 0.45f * d)));
             }
         return ImageTexture.CreateFromImage(img);
     }
@@ -77,10 +77,19 @@ public partial class DiveVisuals : Node2D
         bool shadow = diving && boss.Dive.State == DiveState.Under;
         _shadow.Visible = shadow;
         if (!shadow) return;
+        // the warning: a red ring that closes on the spot again and again, quicker as the moment comes
+        float tt = Mathf.Clamp(boss.Dive.Clock / MovementSystem.DiveUnderSeconds, 0, 1);
+        float cycle = (_clock * (1.4f + 2.2f * tt)) % 1f;
+        _ring.Visible = true;
+        _ring.Position = Point(new Vector2(boss.Dive.ExitX, boss.Dive.ExitY));
+        _ring.Scale = Vector2.One * (5.4f - 3.6f * cycle) * (boss.Hitbox.Radius / 37f);
+        _ring.Modulate = new Color(1f, 0.15f, 0.15f, 0.25f + 0.65f * cycle);
         float t = Mathf.Clamp(boss.Dive.Clock / MovementSystem.DiveUnderSeconds, 0, 1);
-        float pulse = 1 + 0.06f * MathF.Sin(_clock * 18);
+        // a red mark, big and beating (the beat quickens as he is about to come out)
+        float beat = 0.5f + 0.5f * MathF.Sin(_clock * (7 + 11 * t));
+        float pulse = 1 + 0.22f * beat;
         _shadow.Position = Point(new Vector2(boss.Dive.ExitX, boss.Dive.ExitY));
-        _shadow.Scale = Vector2.One * (0.55f + 0.5f * t) * pulse * (boss.Hitbox.Radius / 37f);
-        _shadow.Modulate = new Color(1, 1, 1, 0.4f + 0.6f * t);
+        _shadow.Scale = Vector2.One * (1.15f + 0.6f * t) * pulse * (boss.Hitbox.Radius / 37f) * 2f;
+        _shadow.Modulate = new Color(1, 1, 1, 0.5f + 0.5f * beat * (0.6f + 0.4f * t));
     }
 }

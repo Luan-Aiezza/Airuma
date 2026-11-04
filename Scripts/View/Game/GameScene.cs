@@ -70,6 +70,8 @@ public partial class GameScene : Node2D
     private readonly List<Sprite2D> _bulletNodes = new();
     private readonly Dictionary<BulletStyle, Texture2D[]> _bulletFrames = new();
     private readonly Dictionary<BulletStyle, Vector2> _bulletScale = new();
+    private readonly int[] _bulletKey = new int[BulletSystem.PoolSize];
+    private readonly bool[] _bulletRotates = new bool[Enum.GetValues<BulletStyle>().Length];
 
     private readonly GameHud _hud;   // each stage has its own HUD, after its boss
     private readonly PauseMenu _pause;

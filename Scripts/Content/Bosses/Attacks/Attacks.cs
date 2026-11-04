@@ -10,8 +10,8 @@ public static partial class Attacks
 {
     private static readonly Vector2 Centre = new Vector2(300, Layout.BossY);
 
-    private static BossPhase Attack(string nameKey, BossMovementType movement, Vector2 target, BulletEmitterComponent main, BulletEmitterComponent sub = default,
+    private static BossPhase Attack(string nameKey, BossMovementType movement, Vector2 target, BulletEmitterComponent main = default, BulletEmitterComponent sub = default,
                                     BulletEmitterComponent hardExtra = default, bool startsAtTarget = false, bool embersOneStepDown = false,
-                                    SlashSpec slashes = default, QuakeSpec quake = default, RoarSpec roar = default, BossMovementType twinMovement = BossMovementType.Stationary, Vector2? twinTarget = null, bool fused = false, bool dance = false) =>
-        new BossPhase { AttackNameKey = nameKey, Movement = movement, Target = target, StartsAtTarget = startsAtTarget, Main = main, Sub = sub, HardExtra = hardExtra, EmbersOneStepDown = embersOneStepDown, Slashes = slashes, Quake = quake, Roar = roar, TwinMovement = twinMovement, TwinTarget = twinTarget ?? new Vector2(600 - target.X, target.Y), Fused = fused, Dance = dance };
+                                    SlashSpec slashes = default, QuakeSpec quake = default, RoarSpec roar = default, BossMovementType twinMovement = BossMovementType.Stationary, Vector2? twinTarget = null, bool fused = false, bool dance = false, PatternSpec[] patterns = null, float pressure = 1) =>
+        new BossPhase { AttackNameKey = nameKey, Movement = movement, Target = target, StartsAtTarget = startsAtTarget, Main = main, Sub = sub, HardExtra = hardExtra, EmbersOneStepDown = embersOneStepDown, Slashes = slashes, Quake = quake, Roar = roar, TwinMovement = twinMovement, TwinTarget = twinTarget ?? new Vector2(600 - target.X, target.Y), Fused = fused, Dance = dance, Pressure = pressure, Patterns = new System.Collections.Generic.List<PatternSpec>(patterns ?? System.Array.Empty<PatternSpec>()) };
 }

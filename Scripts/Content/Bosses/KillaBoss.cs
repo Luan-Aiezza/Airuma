@@ -7,7 +7,7 @@ public static class KillaBoss
 {
     public const string NameKey = "KillaName";
 
-    private static readonly BossBuilder Builder = new BossBuilder(NameKey, 32, BossStyles.Killa, health: 420, enragedHealth: 680);
+    private static readonly BossBuilder Builder = new BossBuilder(NameKey, 32, BossStyles.Killa, health: 420, enragedHealth: 680, theme: MusicPlayer.Theme.CosmicBoss, themeTitleKey: nameof(UIText.Boss6Music));
 
     /// <summary>Where her position is when her skirt touches the horizon of the water: she stands exactly under its line.</summary>
     public static readonly float StandY = Layout.Horizon - BossStyles.Killa.Waterline;
@@ -30,8 +30,12 @@ public static class KillaBoss
             Builder.Calm(Grounded(Attacks.ZigzagLightning())),
             Builder.Calm(Grounded(Attacks.FineWeave())),
             Builder.Calm(Grounded(Attacks.HailCurtain())),
+            Builder.Calm(Grounded(Attacks.KillaCrescent())),
+            Builder.Calm(Grounded(Attacks.KillaTide())),
             Builder.Enraged(Grounded(Attacks.SkyFalls())),
-            Builder.Enraged(Grounded(Attacks.Eclipse())));
+            Builder.Enraged(Grounded(Attacks.Eclipse())),
+            Builder.Enraged(Grounded(Attacks.KillaEclipse())),
+            Builder.Enraged(Grounded(Attacks.KillaEternalNight())));
         definition.StandY = StandY;
         return definition;
     }

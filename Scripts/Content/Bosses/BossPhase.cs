@@ -42,6 +42,13 @@ public sealed class BossPhase
     /// <summary>The bullets: the main emitter, and a second one for the attacks that weave two patterns together.</summary>
     public BulletEmitterComponent Main;
     public BulletEmitterComponent Sub;
+    /// <summary>The patterns of the figures: any number of them fire at once (the later bosses throw three, four, five or six together). They are besides Main and Sub.</summary>
+    public System.Collections.Generic.List<PatternSpec> Patterns = new();
+    /// <summary>The attack made heavier or lighter than its patterns are written (see <see cref="PatternContext.Pressure"/>).</summary>
+    public float Pressure = 1;
+    /// <summary>How much faster than written the bullets of the attack fly (set by the boss: see <see cref="BossBuilder"/>).</summary>
+    public float SpeedFactor = 1;
+
     /// <summary>On hard difficulty, a second pattern woven into an attack that has no <see cref="Sub"/>; unused if not active.</summary>
     public BulletEmitterComponent HardExtra;
 

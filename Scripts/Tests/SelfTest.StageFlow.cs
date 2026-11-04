@@ -191,7 +191,7 @@ public static partial class SelfTest
         Eq(stage.Boss.Lives, 4, "four attacks");
         True(!stage.Boss.PhaseFor(4).Enraged && !stage.Boss.PhaseFor(3).Enraged, "the first two attacks are calm");
         True(stage.Boss.PhaseFor(2).Enraged && stage.Boss.PhaseFor(1).Enraged, "the last two are enraged");
-        True(stage.Boss.PhaseFor(2).Theme != stage.Boss.PhaseFor(3).Theme, "the music changes when she is enraged");
+        True(stage.Boss.PhaseFor(2).Theme == stage.Boss.PhaseFor(3).Theme, "one song for the whole fight");
         Eq(stage.Boss.AttackName(4), Loc.Get("AttackRingOfEmbers"), "the first attack");
         Eq(stage.Boss.AttackName(3), Loc.Get("AttackBlazingBloom"), "the homing lotus");
         Eq(new World(withCards: false).StartingBossLives, 4);

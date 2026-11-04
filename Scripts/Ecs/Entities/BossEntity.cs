@@ -46,6 +46,10 @@ public class BossEntity
     /// <summary>What the attack in progress does besides firing: slashes, a quake, a roar.</summary>
     public BossSpecials Specials = new BossSpecials();
 
+    /// <summary>The patterns of the attack in progress (see <see cref="PatternSpec"/>), each with its clock.</summary>
+    public PatternRun[] Patterns = System.Array.Empty<PatternRun>();
+    public float PatternPressure = 1, PatternSpeed = 1;
+
     public BulletEmitterComponent EmitterMain = new BulletEmitterComponent();
     public BulletEmitterComponent EmitterSub = new BulletEmitterComponent();
 }

@@ -1,0 +1,162 @@
+using Godot;
+
+/// <summary>
+/// The attacks of the waterfall (stage 5, Kuychu, the guardian between the two worlds): the great two-headed serpent of the rivers, the rainbow and the earthquake. The boss is two persons who share one life
+/// (the one on the left is the boss itself, the one on the right is its twin, see <see cref="BossDefinition.HasTwin"/>); in the first half each fires from where it stands, they take turns to roam the
+/// whole screen while the other stays parked at the top (<see cref="TwinDance"/>); in the second half they are one body that fires from its two halves. The rainbow is the bullets in the seven colours, as
+/// arms of a galaxy, as fans and as rain; the water of the rivers comes as walls (<see cref="SlashSpec"/>, level ones from the side); the earth shakes when it moves under the border (<see cref="QuakeSpec"/>).
+/// Four and five patterns at once.
+/// </summary>
+public static partial class Attacks
+{
+    private static readonly Vector2 LeftSide = new Vector2(170, Layout.BossY), RightSide = new Vector2(430, Layout.BossY);
+
+    private static Shot Arc7(float speed) => new Shot(BulletStyle.OrbRed, speed).Sized(0.95f);
+    private static Shot RainDrop(float speed) => new Shot(BulletStyle.BeadBlue, speed).Sized(0.9f);
+
+    /// <summary>The left person fires and then the right one answers, never together: fans of orbs at the boat, thin spirals of rice from each head, a rain of the seven colours from the whole sky, and wavy walls from the sides.</summary>
+    public static BossPhase TwoHeads() => Attack("AttackTwoHeads", BossMovementType.Stationary, LeftSide, dance: true, patterns: new[]
+    {
+        Pat.Every(1.6f, c => Pat.Aimed(c, c.Origin, 7, 56, new Shot(BulletStyle.OrbGreen, 215))),
+        Pat.Every(1.6f, c => Pat.Aimed(c, c.Origin, 7, 56, new Shot(BulletStyle.OrbRed, 215))).Twin().After(0.8f),
+        Pat.Every(0.16f, c => Pat.Ring(c, c.Origin, 2, c.Count * 8f, new Shot(BulletStyle.RiceGreen, 120), scale: false)),
+        Pat.Every(0.16f, c => Pat.Ring(c, c.Origin, 2, c.Count * -8f, new Shot(BulletStyle.RiceViolet, 120), scale: false)).Twin(),
+        Pat.Every(0.13f, c => Pat.Rain(c, Edge.Top, 2, 10, new Shot(RainbowBeads[c.Count % 7], 125).Sized(0.8f))).After(1),
+        Pat.Every(2.4f, c => Pat.Wall(c, c.Count % 2 == 0 ? Edge.Left : Edge.Right, 14, 0.62f + 0.2f * Pat.Triangle(c.Time, 7), 150, new Shot(BulletStyle.OrbCyan, 130).Sized(0.9f))).After(1.2f).NotOnEasy(),
+    })
+        .With(1.78f,
+            SideRain(0.15f, 2, BulletStyle.BeadWhite, 160))
+        .Plus(TopRain(0.12f, 2, BulletStyle.BeadCyan, 150),
+            SideRain(0.14f, 2, BulletStyle.BeadYellow, 165),
+            Pat.Every(1.8f, c => Pat.Aimed(c, c.Origin, 5, 40, new Shot(BulletStyle.KunaiGreen, 240))).After(0.7f).NotOnEasy());
+
+    /// <summary>The rainbow: from each of the two, seven arms of bullets in the seven colours, turning in opposite senses, bend as they go in great arcs that cross in the middle, over fans of rice and a roof of rain.</summary>
+    public static BossPhase SevenArcs() => Attack("AttackSevenArcs", BossMovementType.Stationary, LeftSide, dance: true, patterns: new[]
+    {
+        Pat.Every(0.24f, c => Pat.Ring(c, c.Origin, 7, c.Count * 3.4f, Arc7(150).Curving(32), RainbowOrbs)),
+        Pat.Every(0.24f, c => Pat.Ring(c, c.Origin, 7, c.Count * -3.4f, Arc7(150).Curving(-32), RainbowOrbs)).Twin(),
+        Pat.Every(1.8f, c => Pat.Aimed(c, c.Origin, 5, 36, new Shot(BulletStyle.RiceBlue, 230))).After(0.4f),
+        Pat.Every(1.8f, c => Pat.Aimed(c, c.Origin, 5, 36, new Shot(BulletStyle.RiceYellow, 230))).Twin().After(1.3f),
+        Pat.Every(0.12f, c => Pat.Rain(c, Edge.Top, 2, 8, new Shot(RainbowBeads[c.Count % 7], 135).Sized(0.8f))).After(2),
+    })
+        .Pressured(2.08f)
+        .Plus(TopRain(0.12f, 2, BulletStyle.BeadCyan, 150),
+            SideRain(0.14f, 2, BulletStyle.BeadYellow, 165),
+            Pat.Every(1.8f, c => Pat.Aimed(c, c.Origin, 5, 40, new Shot(BulletStyle.KunaiGreen, 240))).After(0.7f).NotOnEasy())
+        .Pressured(1.56f);
+
+    /// <summary>The earthquake: the border shakes, the screen with it, and drops of the falls come down from above in a crowd (the left one stamps) while great green boulders fall and burst; between the tremors, fans at the boat from the right one and windmills of the seven colours.</summary>
+    public static BossPhase BorderQuake() => Attack("AttackBorderQuake", BossMovementType.Stationary, LeftSide, dance: true,
+        quake: new QuakeSpec { IsActive = true, Interval = 3.0f, Duration = 3.6f, Intensity = 1f },
+        patterns: new[]
+        {
+            Pat.Every(0.09f, c => Pat.Rain(c, Edge.Top, 3, 5, RainDrop(310))).OnQuake(),
+            Pat.Every(0.8f, c => c.Fire(Pat.EdgePoint(c, Edge.Top, PatternContext.Rand(0.1f, 0.9f)), 90, new Shot(BulletStyle.GiantGreen, 150).Hitting(34).Splitting(1.5f, 14, BulletStyle.OrbGreen, 120))).OnQuake().NotOnEasy(),
+            Pat.Every(1.4f, c => Pat.Aimed(c, c.Origin, 5, 30, new Shot(BulletStyle.OrbViolet, 205))).Twin(),
+            Pat.Every(2.0f, c => Pat.Spokes(c, c.Origin, 7, 4, c.Count * 11f, 22, new Shot(RainbowOrbs[c.Count % 7], 95).Sized(0.9f))).After(0.5f),
+            Pat.Every(2.4f, c => Pat.Ring(c, c.Origin, 14, c.Count * 12f, new Shot(BulletStyle.BeadCyan, 95).Sized(0.9f))).Twin().After(1),
+        })
+            .With(1.35f,
+                RainbowRain(0.1f, 3, 150),
+                SideRain(0.12f, 2, BulletStyle.BeadWhite, 170),
+            Pat.Every(0.5f, c => Pat.Rain(c, Edge.Bottom, 3, 12, RainDrop(170))))
+        .Plus(TopRain(0.12f, 2, BulletStyle.BeadCyan, 150),
+            SideRain(0.14f, 2, BulletStyle.BeadYellow, 165),
+            Pat.Every(1.8f, c => Pat.Aimed(c, c.Origin, 5, 40, new Shot(BulletStyle.KunaiGreen, 240))).After(0.7f).NotOnEasy());
+
+    /// <summary>The tide: walls of water cross the field from the side, level, one above the other, each warned of by a line; the boat has to go up or down between them. Bands of drops follow the slashes, rings turn from the two heads, and fans of petals.</summary>
+    public static BossPhase Tide() => Attack("AttackTide", BossMovementType.Stationary, LeftSide, dance: true, twinTarget: RightSide,
+        slashes: new SlashSpec { IsActive = true, Interval = 2.7f, Telegraph = 1.1f, Strike = 0.45f, Width = 44, Spacing = 200, Count = 2, Angle = 84, Aim = SlashAim.Player },
+        patterns: new[]
+        {
+            Pat.Every(1.0f, c => Pat.Aimed(c, c.Origin, 3, 16, new Shot(BulletStyle.Wisp, 235).Sized(0.9f))),
+            Pat.Every(1.4f, c => Pat.Aimed(c, c.Origin, 3, 20, new Shot(BulletStyle.LotusPetal, 200).Sized(1.1f))).Twin(),
+            Pat.Every(1.3f, c => Pat.Wall(c, c.Count % 2 == 0 ? Edge.Left : Edge.Right, 20, 0.72f + 0.14f * Pat.Triangle(c.Time, 6), 130, new Shot(BulletStyle.OrbBlue, 140).Sized(0.9f))).After(0.5f),
+            Pat.Every(0.9f, c => Pat.Ring(c, c.Origin, 16, c.Count * 10f, new Shot(BulletStyle.OrbCyan, 110).Sized(0.9f))),
+            Pat.Every(0.9f, c => Pat.Ring(c, c.Origin, 16, c.Count * -10f, new Shot(BulletStyle.OrbViolet, 110).Sized(0.9f))).Twin().After(0.45f),
+        })
+        .With(1.28f,
+            RainbowRain(0.08f, 4, 150))
+        .Plus(TopRain(0.12f, 2, BulletStyle.BeadCyan, 150),
+            SideRain(0.14f, 2, BulletStyle.BeadYellow, 165),
+            Pat.Every(1.8f, c => Pat.Aimed(c, c.Origin, 5, 40, new Shot(BulletStyle.KunaiGreen, 240))).After(0.7f).NotOnEasy());
+
+    /// <summary>The trial of worth: the two fire together, face to face, rings of the seven colours that turn in opposite senses and cross in the middle in a lattice, pentagrams of beads laid out and let go, and a rain.</summary>
+    public static BossPhase Trial() => Attack("AttackTrial", BossMovementType.Stationary, LeftSide, dance: true, patterns: new[]
+    {
+        Pat.Every(0.75f, c => Pat.Ring(c, c.Origin, 16, c.Count * 7.5f, Arc7(130), RainbowOrbs)),
+        Pat.Every(0.75f, c => Pat.Ring(c, c.Origin, 16, c.Count * -7.5f, Arc7(130), RainbowOrbs)).Twin(),
+        Pat.Every(2.6f, c => Pat.Star(c, c.Origin, 5, 2, 70, c.Count * 19f, 4, new Shot(BulletStyle.BeadYellow, 1).LaunchedOut(0.7f, 150))).After(1),
+        Pat.Every(2.6f, c => Pat.Star(c, c.Origin, 5, 2, 70, c.Count * -19f, 4, new Shot(BulletStyle.BeadViolet, 1).LaunchedOut(0.7f, 150))).Twin().After(2.3f),
+        Pat.Every(0.12f, c => Pat.Rain(c, Edge.Top, 2, 8, new Shot(RainbowBeads[c.Count % 7], 130).Sized(0.8f))),
+        Pat.Every(1.5f, c => Pat.Aimed(c, c.Origin, 5, 40, new Shot(BulletStyle.KunaiBlue, 240))).NotOnEasy(),
+    })
+        .With(1.00f,
+            RainbowRain(0.1f, 3, 140),
+            Pat.Every(0.9f, c => Pat.Lattice(c, 60, c.Count * 8f, new Shot(BulletStyle.BeadWhite, 66).Sized(0.8f), new Shot(BulletStyle.BeadWhite, 66).Sized(0.8f), c.MiddleX + 150 * Pat.Wave(c.Time, 9), 520, 110)).After(1))
+        .Plus(TopRain(0.12f, 2, BulletStyle.BeadCyan, 150),
+            SideRain(0.14f, 2, BulletStyle.BeadYellow, 165),
+            Pat.Every(1.8f, c => Pat.Aimed(c, c.Origin, 5, 40, new Shot(BulletStyle.KunaiGreen, 240))).After(0.7f).NotOnEasy());
+
+    // From here the two are ONE (the second half of the fight): the second glides to the first and they fuse, and the one body that is left fires from the two halves of itself.
+    private static readonly Vector2 Fusion = new Vector2(300, Layout.BossY + 50);   // the fused body is big: lower, so that its head is clear of the boss bar
+    private static Vector2 LeftHalf(PatternContext c) => c.Origin + new Vector2(-34, 0);
+    private static Vector2 RightHalf(PatternContext c) => c.Origin + new Vector2(34, 0);
+
+    /// <summary>The broken rainbow (enraged, fused): the one body glides about the field while two galaxies of the seven colours, turning in opposite senses, spiral out of its halves, with jets of water cutting down the field, giant orbs, and a rain.</summary>
+    public static BossPhase BrokenRainbow() => Attack("AttackBrokenRainbow", BossMovementType.Roam, Fusion, fused: true,
+        slashes: new SlashSpec { IsActive = true, Interval = 2.2f, Telegraph = 0.85f, Strike = 0.25f, Width = 36, Spacing = 110, Count = 3, Angle = 0, Aim = SlashAim.Player },
+        patterns: new[]
+        {
+            Pat.Every(0.3f, c => Pat.PolarRing(c, LeftHalf(c), 7, c.Count * 5f, 12, 85, 46, new Shot(BulletStyle.OrbRed, 0).Sized(0.95f), RainbowOrbs)),
+            Pat.Every(0.3f, c => Pat.PolarRing(c, RightHalf(c), 7, c.Count * -5f, 12, 85, -46, new Shot(BulletStyle.OrbRed, 0).Sized(0.95f), RainbowOrbs)).After(0.15f),
+            Pat.Every(0.12f, c => Pat.Rain(c, Edge.Top, 3, 8, new Shot(RainbowBeads[c.Count % 7], 135).Sized(0.8f))),
+            Pat.Every(3.0f, c => c.Fire(c.Origin, c.Aim, new Shot(BulletStyle.GiantViolet, 120).Hitting(34).Splitting(1.4f, 21, BulletStyle.OrbViolet, 130))).After(1.5f),
+            Pat.Every(1.8f, c => Pat.Aimed(c, c.Origin, 9, 60, new Shot(BulletStyle.KunaiRed, 250))).NotOnEasy(),
+        })
+        .Pressured(2.08f)
+        .Plus(TopRain(0.12f, 2, BulletStyle.BeadCyan, 150),
+            SideRain(0.14f, 2, BulletStyle.BeadYellow, 165),
+            Pat.Every(1.8f, c => Pat.Aimed(c, c.Origin, 5, 40, new Shot(BulletStyle.KunaiGreen, 240))).After(0.7f).NotOnEasy())
+        .Pressured(1.50f);
+
+    /// <summary>The tremor between two worlds (enraged, fused): the one body stamps, the screen shakes almost without pause while the drops of the falls pour down and boulders burst, fans of the seven colours fly at the boat, a rose turns, and a roar throws it back.</summary>
+    public static BossPhase TwoWorlds() => Attack("AttackTwoWorlds", BossMovementType.Stationary, Fusion, fused: true,
+        quake: new QuakeSpec { IsActive = true, Interval = 1.0f, Duration = 4.2f, Intensity = 1.4f },
+        roar: new RoarSpec { IsActive = true, Interval = 4.6f, Push = 220, Seconds = 0.5f },
+        patterns: new[]
+        {
+            Pat.Every(0.075f, c => Pat.Rain(c, Edge.Top, 4, 5, RainDrop(330))).OnQuake(),
+            Pat.Every(0.6f, c => c.Fire(Pat.EdgePoint(c, Edge.Top, PatternContext.Rand(0.1f, 0.9f)), 90, new Shot(BulletStyle.GiantGreen, 170).Hitting(34).Splitting(1.4f, 14, BulletStyle.OrbGreen, 125))).OnQuake(),
+            Pat.Every(1.2f, c => Pat.Arc(c, c.Origin, 9, c.Aim, 70, Arc7(230), RainbowOrbs)),
+            Pat.Every(0.8f, c => Pat.Rose(c, c.Origin, 7, 42, c.Count * 8f, 0.55f, new Shot(RainbowOrbs[c.Count % 7], 120).Sized(0.9f))).After(0.5f),
+            Pat.Every(2.2f, c => Pat.Comb(c, new Vector2(c.Count % 2 == 0 ? c.Left - 14 : c.Right + 14, PatternContext.Rand(70, 300)), c.Count % 2 == 0 ? 25 : 155, 9, 32, new Shot(BulletStyle.KunaiBlue, 200))).After(1).NotOnEasy(),
+        })
+        .Pressured(1.71f)
+        .Plus(TopRain(0.12f, 2, BulletStyle.BeadCyan, 150),
+            SideRain(0.14f, 2, BulletStyle.BeadYellow, 165),
+            Pat.Every(1.8f, c => Pat.Aimed(c, c.Origin, 5, 40, new Shot(BulletStyle.KunaiGreen, 240))).After(0.7f).NotOnEasy())
+        .Pressured(1.31f);
+
+    /// <summary>The guardian (enraged, fused): everything of the border at once, from the one body that has two halves. Galaxies from both halves, fans of the seven colours from each half in turns, pentagrams, lattices, giant orbs, jets and walls of water on the slant, the tremor and the roar.</summary>
+    public static BossPhase Guardian() => Attack("AttackGuardian", BossMovementType.Stationary, Fusion, fused: true,
+        slashes: new SlashSpec { IsActive = true, Interval = 2.4f, Telegraph = 0.9f, Strike = 0.3f, Width = 38, Spacing = 100, Count = 4, Angle = 20, Aim = SlashAim.Alternate },
+        quake: new QuakeSpec { IsActive = true, Interval = 5.0f, Duration = 2.2f, Intensity = 1.1f },
+        roar: new RoarSpec { IsActive = true, Interval = 6.5f, Push = 220, Seconds = 0.5f },
+        patterns: new[]
+        {
+            Pat.Every(0.34f, c => Pat.PolarRing(c, LeftHalf(c), 7, c.Count * 4.5f, 12, 80, 40, new Shot(BulletStyle.OrbRed, 0).Sized(0.95f), RainbowOrbs)),
+            Pat.Every(0.34f, c => Pat.PolarRing(c, RightHalf(c), 7, c.Count * -4.5f, 12, 80, -40, new Shot(BulletStyle.OrbRed, 0).Sized(0.95f), RainbowOrbs)).After(0.17f),
+            Pat.Every(1.3f, c => Pat.Aimed(c, LeftHalf(c), 7, 55, new Shot(BulletStyle.OrbRed, 235).Sized(0.95f))),
+            Pat.Every(1.3f, c => Pat.Aimed(c, RightHalf(c), 7, 55, new Shot(BulletStyle.OrbGreen, 235).Sized(0.95f))).After(0.65f),
+            Pat.Every(3.2f, c => Pat.Star(c, c.Origin, 7, 3, 95, c.Count * 13f, 4, new Shot(BulletStyle.BeadWhite, 1).LaunchedOut(0.8f, 150))).After(1.5f),
+            Pat.Every(0.12f, c => Pat.Rain(c, Edge.Top, 3, 8, new Shot(RainbowBeads[c.Count % 7], 140).Sized(0.8f))).OnQuake(),
+            Pat.Every(3.6f, c => c.Fire(c.Origin, c.Aim, new Shot(BulletStyle.GiantWhite, 125).Hitting(34).Splitting(1.4f, 24, BulletStyle.BeadWhite, 135))).After(2),
+        })
+        .With(1.00f,
+            RainbowRain(0.08f, 3, 150),
+            Pat.Every(0.9f, c => Pat.Lattice(c, 60, c.Count * 8f, new Shot(BulletStyle.BeadWhite, 66).Sized(0.8f), new Shot(BulletStyle.BeadWhite, 66).Sized(0.8f), c.MiddleX + 150 * Pat.Wave(c.Time, 9), 520, 110)).After(1))
+        .Plus(TopRain(0.12f, 2, BulletStyle.BeadCyan, 150),
+            SideRain(0.14f, 2, BulletStyle.BeadYellow, 165),
+            Pat.Every(1.8f, c => Pat.Aimed(c, c.Origin, 5, 40, new Shot(BulletStyle.KunaiGreen, 240))).After(0.7f).NotOnEasy());
+}

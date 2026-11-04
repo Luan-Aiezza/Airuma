@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using Godot;
 
 /// <summary>Every bullet: the pool, the player's weapon and its cards, the boss's emitters, and how bullets move (acceleration, curves, wind, homing).</summary>
-public static class BulletSystem
+public static partial class BulletSystem
 {
-    public const int PoolSize = 1000;
+    /// <summary>The most bullets on the field at once. The great patterns of the later bosses fill the screen: they need the room.</summary>
+    public const int PoolSize = 2600;
+    private static int _cursor;
+    private static BulletData[] _cursorPool;
 
     /// <summary>A pool of inactive bullets with their defaults filled in.</summary>
     public static BulletData[] NewPool(int count = PoolSize)
@@ -34,8 +37,10 @@ public static class BulletSystem
         float burstRadius = 0,
         float burstScale = 1)
     {
+        if (!ReferenceEquals(pool, _cursorPool)) { _cursorPool = pool; _cursor = 0; }
         int i = -1;
-        for (int k = 0; k < pool.Length; k++) if (!pool[k].IsActive) { i = k; break; }
+        // (a rolling cursor: the pool is mostly full in the great patterns, and the search must not begin at 0 every time)
+        for (int n = 0, k = _cursor < pool.Length ? _cursor : 0; n < pool.Length; n++, k = k + 1 == pool.Length ? 0 : k + 1) if (!pool[k].IsActive) { i = k; _cursor = k + 1 == pool.Length ? 0 : k + 1; break; }
         if (i < 0) return -1;
         pool[i] = new BulletData
         {
@@ -159,6 +164,8 @@ public static class BulletSystem
             ProcessEmitter(boss, player, ref boss.EmitterMain, pool, delta, field ?? World.PlayArea, twin);
         if (boss.EmitterSub.IsActive)
             ProcessEmitter(boss, player, ref boss.EmitterSub, pool, delta, field ?? World.PlayArea, twin);
+        if (boss.Patterns.Length > 0)
+            RunPatterns(boss, player, pool, delta, difficulty, field ?? World.PlayArea, twin);
     }
 
     /// <summary>The spray where the dolphin leaps out: a fan of bullets going up and out from the water.</summary>
@@ -214,7 +221,7 @@ public static class BulletSystem
     private static int _nextChain = 1;
 
     /// <summary>Links the stars of a volley into a constellation: each to the one `skip` places before it, round the volley.</summary>
-    private static void LinkStars(BulletData[] pool, int[] slots, int skip)
+    public static void LinkStars(BulletData[] pool, int[] slots, int skip)
     {
         int chain = _nextChain++;
         int n = slots.Length;
@@ -389,6 +396,56 @@ public static class BulletSystem
                 b.Velocity = b.Velocity.Rotated(Mathx.Radians(b.CurveRate * wave * delta));
             }
 
+            if (b.Behavior == BulletBehavior.Polar)
+            {
+                // On its track round the anchor: the position is a function of the time, and the velocity only the picture's.
+                b.Timer += delta;
+                if (b.Fuse > 0 && b.Timer >= b.Fuse) { b.IsActive = false; continue; }          // (a polar bullet may have a life of its own)
+                float t = b.Timer;
+                float r = b.Radius + b.RadialSpeed * t + 0.5f * b.RadialAcceleration * t * t;
+                float ang = Mathx.Radians(b.Theta + b.Omega * t);
+                Vector2 next = b.Anchor + new Vector2(MathF.Cos(ang), MathF.Sin(ang)) * r;
+                if (delta > 0) b.Velocity = (next - b.Position) / delta;
+                b.Position = next;
+                if (!safeBounds.HasPoint(b.Position)) b.IsActive = false;
+                continue;
+            }
+
+            if (b.Behavior == BulletBehavior.Launch)
+            {
+                b.Timer += delta;
+                if (b.Timer >= b.Fuse)
+                {
+                    float heading = float.IsPositiveInfinity(b.LaunchAngle) ? Mathx.Degrees(MathF.Atan2(b.Velocity.Y, b.Velocity.X))
+                                  : (float.IsNaN(b.LaunchAngle) ? Mathx.Degrees(MathF.Atan2(player.Transform.Position.Y - b.Position.Y, player.Transform.Position.X - b.Position.X)) : b.LaunchAngle);
+                    float h = Mathx.Radians(heading);
+                    b.Velocity = new Vector2(MathF.Cos(h), MathF.Sin(h)) * b.LaunchSpeed;
+                    b.Acceleration = b.LaunchAccel;
+                    b.Behavior = BulletBehavior.Normal;
+                }
+            }
+
+            if (b.Behavior == BulletBehavior.Split)
+            {
+                b.Timer += delta;
+                if (b.Timer >= b.Fuse)
+                {
+                    float start = b.SplitAimed ? Mathx.Degrees(MathF.Atan2(player.Transform.Position.Y - b.Position.Y, player.Transform.Position.X - b.Position.X))
+                                               : (b.Velocity.LengthSquared() > 1 ? Mathx.Degrees(MathF.Atan2(b.Velocity.Y, b.Velocity.X)) : 90);
+                    var child = new Shot(b.ChildStyle, b.SplitSpeed) { Scale = b.ChildScale };
+                    int n = Math.Max(1, b.SplitCount);
+                    for (int k = 0; k < n; k++)
+                    {
+                        float angle = b.SplitSpread >= 360 ? start + 360f * k / n : start - b.SplitSpread / 2 + (n > 1 ? b.SplitSpread * k / (n - 1) : b.SplitSpread / 2);
+                        Fire(pool, b.Position, angle, child);
+                    }
+                    b.IsActive = false;
+                    continue;
+                }
+            }
+
+            if (b.Pull != Vector2.Zero) b.Velocity += b.Pull * delta;
+
             if (b.Acceleration != 0)
             {
                 float speed = b.Velocity.Length();
@@ -403,6 +460,12 @@ public static class BulletSystem
                 b.Velocity = b.Velocity.Rotated(Mathx.Radians(b.CurveRate * delta));
 
             b.Position += (b.Velocity + wind * b.WindModifier) * delta;
+
+            if (b.Behavior == BulletBehavior.Bounce && b.Bounces > 0)
+            {
+                if (b.Position.X < screenBounds.Position.X && b.Velocity.X < 0) { b.Velocity.X = -b.Velocity.X; b.Position.X = screenBounds.Position.X; b.Bounces--; }
+                else if (b.Position.X > screenBounds.End.X && b.Velocity.X > 0) { b.Velocity.X = -b.Velocity.X; b.Position.X = screenBounds.End.X; b.Bounces--; }
+            }
 
             if (!safeBounds.HasPoint(b.Position))
                 b.IsActive = false;

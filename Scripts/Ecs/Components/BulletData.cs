@@ -23,6 +23,22 @@ public struct BulletData
     public int Chain, Prev;
     public BulletStyle Style;
 
+    // The motion beyond a straight line (see BulletBehavior): a gravity that pulls the bullet; the fuse of a Launch / Split; what a Launch does; what a Split makes; the bounces left; a polar track.
+    public Vector2 Pull;
+    public float Fuse;
+    public float LaunchSpeed, LaunchAngle;
+    public int SplitCount;
+    public float SplitSpread, SplitSpeed, ChildScale;
+    public bool SplitAimed;
+    public BulletStyle ChildStyle;
+    public int Bounces;
+    /// <summary>How much the picture of the bullet is enlarged (1: as drawn). The hitbox does not follow it: it is set on its own.</summary>
+    public float Zoom;
+    /// <summary>What a Launch / Split gives its bullets as acceleration after the fuse.</summary>
+    public float LaunchAccel;
+    public Vector2 Anchor;
+    public float Radius, RadialSpeed, RadialAcceleration, Theta, Omega;
+
     // The player's shots, as the cards change them.
     /// <summary>Damage multiplier on top of Damage.</summary>
     public float Power;
@@ -40,5 +56,6 @@ public struct BulletData
         IsActive = false; Position = Vector2.Zero; Velocity = Vector2.Zero; Faction = Faction.Player; HitboxRadius = 0;
         Damage = 0; WindModifier = 1; Acceleration = 0; CurveRate = 0; Scale = 1; Behavior = BulletBehavior.Normal;
         Timer = 0; Chain = 0; Prev = -1; Style = BulletStyle.Fireball; Power = 1; Pierce = 0; BurstRadius = 0; BurstScale = 1; LastHit = -1;
+        Zoom = 1; Pull = Vector2.Zero; Fuse = 0; LaunchSpeed = 0; LaunchAngle = 0; SplitCount = 0; SplitSpread = 360; SplitSpeed = 0; ChildScale = 1; SplitAimed = false; ChildStyle = BulletStyle.Fireball; Bounces = 0; LaunchAccel = 0; Anchor = Vector2.Zero; Radius = 0; RadialSpeed = 0; RadialAcceleration = 0; Theta = 0; Omega = 0;
     }
 }

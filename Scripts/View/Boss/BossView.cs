@@ -253,7 +253,7 @@ public partial class BossView : Node2D
     /// <summary>The boss is mirrored about the water line at its feet, as long as it is on the field.</summary>
     private void UpdateMirror(in BossFrame f)
     {
-        Attach(_mirror, _mirrorParent, f.Fighting && f.Boss.Health.Lives > 0 && _style.Reflects && !f.Hidden && CanReflect(_body.Position));
+        Attach(_mirror, _mirrorParent, f.Fighting && f.Boss.Health.Lives > 0 && _style.Reflects && !f.Hidden && _body.Visible && CanReflect(_body.Position));     // (not while he is under the water: the reflection does not stay where he went in)
         _mirror.Position = new Vector2(_body.Position.X, _body.Position.Y + 2 * _style.Waterline);
         _mirrorSprite.Texture = _sprite.Texture;
         _mirrorSprite.Scale = _sprite.Scale;

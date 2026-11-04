@@ -3,9 +3,7 @@ using System;
 using P = PixelColor;
 
 /// <summary>
-/// The game's icon: the lantern of the menu (see <see cref="MenuArt.MakeLantern"/>) hanging by its chain in the dark of the forest,
-/// with its warm light on the night around it and a little green and a few fireflies in the corners, in the colours of the pillars.
-/// 48 x 48 pixels.
+/// The game's icon: only the lantern of the menu (see <see cref="MenuArt.MakeLantern"/>), with its flame lit, in the middle of the dark, and its warm light on the night around it. 48 x 48 pixels.
 /// </summary>
 public static class IconArt
 {
@@ -17,7 +15,7 @@ public static class IconArt
     public static PixelCanvas Make()
     {
         var c = new PixelCanvas(Size, Size);
-        int lx = (Size - MenuArt.LanternWidth) / 2, ly = 10;                    // where the lantern's top-left corner is
+        int lx = (Size - MenuArt.LanternWidth) / 2, ly = (Size - MenuArt.LanternHeight) / 2;       // where the lantern's top-left corner is: in the middle
         float fx = lx + 10.5f, fy = ly + 21f;                                   // the middle of its flame
 
         // The night, a little paler lower down, and the lantern's light on it: rings of warm colour, dithered.
@@ -37,44 +35,12 @@ public static class IconArt
                 c[x, y] = col;
             }
 
-        // The chain, from the top of the picture to the ring of the lantern.
-        for (int y = 0; y < ly; y++)
-        {
-            int x = lx + 10;
-            c[x, y] = y % 3 == 2 ? SidePillarArt.Stone[3] : SidePillarArt.Stone[1];
-            c[x + 1, y] = y % 3 == 1 ? SidePillarArt.Stone[2] : SidePillarArt.Out;
-            if (y % 3 != 1) c[x - 1, y] = SidePillarArt.Out;
-        }
-
         // The lantern.
         var lantern = MenuArt.MakeLantern(0);
         for (int y = 0; y < lantern.Height; y++)
             for (int x = 0; x < lantern.Width; x++)
                 if (lantern[x, y].A > 0) c[lx + x, ly + y] = lantern[x, y];
 
-        // Green creeping up from the corners at the bottom, with a flower or two, as on the pillars.
-        var leaf = SidePillarArt.Leaf; var flower = SidePillarArt.Flower;
-        foreach (int side in new[] { -1, 1 })
-        {
-            int x0 = side < 0 ? 0 : Size - 1;
-            for (int k = 0; k < 15; k++)
-            {
-                int x = x0 - side * (k / 3 + (k % 2)), y = Size - 1 - k;
-                if (c.Contains(x, y)) c[x, y] = leaf[1 + k % 3];
-                int xl = x0 - side * (3 + k / 2), yl = Size - 2 - k;
-                if (k % 3 == 1 && c.Contains(xl, yl)) { c[xl, yl] = leaf[3]; if (c.Contains(xl - side, yl)) c[xl - side, yl] = leaf[2]; }
-            }
-            int fxp = x0 - side * 4, fyp = Size - 10;
-            foreach (var (ox, oy) in new[] { (-1, 0), (1, 0), (0, -1), (0, 1) }) c[fxp + ox, fyp + oy] = flower[1];
-            c[fxp, fyp] = flower[3];
-        }
-
-        // A few fireflies.
-        foreach (var (x, y) in new[] { (6, 14), (41, 18), (9, 33), (38, 38), (31, 6) })
-        {
-            c[x, y] = P.Hex(0xE8F2A0);
-            c[x + 1, y] = P.Hex(0x7FA860, 150); c[x - 1, y] = P.Hex(0x7FA860, 150);
-        }
         return c;
     }
 

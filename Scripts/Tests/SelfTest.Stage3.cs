@@ -38,7 +38,7 @@ public static partial class SelfTest
             Eq(wave.Spawns.Count, 1, "alone");
             var heavy = wave.Spawns[0];
             GreaterEq(heavy.Patterns.Count, 4, "long, elaborate patterns");
-            True(heavy.Patterns.Select(p => p.Pattern.Kind).Distinct().Count() >= 3, "of different kinds");
+            True(heavy.Patterns.Count(p => p.Pattern.Kind != FirePatternKind.None) >= 3, "of different figures, one after another");
         }
         Greater(SpiritKind.Heavy.MaxHealth(), 100, "a great deal of health");
     }

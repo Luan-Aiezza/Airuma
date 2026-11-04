@@ -31,7 +31,7 @@ public static class BulletArt
         BulletStyle.Claw => (7, 11),
         BulletStyle.Rock => (7, 7),
         BulletStyle.Stalactite => (5, 13),
-        _ => (1, 1),
+        _ => FamilySize(style),
     };
 
     public static Vector2 SpriteSize(BulletStyle style)
@@ -44,7 +44,7 @@ public static class BulletArt
     public static bool Rotates(BulletStyle style) => style switch
     {
         BulletStyle.FlameDart or BulletStyle.LotusPetal or BulletStyle.FireSerpent or BulletStyle.LightBolt or BulletStyle.RiceRed or BulletStyle.Shard or BulletStyle.Claw or BulletStyle.Stalactite => true,
-        _ => false,
+        _ => Family(style) is Shape.Rice or Shape.Kunai,
     };
 
     /// <summary>Godot Node2D.Rotation (clockwise positive, Y down) that makes up-facing art point along a game-space velocity.</summary>
@@ -82,6 +82,7 @@ public static class BulletArt
             case BulletStyle.Claw: DrawClaw(c, frame); break;
             case BulletStyle.Rock: DrawRock(c, frame); break;
             case BulletStyle.Stalactite: DrawStalactite(c, frame); break;
+            default: DrawFamily(c, style, frame); break;
         }
         return c;
     }
@@ -361,5 +362,117 @@ public static class BulletArt
         Put(c, 0, 1, PixelColor.Clear); Put(c, 2, 1, PixelColor.Clear);
         Put(c, 1, 6, frame == 0 ? rim : body);
         Put(c, 0, 6, PixelColor.Clear); Put(c, 2, 6, PixelColor.Clear);
+    }
+
+    // MARK: The danmaku family (colours and shapes)
+
+    private enum Shape { None, Orb, Bead, Rice, Kunai, Star, Giant }
+    private enum Hue { Red, Blue, Yellow, Green, Violet, White, Orange, Cyan, Pink, Gold }
+
+    private static Shape Family(BulletStyle style) => style switch
+    {
+        >= BulletStyle.OrbBlue and <= BulletStyle.OrbPink => Shape.Orb,
+        >= BulletStyle.BeadRed and <= BulletStyle.BeadPink => Shape.Bead,
+        >= BulletStyle.RiceBlue and <= BulletStyle.RiceCyan => Shape.Rice,
+        >= BulletStyle.KunaiRed and <= BulletStyle.KunaiViolet => Shape.Kunai,
+        >= BulletStyle.StarBlue and <= BulletStyle.StarPink => Shape.Star,
+        >= BulletStyle.GiantRed and <= BulletStyle.GiantWhite => Shape.Giant,
+        _ => Shape.None,
+    };
+
+    private static (int Width, int Height) FamilySize(BulletStyle style) => Family(style) switch
+    {
+        Shape.Orb or Shape.Star => (7, 7),
+        Shape.Bead => (5, 5),
+        Shape.Rice => (3, 7),
+        Shape.Kunai => (5, 9),
+        Shape.Giant => (25, 25),
+        _ => (1, 1),
+    };
+
+    private static Hue HueOf(BulletStyle style) => style switch
+    {
+        BulletStyle.OrbBlue or BulletStyle.BeadBlue or BulletStyle.RiceBlue or BulletStyle.KunaiBlue or BulletStyle.StarBlue or BulletStyle.GiantBlue => Hue.Blue,
+        BulletStyle.OrbYellow or BulletStyle.BeadYellow or BulletStyle.RiceYellow or BulletStyle.KunaiYellow => Hue.Yellow,
+        BulletStyle.GiantGold or BulletStyle.StarGold => Hue.Gold,
+        BulletStyle.BeadGreen or BulletStyle.RiceGreen or BulletStyle.KunaiGreen or BulletStyle.StarGreen or BulletStyle.GiantGreen => Hue.Green,
+        BulletStyle.OrbViolet or BulletStyle.BeadViolet or BulletStyle.RiceViolet or BulletStyle.KunaiViolet or BulletStyle.StarViolet or BulletStyle.GiantViolet => Hue.Violet,
+        BulletStyle.OrbWhite or BulletStyle.BeadWhite or BulletStyle.RiceWhite or BulletStyle.GiantWhite => Hue.White,
+        BulletStyle.OrbOrange => Hue.Orange,
+        BulletStyle.OrbCyan or BulletStyle.BeadCyan or BulletStyle.RiceCyan => Hue.Cyan,
+        BulletStyle.OrbPink or BulletStyle.BeadPink or BulletStyle.StarPink => Hue.Pink,
+        _ => Hue.Red,
+    };
+
+    /// <summary>The three tones of a colour: its rim (dark), its body, and its glow (nearly white).</summary>
+    private static (PixelColor Rim, PixelColor Body, PixelColor Glow) Tones(Hue hue) => hue switch
+    {
+        Hue.Blue => (PixelColor.Hex(0x2A5FD8), PixelColor.Hex(0x6AA0FF), PixelColor.Hex(0xE0ECFF)),
+        Hue.Yellow => (PixelColor.Hex(0xD8A818), PixelColor.Hex(0xFFE45A), PixelColor.Hex(0xFFF8D0)),
+        Hue.Green => (PixelColor.Hex(0x2FA84F), PixelColor.Hex(0x7BE08A), PixelColor.Hex(0xE0FFE6)),
+        Hue.Violet => (PixelColor.Hex(0x7A32C8), PixelColor.Hex(0xB47CFF), PixelColor.Hex(0xF0E0FF)),
+        Hue.White => (PixelColor.Hex(0x8A9AB0), PixelColor.Hex(0xE4ECF8), PixelColor.Hex(0xFFFFFF)),
+        Hue.Orange => (PixelColor.Hex(0xD8601C), PixelColor.Hex(0xFF9A4A), PixelColor.Hex(0xFFE6C8)),
+        Hue.Cyan => (PixelColor.Hex(0x1A9AB8), PixelColor.Hex(0x5AE0F0), PixelColor.Hex(0xE0FCFF)),
+        Hue.Pink => (PixelColor.Hex(0xD8387A), PixelColor.Hex(0xFF84B4), PixelColor.Hex(0xFFE0EE)),
+        Hue.Gold => (PixelColor.Hex(0xC88818), PixelColor.Hex(0xFFD84A), PixelColor.Hex(0xFFF6C0)),
+        _ => (PixelColor.Hex(0xC8283A), PixelColor.Hex(0xFF6A78), PixelColor.Hex(0xFFE0E0)),
+    };
+
+    private static void DrawFamily(PixelCanvas c, BulletStyle style, int frame)
+    {
+        var (rim, body, glow) = Tones(HueOf(style));
+        switch (Family(style))
+        {
+            case Shape.Orb: DrawOrb(c, frame, rim, body); break;
+            case Shape.Bead:
+                Disk(c, 2.5f, 2.5f, 2.6f, new[] { glow, body.Mixed(glow, frame == 0 ? 0f : 0.35f), rim });
+                break;
+            case Shape.Rice:
+                Put(c, 1, 0, rim);
+                for (int y = 1; y <= 5; y++) { Put(c, 0, y, rim); Put(c, 2, y, rim); Put(c, 1, y, y == 2 || y == 3 ? glow : body); }
+                Put(c, 0, 1, PixelColor.Clear); Put(c, 2, 1, PixelColor.Clear);
+                Put(c, 1, 6, frame == 0 ? rim : body); Put(c, 0, 6, PixelColor.Clear); Put(c, 2, 6, PixelColor.Clear);
+                break;
+            case Shape.Kunai:
+            {
+                // a blade with a point, a ring at its heel: faces up
+                Put(c, 2, 0, glow);
+                Put(c, 1, 1, body); Put(c, 2, 1, glow); Put(c, 3, 1, body);
+                for (int y = 2; y <= 5; y++) { Put(c, 1, y, body); Put(c, 2, y, y == 3 && frame == 1 ? glow : glow.Mixed(body, 0.4f)); Put(c, 3, y, rim); }
+                Put(c, 0, 4, rim); Put(c, 4, 4, rim); Put(c, 2, 6, rim);
+                Put(c, 1, 7, rim); Put(c, 3, 7, rim); Put(c, 2, 8, rim);
+                break;
+            }
+            case Shape.Star:
+            {
+                Put(c, 3, 3, PixelColor.Hex(0xFFFFFF));
+                foreach (var (x, y) in new[] { (3, 2), (2, 3), (4, 3), (3, 4) }) Put(c, x, y, glow);
+                foreach (var (x, y) in new[] { (3, 1), (1, 3), (5, 3), (3, 5) }) Put(c, x, y, frame == 0 ? body : glow);
+                foreach (var (x, y) in new[] { (3, 0), (0, 3), (6, 3), (3, 6) }) if (frame == 0) Put(c, x, y, rim);
+                if (frame == 1) foreach (var (x, y) in new[] { (2, 2), (4, 2), (2, 4), (4, 4) }) Put(c, x, y, rim);
+                break;
+            }
+            case Shape.Giant:
+            {
+                // a great orb: a dark rim, a body that brightens towards a glint at its upper left, a ring of light inside the rim, and a slow pulse
+                float pulse = frame == 0 ? 0 : 0.6f;
+                for (int y = 0; y < 25; y++)
+                    for (int x = 0; x < 25; x++)
+                    {
+                        float dx = x + 0.5f - 12.5f, dy = y + 0.5f - 12.5f;
+                        float d = MathF.Sqrt(dx * dx + dy * dy);
+                        if (d > 12.2f - pulse * 0.4f) continue;
+                        float t = d / 12.2f;
+                        var color = t > 0.9f ? rim : (t > 0.78f ? rim.Mixed(body, 0.55f) : body);
+                        float hx = x + 0.5f - 8.5f, hy = y + 0.5f - 8.5f;
+                        float h = MathF.Sqrt(hx * hx + hy * hy);
+                        if (t <= 0.78f) color = h < 2.6f ? PixelColor.Hex(0xFFFFFF) : (h < 5.2f ? glow : (h < 8.5f ? body.Mixed(glow, 0.35f) : body));
+                        if (t > 0.6f && t <= 0.78f && frame == 1 && (x + y) % 3 == 0) color = body.Mixed(glow, 0.5f);
+                        c[x, y] = color;
+                    }
+                break;
+            }
+        }
     }
 }

@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 /// </summary>
 public partial class MusicPlayer : Node
 {
-	public enum Theme { Menu, Stage, Boss, NightStage, DancerBoss, StormStage, CatBoss, CaveStage, BeastBoss, DivineStage, SerpentBoss, CosmicStage, SadEnding, HappyEnding, GameOver }
+	public enum Theme { Menu, Stage, Boss, NightStage, DancerBoss, StormStage, CatBoss, CaveStage, BeastBoss, DivineStage, SerpentBoss, CosmicStage, SadEnding, HappyEnding, GameOver, CosmicBoss }
 
 	public static MusicPlayer Instance { get; private set; }
 
@@ -25,7 +25,7 @@ public partial class MusicPlayer : Node
 	/// <summary>How each theme is composed, in the order of <see cref="Theme"/>.</summary>
 	private static readonly Func<(float[], float[])>[] Composers =
 	{
-		Songs.QuietWater, Songs.EmberSerpent, Songs.InfernoSerpent, Songs.AnimatedNight, Songs.StarDancer, Songs.StormUnderTheRiver, Songs.CatInTheStorm, Songs.CaveHibernation, Songs.GreatBeast, Songs.SerpentUnderTheMountain, Songs.HymnToTheGuardian, Songs.RiverThroughTheUniverse, Songs.EndlessNight, Songs.Daybreak, Songs.LightGoingOut,
+		Songs.QuietWater, Songs.EmberSerpent, Songs.InfernoSerpent, Songs.AnimatedNight, Songs.StarDancer, Songs.StormUnderTheRiver, Songs.CatInTheStorm, Songs.CaveHibernation, Songs.GreatBeast, Songs.SerpentUnderTheMountain, Songs.HymnToTheGuardian, Songs.RiverThroughTheUniverse, Songs.EndlessNight, Songs.Daybreak, Songs.LightGoingOut, Songs.MoonOfFury,
 	};
 
 	/// <summary>Starts rendering a theme, if it has not been started (a theme that is wanted now goes first, whatever the order of the background chain).</summary>

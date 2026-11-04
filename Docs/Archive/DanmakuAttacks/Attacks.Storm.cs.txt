@@ -1,0 +1,89 @@
+using Godot;
+
+/// <summary>
+/// The attacks of the storm (stage 3, Thaqai): hail (white spheres, in rows that are walls), constellations (stars linked by thin lines that hang for a while), lightning (bolts that zigzag) and rain. Three and
+/// four patterns at once: curtains of hail from the top AND from the sides, that make a mesh with moving holes; constellations of every size; bolts from every edge; and, in the weaves, holes so small that the
+/// boat has to move in the smallest steps (hold Shift). The boss is fast and crosses the field in diagonals.
+/// </summary>
+public static partial class Attacks
+{
+    // A row of hail is a wall: the hitbox of a bullet grows with its scale (not its picture), so the rows have big hitboxes (1.9) and the slots are 25 px apart: a row cannot be slipped through
+    // between two bullets, and the boat has to go through the gap.
+    private static Shot Hailstone(float speed) => new Shot(BulletStyle.Hail, speed).Sized(1.9f);
+    private static Shot Drizzle(float speed) => new Shot(BulletStyle.BeadWhite, speed).Sized(0.8f);
+    private static Shot Star(float speed, float brake) => new Shot(BulletStyle.Star, speed).Constellation(brake);
+
+    /// <summary>A slow row of hail that falls across the whole field with a wide gap that swings, rows from the sides that cross it with a gap of their own, fans of hail at the boat, a drizzle, and small constellations.</summary>
+    public static BossPhase HailCurtain() => Attack("AttackHailCurtain", BossMovementType.Stationary, new Vector2(300, 140), patterns: new[]
+    {
+        Pat.Every(0.55f, c => Pat.Wall(c, Edge.Top, 24, 0.5f + 0.28f * Pat.Triangle(c.Time, 10), 125, Hailstone(110))),
+        Pat.Every(1.7f, c => Pat.Wall(c, c.Count % 2 == 0 ? Edge.Left : Edge.Right, 31, 0.7f + 0.16f * Pat.Triangle(c.Time, 8), 140, Hailstone(95))).After(1),
+        Pat.Every(1.8f, c => Pat.Aimed(c, c.Origin, 5, 40, new Shot(BulletStyle.Hail, 190).Sized(0.9f))),
+        Pat.Every(0.12f, c => Pat.Rain(c, Edge.Top, 2, 8, Drizzle(150))),
+        Pat.Every(3.2f, c => Pat.Constellation(c, c.Origin, 3, c.Count * 37f, 1, Star(165, 240))).After(2).NotOnEasy(),
+    })
+        .Pressured(0.77f);
+
+    /// <summary>Pentagrams and heptagrams of stars thrown out from the boss as she roams: they brake, hang linked by thin lines (which hurt) and fall. A drizzle of beads of rain, hail at the boat, and bolts of lightning from the sides.</summary>
+    public static BossPhase StarPentagram() => Attack("AttackStarPentagram", BossMovementType.Roam, Centre, patterns: new[]
+    {
+        Pat.Every(2.0f, c => Pat.Constellation(c, c.Origin, 5, c.Count * 23f, 2, Star(175, 250))),
+        Pat.Every(2.0f, c => Pat.Constellation(c, c.Origin, 7, c.Count * -17f + 20, 3, Star(120, 160))).After(1.0f).NotOnEasy(),
+        Pat.Every(0.8f, c => Pat.Aimed(c, c.Origin, 1, 0, new Shot(BulletStyle.Hail, 150).Sized(0.9f), scale: false)),
+        Pat.Every(0.7f, c => Pat.Along(c, c.Count % 2 == 0 ? Edge.Left : Edge.Right, 3, 0.1f, 0.55f, new Shot(BulletStyle.Spark, 230).Sized(0.9f).Zigzagging(62), tilt: c.Count % 2 == 0 ? 10 : -10, scale: false)),
+        Pat.Every(0.1f, c => Pat.Rain(c, Edge.Top, 3, 6, Drizzle(130))),
+    })
+        .Pressured(1.61f);
+
+    /// <summary>Fast crossings of the field in diagonals; fans of bolts of lightning that zigzag at the boat, bolts that fall from the top and rise from the bottom, and hail falls from where she passes.</summary>
+    public static BossPhase ZigzagLightning() => Attack("AttackZigzagLightning", BossMovementType.Cross, new Vector2(300, 150), patterns: new[]
+    {
+        Pat.Every(0.4f, c => Pat.Aimed(c, c.Origin, 5, 50, new Shot(BulletStyle.Spark, 230).Sized(0.9f).Zigzagging(62))),
+        Pat.Every(0.9f, c => Pat.Along(c, Edge.Top, 6, 0.04f + 0.03f * (c.Count % 3), 0.96f, new Shot(BulletStyle.Spark, 190).Sized(0.9f).Zigzagging(55), scale: false)),
+        Pat.Every(0.14f, c => c.Fire(c.Origin, 90, new Shot(BulletStyle.Hail, 150).Sized(0.8f))),
+        Pat.Every(2.0f, c => Pat.Along(c, Edge.Bottom, 5, 0.05f, 0.95f, new Shot(BulletStyle.Spark, 170).Sized(0.9f).Zigzagging(50), scale: false)).After(1).NotOnEasy(),
+        Pat.Every(0.6f, c => Pat.Rain(c, c.Count % 2 == 0 ? Edge.Left : Edge.Right, 2, 20, new Shot(BulletStyle.BeadCyan, 170).Sized(0.8f))),
+        Pat.Every(2.6f, c => Pat.Polygon(c, c.Origin, 6, 62, c.Count * 13f, 3, new Shot(BulletStyle.Spark, 1).Sized(0.9f).LaunchedOut(0.55f, 210))).After(1),
+    })
+        .With(1.00f,
+            TopRain(0.08f, 3, BulletStyle.BeadWhite, 150),
+            SideRain(0.1f, 2, BulletStyle.BeadCyan, 170));
+
+    /// <summary>
+    /// A fine weave of hail: rows that fall quickly from the top and rows that cross from the sides, with narrow gaps that swing slowly, so that the boat follows the hole where they meet in small moves
+    /// (hold Shift), a single slow hailstone at the boat now and then, and a mist of beads.
+    /// </summary>
+    public static BossPhase FineWeave() => Attack("AttackFineWeave", BossMovementType.Stationary, new Vector2(300, 130), patterns: new[]
+    {
+        Pat.Every(0.42f, c => Pat.Wall(c, Edge.Top, 24, 0.5f + 0.24f * Pat.Triangle(c.Time, 7.5f), 70, Hailstone(125))),
+        Pat.Every(1.1f, c => Pat.Wall(c, c.Count % 2 == 0 ? Edge.Left : Edge.Right, 31, 0.72f + 0.12f * Pat.Triangle(c.Time + 2, 6.5f), 80, Hailstone(120))).After(1),
+        Pat.Every(1.1f, c => Pat.Aimed(c, c.Origin, 1, 0, new Shot(BulletStyle.Hail, 140).Sized(1.1f), scale: false)),
+        Pat.Every(0.16f, c => Pat.Rain(c, Edge.Top, 2, 4, Drizzle(160))),
+        Pat.Every(3.4f, c => Pat.Ring(c, c.Origin, 16, c.Count * 11f, new Shot(BulletStyle.BeadCyan, 90).Sized(0.9f))).After(2).OnlyOnHard(),
+    })
+        .Pressured(0.81f);
+
+    /// <summary>The sky falls: curtains of hail with two gaps, one the mirror of the other, rows from the sides, triangles and squares of stars hanging about the field, great hailstones that burst into rings and bolts of lightning.</summary>
+    public static BossPhase SkyFalls() => Attack("AttackSkyFalls", BossMovementType.Roam, Centre, patterns: new[]
+    {
+        Pat.Every(0.48f, c => Pat.Wall(c, Edge.Top, 24, 0.5f + 0.3f * Pat.Triangle(c.Time, 8), 90, Hailstone(130), mirror: true)),
+        Pat.Every(1.3f, c => Pat.Wall(c, c.Count % 2 == 0 ? Edge.Left : Edge.Right, 31, 0.7f + 0.15f * Pat.Triangle(c.Time + 1, 7), 120, Hailstone(105))).After(1),
+        Pat.Every(2.4f, c => Pat.Constellation(c, c.Origin, 3, c.Count * 31f, 1, Star(170, 240))).After(1),
+        Pat.Every(2.4f, c => Pat.Constellation(c, c.Origin, 4, c.Count * -29f, 1, Star(130, 180))).After(2.2f),
+        Pat.Every(3.0f, c => c.Fire(Pat.EdgePoint(c, Edge.Top, PatternContext.Rand(0.15f, 0.85f)), 90, new Shot(BulletStyle.GiantWhite, 105).Hitting(34).Splitting(1.9f, 20, BulletStyle.BeadWhite, 120))).After(1.5f),
+        Pat.Every(0.8f, c => Pat.Along(c, c.Count % 2 == 0 ? Edge.Left : Edge.Right, 3, 0.1f, 0.5f, new Shot(BulletStyle.Spark, 230).Sized(0.9f).Zigzagging(60), tilt: c.Count % 2 == 0 ? 12 : -12, scale: false)).NotOnEasy(),
+    })
+        .Pressured(1.34f);
+
+    /// <summary>The eclipse: she crosses the field in diagonals, hanging heptagrams of stars behind her over a fine weave of hail; a black sun burst of arms of stars turns from where she crossed, and bolts come from every edge.</summary>
+    public static BossPhase Eclipse() => Attack("AttackEclipse", BossMovementType.Cross, new Vector2(300, 150), patterns: new[]
+    {
+        Pat.Every(1.6f, c => Pat.Constellation(c, c.Origin, 7, c.Count * 17f, 3, Star(190, 270))),
+        Pat.Every(0.72f, c => Pat.Wall(c, Edge.Top, 24, 0.5f + 0.22f * Pat.Triangle(c.Time, 8), 90, Hailstone(105))),
+        Pat.Every(1.7f, c => Pat.Wall(c, c.Count % 2 == 0 ? Edge.Left : Edge.Right, 31, 0.72f + 0.12f * Pat.Triangle(c.Time, 7), 110, Hailstone(100))).After(1),
+        Pat.Every(0.18f, c => Pat.PolarRing(c, c.Origin, 4, c.Count * 8f, 14, 55, 38, new Shot(BulletStyle.BeadViolet, 0).Sized(0.9f))),
+        Pat.Every(4.0f, c => c.Fire(c.Origin, c.Aim, new Shot(BulletStyle.GiantViolet, 120).Hitting(34).Splitting(1.3f, 24, BulletStyle.OrbViolet, 130))).After(2),
+        Pat.Every(0.9f, c => Pat.Along(c, (Edge)(c.Count % 4), 4, 0.1f, 0.9f, new Shot(BulletStyle.Spark, 200).Sized(0.9f).Zigzagging(55), scale: false)).NotOnEasy(),
+    })
+        .Pressured(1.00f);
+}

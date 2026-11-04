@@ -128,6 +128,44 @@ public static class WaveBuilder
         };
     }
 
+    /// <summary>A conga line that crosses the field level from one side, swaying up and down as it goes.</summary>
+    public static List<EnemySpec> SideColumn(SpiritKind kind, int count, bool fromLeft, float y, float start, float interval,
+                                              float speed = 150, float amplitude = 60, float frequency = 2.2f, float phase = 0, List<ScheduledPattern> shots = null)
+    {
+        return Enumerable.Range(0, count).Select(i => new EnemySpec
+        {
+            Time = start + i * interval, Kind = kind, Position = new Vector2(fromLeft ? -30 : 630, y),
+            Path = EnemyPath.SideSine(new Vector2(fromLeft ? speed : -speed, 0), amplitude, frequency), Phase = phase, Patterns = shots ?? ShotsFor(kind),
+        }).ToList();
+    }
+
+    /// <summary>A line of spirits that rises from the bottom of the field, side by side.</summary>
+    public static List<EnemySpec> RisingRow(SpiritKind kind, int count, float from, float to, float start, float speed = 120, List<ScheduledPattern> shots = null)
+    {
+        return Enumerable.Range(0, count).Select(i =>
+        {
+            float t = count > 1 ? (float)i / (count - 1) : 0.5f;
+            return new EnemySpec
+            {
+                Time = start, Kind = kind, Position = new Vector2(from + (to - from) * t, 810), Path = EnemyPath.Straight(new Vector2(0, -speed)),
+                Patterns = shots ?? ShotsFor(kind),
+            };
+        }).ToList();
+    }
+
+    /// <summary>
+    /// Sentries: spirits that come in from a point (a side, the bottom) and fly each to a spot of its own, where they stay `hold` seconds firing their patterns, one after the other `gap` seconds
+    /// apart, and then leave by the nearest side.
+    /// </summary>
+    public static List<EnemySpec> Sentries(SpiritKind kind, Vector2 from, Vector2[] spots, float start, float gap, float hold, List<ScheduledPattern> shots)
+    {
+        return spots.Select((spot, i) => new EnemySpec
+        {
+            Time = start + i * gap, Kind = kind, Position = from, Path = EnemyPath.Dive(spot, 190, hold, new Vector2(spot.X < 300 ? -170 : 170, -40)),
+            Patterns = shots ?? ShotsFor(kind), FirstShotDelay = 0.4f,
+        }).ToList();
+    }
+
     public static Vector2 V(float x, float y) => new Vector2(x, y);
     public static ScheduledPattern P(FirePattern pattern, float duration) => new ScheduledPattern(pattern, duration);
     public const SpiritKind Swarm = SpiritKind.Swarm, Gunner = SpiritKind.Gunner;

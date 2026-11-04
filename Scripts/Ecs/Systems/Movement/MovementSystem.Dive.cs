@@ -8,7 +8,7 @@ public static partial class MovementSystem
     /// The dive: seconds on the surface (drifting back up to its place), sinking, under the water (the shadow lies under the boat and follows it
     /// at first, then holds still), and coming out of the water at the shadow, the sinking played backwards.
     /// </summary>
-    public const float DiveSurfaceSeconds = 3.0f, DiveSinkSeconds = 0.5f, DiveUnderSeconds = 1.8f, DiveFollowShare = 0.4f, DiveTopY = 245, DiveDriftSpeed = 220, DiveSinkDepth = 45;
+    public const float DiveSurfaceSeconds = 6.0f, DiveSinkSeconds = 0.5f, DiveUnderSeconds = 1.8f, DiveFollowShare = 0.4f, DiveTopY = 245, DiveDriftSpeed = 220, DiveSinkDepth = 45;
 
     private static void DiveStep(BossEntity boss, Rect2 bounds, float delta, Vector2 player)
     {

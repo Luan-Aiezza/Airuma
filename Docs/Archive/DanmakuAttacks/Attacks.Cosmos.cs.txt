@@ -1,0 +1,199 @@
+using Godot;
+
+/// <summary>
+/// The attacks of the river of stars (stage 6, Mama Killa, the Moon, the goddess with four arms): the last boss, and the one that fills the screen. Six attacks in her calm form and four in her fury, each of five,
+/// six or seven patterns at once. Her bullets are the light of the Moon: silver and violet, stars, crescents that fly as one, half moons, great white moons that orbit her and burst, galaxies that turn round her,
+/// tides that cross the field from the sides, meteors from the sky, and, in her fury, the colour of blood. She stands on the horizon of the water (she goes to the sides and down, never above it) and fires from her
+/// four hands. The figures are kept clear: every attack has one that is drawn on the screen as a whole, and the others fill the space between its lines.
+/// </summary>
+public static partial class Attacks
+{
+    // The four hands, from the outer pair to the inner pair.
+    private static Vector2 OuterLeft(PatternContext c) => c.Origin + new Vector2(-72, -6);
+    private static Vector2 OuterRight(PatternContext c) => c.Origin + new Vector2(72, -6);
+    private static Vector2 InnerLeft(PatternContext c) => c.Origin + new Vector2(-34, 22);
+    private static Vector2 InnerRight(PatternContext c) => c.Origin + new Vector2(34, 22);
+
+    private static Shot Moonlight(float speed) => new Shot(BulletStyle.BeadWhite, speed).Sized(0.9f);
+    private static Shot Silver(float speed) => new Shot(BulletStyle.OrbWhite, speed).Sized(0.95f);
+    private static Shot BigMoon(float speed) => new Shot(BulletStyle.GiantWhite, speed).Hitting(34);
+
+    /// <summary>The crescent moon: three crescents fly together at the boat, four arms of a galaxy turn from her, star dust falls from the whole sky, kunai from her outer hands, and hexagons of violet are laid out and let go.</summary>
+    public static BossPhase KillaCrescent() => Attack("AttackKillaCrescent", BossMovementType.Roam, Centre, patterns: new[]
+    {
+        Pat.Every(2.0f, c => { for (int k = -1; k <= 1; k++) Pat.Crescent(c, c.Origin, c.Aim + k * 30, 64, 9, Moonlight(165)); }),
+        Pat.Every(0.26f, c => Pat.PolarRing(c, c.Origin, 4, c.Count * 9f, 16, 82, 38, new Shot(BulletStyle.BeadCyan, 0).Sized(0.9f), scale: false)),
+        Pat.Every(0.1f, c => Pat.Rain(c, Edge.Top, 3, 10, new Shot(BulletStyle.StarBlue, 115).Sized(0.9f))),
+        Pat.Every(1.2f, c => Pat.Aimed(c, OuterLeft(c), 5, 36, new Shot(BulletStyle.KunaiBlue, 235))).After(0.3f),
+        Pat.Every(1.2f, c => Pat.Aimed(c, OuterRight(c), 5, 36, new Shot(BulletStyle.KunaiBlue, 235))).After(0.9f),
+        Pat.Every(3.2f, c => Pat.Polygon(c, c.Origin, 6, 78, c.Count * 15f, 4, new Shot(BulletStyle.OrbViolet, 1).LaunchedOut(0.7f, 150))).After(1.5f),
+    })
+        .With(1.40f,
+            SideRain(0.1f, 2, BulletStyle.StarBlue, 140))
+        .Plus(TopRain(0.1f, 2, BulletStyle.StarGold, 140),
+            SideRain(0.12f, 2, BulletStyle.StarBlue, 160),
+            Pat.Every(1.7f, c => Pat.Aimed(c, OuterLeft(c), 7, 50, new Shot(BulletStyle.KunaiViolet, 245))).After(0.6f).NotOnEasy());
+
+    /// <summary>The tide: waves of orbs cross the field from both sides at once, each with a gap that rolls up and down; a rain of silver beads, rings of moonlight, a great blue moon at the boat that bursts, and a galaxy turning the other way.</summary>
+    public static BossPhase KillaTide() => Attack("AttackKillaTide", BossMovementType.Roam, Centre, patterns: new[]
+    {
+        Pat.Every(0.8f, c => Pat.Wall(c, Edge.Left, 32, 0.74f + 0.14f * Pat.Wave(c.Time, 6), 150, new Shot(BulletStyle.OrbBlue, 125).Sized(0.9f))),
+        Pat.Every(0.8f, c => Pat.Wall(c, Edge.Right, 32, 0.74f - 0.14f * Pat.Wave(c.Time, 6), 150, new Shot(BulletStyle.OrbCyan, 125).Sized(0.9f))).After(0.4f),
+        Pat.Every(0.12f, c => Pat.Rain(c, Edge.Top, 3, 8, new Shot(BulletStyle.BeadCyan, 130).Sized(0.8f))),
+        Pat.Every(1.0f, c => Pat.Ring(c, c.Origin, 28, c.Count * 6f, Silver(110))),
+        Pat.Every(2.8f, c => c.Fire(c.Origin, c.Aim, BigMoon(110).Styled(BulletStyle.GiantBlue).Splitting(1.5f, 22, BulletStyle.OrbBlue, 130))).After(1),
+        Pat.Every(0.3f, c => Pat.PolarRing(c, c.Origin, 3, c.Count * -11f, 16, 78, -34, new Shot(BulletStyle.BeadViolet, 0).Sized(0.9f), scale: false)).After(1),
+    })
+        .Pressured(1.40f)
+        .Plus(TopRain(0.1f, 2, BulletStyle.StarGold, 140),
+            SideRain(0.12f, 2, BulletStyle.StarBlue, 160),
+            Pat.Every(1.7f, c => Pat.Aimed(c, OuterLeft(c), 7, 50, new Shot(BulletStyle.KunaiViolet, 245))).After(0.6f).NotOnEasy())
+        .Pressured(1.08f);
+
+    /// <summary>The half moon: concentric half circles of silver open from her, one inside the other, over roses of five petals and windmills; fine lattices of beads fall slowly, and pentagrams of stars are laid out and let go.</summary>
+    public static BossPhase KillaHalf() => Attack("AttackKillaHalf", BossMovementType.Roam, Centre, patterns: new[]
+    {
+        Pat.Every(1.1f, c =>
+        {
+            float aim = c.Count % 2 == 0 ? 90 : c.Aim;
+            foreach (var (speed, n) in new[] { (110f, 21), (150f, 25), (190f, 29) }) Pat.Arc(c, c.Origin, n, aim, 180, Silver(speed), scale: false);
+        }),
+        Pat.Every(0.9f, c => Pat.Rose(c, c.Origin, 5, 40, c.Count * 7f, 0.6f, new Shot(BulletStyle.OrbViolet, 105).Sized(0.9f))).After(0.4f),
+        Pat.Every(2.0f, c => Pat.Spokes(c, InnerLeft(c), 5, 4, c.Count * 13f, 22, new Shot(BulletStyle.BeadCyan, 90).Sized(0.9f))).After(0.5f),
+        Pat.Every(2.0f, c => Pat.Spokes(c, InnerRight(c), 5, 4, c.Count * -13f, 22, new Shot(BulletStyle.BeadPink, 90).Sized(0.9f))).After(1.5f),
+        Pat.Every(0.9f, c => Pat.Lattice(c, 60, c.Count * 7f, new Shot(BulletStyle.BeadWhite, 70).Sized(0.8f), new Shot(BulletStyle.BeadWhite, 70).Sized(0.8f), c.MiddleX + 160 * Pat.Wave(c.Time, 9), 520, 120)).After(1),
+        Pat.Every(3.4f, c => Pat.Star(c, c.Origin, 5, 2, 95, c.Count * 17f, 5, new Shot(BulletStyle.StarGold, 1).LaunchedOut(0.8f, 150))).After(2),
+    })
+        .Pressured(1.47f)
+        .Plus(TopRain(0.1f, 2, BulletStyle.StarGold, 140),
+            SideRain(0.12f, 2, BulletStyle.StarBlue, 160),
+            Pat.Every(1.7f, c => Pat.Aimed(c, OuterLeft(c), 7, 50, new Shot(BulletStyle.KunaiViolet, 245))).After(0.6f).NotOnEasy())
+        .Pressured(1.00f);
+
+    /// <summary>The full moon: three great moons orbit her and fire rings of their own as they go, a rose turns from her centre, rain of stars, combs of kunai from the sides, and fans from her four hands in turn.</summary>
+    public static BossPhase KillaFull() => Attack("AttackKillaFull", BossMovementType.Roam, Centre, patterns: new[]
+    {
+        Pat.Every(0.55f, c =>
+        {
+            for (int k = 0; k < 3; k++)
+                Pat.Ring(c, Pat.Orbit(c.Origin, 120, k, 3, c.Time * 50), 14, c.Count * 9f + k * 20, new Shot(k == 1 ? BulletStyle.OrbViolet : BulletStyle.OrbWhite, 105).Sized(0.9f));
+        }),
+        Pat.Every(0.9f, c => Pat.Rose(c, c.Origin, 8, 48, c.Count * -6f, 0.5f, new Shot(BulletStyle.BeadCyan, 110).Sized(0.9f))),
+        Pat.Every(0.1f, c => Pat.Rain(c, Edge.Top, 3, 10, new Shot(BulletStyle.StarBlue, 120).Sized(0.9f))),
+        Pat.Every(2.4f, c => Pat.Comb(c, new Vector2(c.Count % 2 == 0 ? c.Left - 14 : c.Right + 14, PatternContext.Rand(240, 520)), c.Count % 2 == 0 ? 10 : 170, 9, 34, new Shot(BulletStyle.KunaiBlue, 200))).After(1),
+        Pat.Every(1.6f, c => Pat.Aimed(c, (c.Count % 4) switch { 0 => OuterLeft(c), 1 => InnerLeft(c), 2 => InnerRight(c), _ => OuterRight(c) }, 7, 50, new Shot(BulletStyle.OrbCyan, 225).Sized(0.9f))).After(0.5f),
+        Pat.Every(4.5f, c => c.Fire(c.Origin, 90, BigMoon(100).Splitting(1.6f, 26, BulletStyle.BeadWhite, 120))).After(2).NotOnEasy(),
+    })
+        .Pressured(1.23f)
+        .Plus(TopRain(0.1f, 2, BulletStyle.StarGold, 140),
+            SideRain(0.12f, 2, BulletStyle.StarBlue, 160),
+            Pat.Every(1.7f, c => Pat.Aimed(c, OuterLeft(c), 7, 50, new Shot(BulletStyle.KunaiViolet, 245))).After(0.6f).NotOnEasy())
+        .Pressured(1.00f);
+
+    /// <summary>The meteor shower: combs of kunai fall slanting from both top corners and cross, great violet meteors burst into rings, constellations hang about the field, a rain of stars, and a galaxy.</summary>
+    public static BossPhase KillaMeteors() => Attack("AttackKillaMeteors", BossMovementType.Roam, Centre, patterns: new[]
+    {
+        Pat.Every(1.6f, c =>
+        {
+            Pat.Comb(c, new Vector2(c.Left + 10, -14), 58 + 8 * Pat.Wave(c.Time, 11), 9, 36, new Shot(BulletStyle.KunaiViolet, 205));
+            Pat.Comb(c, new Vector2(c.Right - 10, -14), 122 - 8 * Pat.Wave(c.Time, 11), 9, 36, new Shot(BulletStyle.KunaiBlue, 205));
+        }),
+        Pat.Every(1.1f, c => c.Fire(Pat.EdgePoint(c, Edge.Top, PatternContext.Rand(0.1f, 0.9f)), 90 + PatternContext.Rand(-20, 20), new Shot(BulletStyle.GiantViolet, 150).Hitting(34).Splitting(1.7f, 16, BulletStyle.OrbViolet, 120))),
+        Pat.Every(2.4f, c => Pat.Constellation(c, c.Origin, 5, c.Count * 21f, 2, new Shot(BulletStyle.Star, 185).Constellation(260))),
+        Pat.Every(2.4f, c => Pat.Constellation(c, c.Origin, 7, c.Count * -17f, 3, new Shot(BulletStyle.Star, 130).Constellation(180))).After(1.2f),
+        Pat.Every(0.08f, c => Pat.Rain(c, Edge.Top, 3, 20, new Shot(BulletStyle.StarGold, 140).Sized(0.9f))),
+        Pat.Every(0.3f, c => Pat.PolarRing(c, c.Origin, 3, c.Count * 10f, 16, 80, 34, new Shot(BulletStyle.BeadWhite, 0).Sized(0.9f), scale: false)).After(1),
+    })
+        .With(1.32f,
+            SideRain(0.1f, 3, BulletStyle.StarBlue, 150),
+            TopRain(0.12f, 3, BulletStyle.BeadViolet, 140))
+        .Plus(TopRain(0.1f, 2, BulletStyle.StarGold, 140),
+            SideRain(0.12f, 2, BulletStyle.StarBlue, 160),
+            Pat.Every(1.7f, c => Pat.Aimed(c, OuterLeft(c), 7, 50, new Shot(BulletStyle.KunaiViolet, 245))).After(0.6f).NotOnEasy());
+
+    /// <summary>The blood moon (the last of her calm): the Moon turns red. Layered rings of crimson, windmills from her four hands, a great red moon that bursts, lattices, a pentagram and a heptagram laid out together, and fans of kunai.</summary>
+    public static BossPhase KillaBlood() => Attack("AttackKillaBlood", BossMovementType.Roam, Centre, patterns: new[]
+    {
+        Pat.Every(1.0f, c => Pat.Layers(c, c.Origin, 24, c.Count * 8f, new Shot(BulletStyle.OrbRed, 100).Sized(0.95f), 100, 140, 180)),
+        Pat.Every(1.8f, c => Pat.Spokes(c, OuterLeft(c), 6, 4, c.Count * 11f, 22, new Shot(BulletStyle.BeadPink, 95).Sized(0.9f))),
+        Pat.Every(1.8f, c => Pat.Spokes(c, OuterRight(c), 6, 4, c.Count * -11f, 22, new Shot(BulletStyle.BeadPink, 95).Sized(0.9f))).After(0.9f),
+        Pat.Every(3.4f, c => c.Fire(c.Origin, c.Aim, BigMoon(115).Styled(BulletStyle.GiantRed).Splitting(1.4f, 24, BulletStyle.OrbRed, 135))).After(1.2f),
+        Pat.Every(0.9f, c => Pat.Lattice(c, 64, c.Count * 9f, new Shot(BulletStyle.BeadRed, 68).Sized(0.8f), new Shot(BulletStyle.BeadRed, 68).Sized(0.8f), c.MiddleX - 170 * Pat.Wave(c.Time, 10), 540, 125)).After(1),
+        Pat.Every(3.6f, c => { Pat.Star(c, c.Origin, 5, 2, 80, c.Count * 15f, 5, new Shot(BulletStyle.BeadYellow, 1).LaunchedOut(0.8f, 140)); Pat.Star(c, c.Origin, 7, 3, 125, -c.Count * 15f, 4, new Shot(BulletStyle.BeadPink, 1).LaunchedOut(0.8f, 175)); }).After(2),
+        Pat.Every(1.4f, c => Pat.Aimed(c, c.Origin, 9, 70, new Shot(BulletStyle.KunaiRed, 245))).NotOnEasy(),
+    })
+        .Pressured(2.45f)
+        .Plus(TopRain(0.1f, 2, BulletStyle.StarGold, 140),
+            SideRain(0.12f, 2, BulletStyle.StarBlue, 160),
+            Pat.Every(1.7f, c => Pat.Aimed(c, OuterLeft(c), 7, 50, new Shot(BulletStyle.KunaiViolet, 245))).After(0.6f).NotOnEasy())
+        .Pressured(1.59f);
+
+    /// <summary>The total eclipse (enraged): the Moon covers the sun. A black sun of galaxy arms in both senses turns round her, rings of violet and white pulse out of it, great moons fall from the sky and burst, and lattices close the gaps.</summary>
+    public static BossPhase KillaEclipse() => Attack("AttackKillaEclipse", BossMovementType.Roam, Centre, patterns: new[]
+    {
+        Pat.Every(0.24f, c => Pat.PolarRing(c, c.Origin, 5, c.Count * 8f, 18, 85, 36, new Shot(BulletStyle.BeadViolet, 0).Sized(0.9f), scale: false)),
+        Pat.Every(0.24f, c => Pat.PolarRing(c, c.Origin, 5, c.Count * -8f, 18, 85, -36, new Shot(BulletStyle.BeadWhite, 0).Sized(0.9f), scale: false)).After(0.12f),
+        Pat.Every(1.0f, c => Pat.Ring(c, c.Origin, 32, c.Count * 5f, Silver(120).Styled(c.Count % 2 == 0 ? BulletStyle.OrbViolet : BulletStyle.OrbWhite))),
+        Pat.Every(1.3f, c => c.Fire(Pat.EdgePoint(c, Edge.Top, PatternContext.Rand(0.1f, 0.9f)), 90 + PatternContext.Rand(-15, 15), BigMoon(135).Styled(BulletStyle.GiantViolet).Splitting(1.6f, 18, BulletStyle.OrbViolet, 125))),
+        Pat.Every(0.8f, c => Pat.Lattice(c, 68, c.Count * 11f, new Shot(BulletStyle.BeadCyan, 72).Sized(0.8f), new Shot(BulletStyle.BeadCyan, 72).Sized(0.8f), c.MiddleX + 190 * Pat.Wave(c.Time, 8), 560, 120)).After(1),
+        Pat.Every(1.5f, c => Pat.Aimed(c, c.Origin, 11, 80, new Shot(BulletStyle.KunaiBlue, 245))).NotOnEasy(),
+        Pat.Every(0.09f, c => Pat.Rain(c, Edge.Top, 3, 14, new Shot(BulletStyle.StarBlue, 130).Sized(0.9f))).NotOnEasy(),
+    })
+        .Pressured(1.74f)
+        .Plus(TopRain(0.1f, 2, BulletStyle.StarGold, 140),
+            SideRain(0.12f, 2, BulletStyle.StarBlue, 160),
+            Pat.Every(1.7f, c => Pat.Aimed(c, OuterLeft(c), 7, 50, new Shot(BulletStyle.KunaiViolet, 245))).After(0.6f).NotOnEasy())
+        .Pressured(1.25f);
+
+    /// <summary>The four moons (enraged): each of her four hands holds a moon, and each fires its own figure: a galaxy, a rose, a ring and a fan. Great moons orbit her, tides cross from the sides, and stars fall.</summary>
+    public static BossPhase KillaFourMoons() => Attack("AttackKillaFourMoons", BossMovementType.Roam, Centre, patterns: new[]
+    {
+        Pat.Every(0.28f, c => Pat.PolarRing(c, OuterLeft(c), 4, c.Count * 9f, 10, 80, 42, new Shot(BulletStyle.BeadCyan, 0).Sized(0.9f), scale: false)),
+        Pat.Every(0.8f, c => Pat.Rose(c, OuterRight(c), 6, 36, c.Count * -9f, 0.55f, new Shot(BulletStyle.OrbViolet, 105).Sized(0.9f))),
+        Pat.Every(0.9f, c => Pat.Ring(c, InnerLeft(c), 24, c.Count * 8f, Silver(110))),
+        Pat.Every(0.9f, c => Pat.Aimed(c, InnerRight(c), 13, 90, new Shot(BulletStyle.OrbPink, 170).Sized(0.9f))).After(0.45f),
+        Pat.Every(0.7f, c => Pat.Ring(c, Pat.Orbit(c.Origin, 150, c.Count % 3, 3, c.Time * 45), 12, c.Count * 10f, Moonlight(115))),
+        Pat.Every(1.0f, c => Pat.Wall(c, c.Count % 2 == 0 ? Edge.Left : Edge.Right, 32, 0.76f + 0.12f * Pat.Wave(c.Time, 7), 150, new Shot(BulletStyle.OrbBlue, 130).Sized(0.9f))).After(1),
+        Pat.Every(0.1f, c => Pat.Rain(c, Edge.Top, 3, 12, new Shot(BulletStyle.StarGold, 135).Sized(0.9f))).NotOnEasy(),
+    })
+        .Pressured(1.39f)
+        .Plus(TopRain(0.1f, 2, BulletStyle.StarGold, 140),
+            SideRain(0.12f, 2, BulletStyle.StarBlue, 160),
+            Pat.Every(1.7f, c => Pat.Aimed(c, OuterLeft(c), 7, 50, new Shot(BulletStyle.KunaiViolet, 245))).After(0.6f).NotOnEasy())
+        .Pressured(1.10f);
+
+    /// <summary>The spring tide (enraged): the water of the sky rises. Waves from the two sides and from the bottom, lattices that sway, galaxies in both senses, great moons that burst, and rings that never stop.</summary>
+    public static BossPhase KillaSpringTide() => Attack("AttackKillaSpringTide", BossMovementType.Roam, Centre, patterns: new[]
+    {
+        Pat.Every(0.7f, c => Pat.Wall(c, Edge.Left, 32, 0.74f + 0.14f * Pat.Wave(c.Time, 5.5f), 135, new Shot(BulletStyle.OrbBlue, 135).Sized(0.9f))),
+        Pat.Every(0.7f, c => Pat.Wall(c, Edge.Right, 32, 0.74f - 0.14f * Pat.Wave(c.Time, 5.5f), 135, new Shot(BulletStyle.OrbCyan, 135).Sized(0.9f))).After(0.35f),
+        Pat.Every(1.1f, c => Pat.Wall(c, Edge.Bottom, 24, 0.5f + 0.3f * Pat.Triangle(c.Time, 9), 130, new Shot(BulletStyle.BeadCyan, 105).Sized(0.9f))).After(1).NotOnEasy(),
+        Pat.Every(0.26f, c => Pat.PolarRing(c, c.Origin, 4, c.Count * 8f, 16, 80, 34, new Shot(BulletStyle.BeadWhite, 0).Sized(0.9f), scale: false)),
+        Pat.Every(0.26f, c => Pat.PolarRing(c, c.Origin, 4, c.Count * -8f, 16, 80, -34, new Shot(BulletStyle.BeadViolet, 0).Sized(0.9f), scale: false)).After(0.13f),
+        Pat.Every(2.0f, c => c.Fire(c.Origin, c.Aim, BigMoon(120).Styled(BulletStyle.GiantBlue).Splitting(1.5f, 24, BulletStyle.OrbCyan, 135))).After(1),
+        Pat.Every(0.9f, c => Pat.Ring(c, c.Origin, 30, c.Count * 7f, Silver(110))),
+    })
+        .Pressured(1.77f)
+        .Plus(TopRain(0.1f, 2, BulletStyle.StarGold, 140),
+            SideRain(0.12f, 2, BulletStyle.StarBlue, 160),
+            Pat.Every(1.7f, c => Pat.Aimed(c, OuterLeft(c), 7, 50, new Shot(BulletStyle.KunaiViolet, 245))).After(0.6f).NotOnEasy())
+        .Pressured(1.29f);
+
+    /// <summary>The eternal night (enraged, the last): the whole of her power. A galaxy from each hand, a lattice, the layered rings, the tides, great moons falling and orbiting, a pentagram and a heptagram, kunai, stars, and the meteors, all at once.</summary>
+    public static BossPhase KillaEternalNight() => Attack("AttackKillaEternalNight", BossMovementType.Roam, Centre, patterns: new[]
+    {
+        Pat.Every(0.3f, c => Pat.PolarRing(c, OuterLeft(c), 4, c.Count * 9f, 10, 82, 40, new Shot(BulletStyle.BeadViolet, 0).Sized(0.9f), scale: false)),
+        Pat.Every(0.3f, c => Pat.PolarRing(c, OuterRight(c), 4, c.Count * -9f, 10, 82, -40, new Shot(BulletStyle.BeadCyan, 0).Sized(0.9f), scale: false)).After(0.15f),
+        Pat.Every(1.0f, c => Pat.Layers(c, c.Origin, 24, c.Count * 7f, Silver(100), 100, 135, 170)),
+        Pat.Every(1.2f, c => Pat.Wall(c, c.Count % 2 == 0 ? Edge.Left : Edge.Right, 32, 0.76f + 0.12f * Pat.Wave(c.Time, 6), 140, new Shot(BulletStyle.OrbBlue, 135).Sized(0.9f))).After(1),
+        Pat.Every(0.8f, c => Pat.Lattice(c, 70, c.Count * 12f, new Shot(BulletStyle.BeadWhite, 74).Sized(0.8f), new Shot(BulletStyle.BeadWhite, 74).Sized(0.8f), c.MiddleX + 190 * Pat.Wave(c.Time, 9), 560, 118)).After(1.5f),
+        Pat.Every(1.4f, c => c.Fire(Pat.EdgePoint(c, Edge.Top, PatternContext.Rand(0.1f, 0.9f)), 90 + PatternContext.Rand(-15, 15), BigMoon(140).Styled(BulletStyle.GiantViolet).Splitting(1.6f, 20, BulletStyle.OrbViolet, 130))),
+        Pat.Every(3.6f, c => { Pat.Star(c, c.Origin, 5, 2, 85, c.Count * 15f, 5, new Shot(BulletStyle.StarGold, 1).LaunchedOut(0.8f, 140)); Pat.Star(c, c.Origin, 7, 3, 130, -c.Count * 15f, 4, new Shot(BulletStyle.StarBlue, 1).LaunchedOut(0.8f, 175)); }).After(2),
+        Pat.Every(1.3f, c => Pat.Aimed(c, c.Origin, 13, 90, new Shot(BulletStyle.KunaiBlue, 250))).NotOnEasy(),
+    })
+        .Pressured(1.97f)
+        .Plus(TopRain(0.1f, 2, BulletStyle.StarGold, 140),
+            SideRain(0.12f, 2, BulletStyle.StarBlue, 160),
+            Pat.Every(1.7f, c => Pat.Aimed(c, OuterLeft(c), 7, 50, new Shot(BulletStyle.KunaiViolet, 245))).After(0.6f).NotOnEasy())
+        .Pressured(1.48f);
+}

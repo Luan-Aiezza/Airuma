@@ -51,6 +51,7 @@ public static class PhaseManagerSystem
             boss.Transform.Position = new Vector2(-9999, -9999);
             boss.EmitterMain.IsActive = false;
             boss.EmitterSub.IsActive = false;
+            boss.Patterns = System.Array.Empty<PatternRun>();
             return;
         }
 
@@ -60,6 +61,8 @@ public static class PhaseManagerSystem
         boss.Health.CurrentHealth = phase.MaxHealth;
         boss.EmitterMain = phase.Main;
         boss.EmitterSub = phase.Sub;
+        boss.Patterns = BuildPatterns(phase, difficulty);
+        boss.PatternPressure = phase.Pressure; boss.PatternSpeed = phase.SpeedFactor;
         boss.Specials = SpecialsSystem.Begin(phase, difficulty);
 
         boss.MovementType = BossMovementType.Transition;
@@ -75,6 +78,15 @@ public static class PhaseManagerSystem
         if (phase.StartsAtTarget) boss.Transform.Position = phase.Target;
 
         ApplyDifficulty(boss, phase, difficulty);
+    }
+
+    /// <summary>The patterns that apply on this difficulty, each with its clock at the start.</summary>
+    private static PatternRun[] BuildPatterns(BossPhase phase, Difficulty difficulty)
+    {
+        var runs = new System.Collections.Generic.List<PatternRun>();
+        foreach (var spec in phase.Patterns)
+            if (spec.Applies(difficulty)) runs.Add(new PatternRun { Spec = spec, NextAt = 0 });
+        return runs.ToArray();
     }
 
     /// <summary>Easy: fewer bullets in every volley. Hard: more bullets, and a second, slower attack woven into some of the patterns.</summary>

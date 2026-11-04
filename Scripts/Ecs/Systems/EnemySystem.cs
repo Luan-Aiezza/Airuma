@@ -29,6 +29,13 @@ public static class EnemySystem
                 break;
             }
 
+            case EnemyPathKind.SideSine:
+            {
+                var along = e.Origin + e.Path.Velocity * e.Age;
+                e.Position = new Vector2(along.X, along.Y + e.Path.Amplitude * MathF.Sin(e.Path.Frequency * e.Age + e.Phase));
+                break;
+            }
+
             case EnemyPathKind.Arc:
                 e.Position += e.Path.Velocity.Rotated(Mathx.Radians(e.Path.Turn * e.Age)) * delta;
                 break;
@@ -60,6 +67,8 @@ public static class EnemySystem
     }
 
     // Shooting
+
+    private static readonly PatternContext FigureContext = new PatternContext();
 
     /// <summary>Enemies only shoot while they are inside the play area.</summary>
     public static void Fire(EnemyEntity e, Vector2 target, BulletData[] pool, Rect2 bounds, float delta, Difficulty difficulty = Difficulty.Normal)
@@ -120,6 +129,15 @@ public static class EnemySystem
                     float t = count > 1 ? (float)i / (count - 1) - 0.5f : 0;
                     Shoot(pool, e, aim + t * pattern.Spread, pattern, BulletStyle.RiceRed, i);
                 }
+                break;
+            }
+
+            case FirePatternKind.Custom:
+            {
+                var c = FigureContext;
+                c.Pool = pool; c.Origin = e.Position; c.Player = target; c.Field = bounds; c.Difficulty = difficulty; c.Pressure = 1; c.Speed = 1;
+                c.Time = e.PatternClock; c.Count = e.Shots++; c.Step = c.Count; c.Burst = e.PatternIndex;
+                pattern.Figure?.Invoke(c);
                 break;
             }
 

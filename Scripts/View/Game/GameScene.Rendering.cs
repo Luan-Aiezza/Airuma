@@ -17,6 +17,7 @@ public partial class GameScene : Node2D
         {
             _bulletFrames[style] = BulletArt.MakeFrames(style);
             _bulletScale[style] = BulletArt.SpriteSize(style) / _bulletFrames[style][0].GetSize();
+            _bulletRotates[(int)style] = BulletArt.Rotates(style);
         }
         for (int i = 0; i < BulletSystem.PoolSize; i++)
         {
@@ -239,18 +240,26 @@ public partial class GameScene : Node2D
         {
             var node = _bulletNodes[i];
             ref var bullet = ref bullets[i];
-            if (!bullet.IsActive) { node.Visible = false; continue; }
-            node.Visible = true;
-            node.Position = Point(bullet.Position);
-            var frames = _bulletFrames[bullet.Style];
-            node.Texture = frames[bulletFrame % frames.Length];
-            node.Scale = _bulletScale[bullet.Style];
-            if (BulletArt.Rotates(bullet.Style))
+            if (!bullet.IsActive)
             {
-                // Keep the last heading while a bullet is (almost) stopped, e.g. braking lotus petals.
-                if (bullet.Velocity.Length() > 1) node.Rotation = BulletArt.GodotRotation(bullet.Velocity);
+                if (_bulletKey[i] != 0) { node.Visible = false; _bulletKey[i] = 0; }
+                continue;
             }
-            else node.Rotation = 0;
+            node.Position = Point(bullet.Position);
+            // (a thousand bullets or more are on the screen in the late fights: what has not changed is not set again)
+            var frames = _bulletFrames[bullet.Style];
+            int frame = bulletFrame % frames.Length;
+            int key = 1 + (((int)bullet.Style * frames.Length + frame) << 8) + (int)(bullet.Zoom * 10);
+            if (_bulletKey[i] != key)
+            {
+                _bulletKey[i] = key;
+                node.Visible = true;
+                node.Texture = frames[frame];
+                node.Scale = bullet.Zoom == 1 ? _bulletScale[bullet.Style] : _bulletScale[bullet.Style] * bullet.Zoom;
+                if (!_bulletRotates[(int)bullet.Style]) node.Rotation = 0;
+            }
+            // Keep the last heading while a bullet is (almost) stopped, e.g. braking lotus petals.
+            if (_bulletRotates[(int)bullet.Style] && bullet.Velocity.LengthSquared() > 1) node.Rotation = BulletArt.GodotRotation(bullet.Velocity);
         }
 
         if (_input.JoystickOrigin is Vector2 origin)

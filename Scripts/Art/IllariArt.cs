@@ -43,6 +43,26 @@ public static class IllariArt
         }
     }
 
+    /// <summary>
+    /// Straight, smooth, loose hair: the pixels of a hair sheet are painted again as long strands, light, middle and dark in thin bands. Round the head the strands run out of it, straight; beyond, they lie along
+    /// the water in the way the hair flows, with a very slight wave. (No curls: it is not tied, it is not curled: it falls and lies.)
+    /// </summary>
+    private static void Strands(PixelCanvas c, float headX, float headY, float flowFrom)
+    {
+        for (int y = 0; y < c.Height; y++)
+            for (int x = 0; x < c.Width; x++)
+            {
+                if (c[x, y].A == 0) continue;
+                int band;
+                if (x < flowFrom) band = (int)MathF.Floor(MathF.Atan2(y - headY, x - headX) * 9f);
+                else band = (int)MathF.Floor((y - 1.3f * MathF.Sin(x * 0.11f)) * 0.9f);
+                int m = ((band % 5) + 5) % 5;
+                // the strands end at different places, in points
+                if (x >= flowFrom && x > 48 + m * 3.5f) { c[x, y] = P.Clear; continue; }
+                c[x, y] = m == 0 ? Hair[0] : (m == 3 ? Hair[2] : Hair[1]);
+            }
+    }
+
     /// <summary>Curls: little discs of gold along a path, each with a highlight and a shadow, so that the hair reads as ringlets.</summary>
     private static void Curls(PixelCanvas c, (float x, float y)[] path, float r)
     {
@@ -64,9 +84,9 @@ public static class IllariArt
         var hairBack = Sheet(w, h); var cape = Sheet(w, h); var torso = Sheet(w, h); var skirt = Sheet(w, h); var leg = Sheet(w, h); var arms = Sheet(w, h);
         var head = Sheet(w, h); var hairFront = Sheet(w, h); var belt = Sheet(w, h); var glow = Sheet(w, h);
 
-        // the hair, long, spread on the water behind and under her head in ringlets, with a lock that trails along her side
-        Fill(hairBack, Pts((15f, 14f), (6f, 13f), (1f, 17f), (0f, 23f), (3f, 26.5f), (12f, 27f), (19f, 25f), (21f, 18f)), Hair);
-        Curls(hairBack, new (float x, float y)[] { (2.5f, 20), (3.5f, 25), (8, 26.5f), (13, 26.5f), (18, 25.5f), (2f, 14.5f), (24, 25.5f), (29, 26.2f), (34, 25.6f), (39, 26.2f) }, 2.6f);
+        // the hair: long, straight, smooth and loose. A great fall of it round her head, spread on the water, and a river of straight hair that trails far along her side, past her feet; it is not tied and not curled
+        Fill(hairBack, Pts((17f, 11.5f), (7f, 10.5f), (1.5f, 13.5f), (0f, 19f), (0.5f, 25f), (3f, 28.5f), (12f, 30f), (26f, 30.2f), (40f, 30f), (52f, 29.2f), (62f, 27.5f), (66f, 25.6f), (52f, 25.4f), (40f, 25.6f), (22f, 25.5f), (21f, 18f)), Hair);
+        Strands(hairBack, 11f, 20.4f, 21f);
 
         // the body on her back: the cape over her shoulders with its brooch, the bare midriff, the silver belt, and the long skirt, with the great slit that shows a leg
         Fill(cape, Pts((17f, 18.5f), (28f, 17f), (33f, 18.6f), (33f, 26f), (17f, 26f)), Cape);
@@ -88,16 +108,16 @@ public static class IllariArt
         for (int x = 29; x <= 34; x++) Put(arms, x, 18, Skin[2]);                               // the line between the palms
         Put(arms, 34, 17, Skin[0]); Put(arms, 34, 19, Skin[1]);
 
-        // the head, the FACE UP: in profile, its forehead to the left; along the top, the closed eye (a curve of lashes), the nose, the rosy cheek and the little mouth; the pointed ear in the hair
+        // the head, the FACE UP: in profile, its forehead to the left; along the top, the closed eye (a curve of lashes), the nose, the rosy cheek and the little mouth; the pointed ear hidden under the hair
         FillEllipse(head, 11f, 20.4f, 5.9f, 5.9f, Skin);
         Put(head, 13, 14, Skin[0]); Put(head, 14, 14, Skin[0]); Put(head, 14, 15, Skin[1]); Put(head, 15, 15, Skin[1]);        // the nose
         for (int x = 7; x <= 10; x++) Put(head, x, 16 + (x == 7 || x == 10 ? 0 : 1), P.Hex(0x4A3A30));                          // the closed eye
         Put(head, 11, 16, Skin[2]);
         Put(head, 12, 18, P.Hex(0xF2A090)); Put(head, 13, 18, P.Hex(0xF2A090));
         Put(head, 16, 16, P.Hex(0xC8605A)); Put(head, 17, 17, P.Hex(0xC8605A));                                                 // the mouth
-        Put(head, 8, 22, Skin[0]); Put(head, 7, 23, Skin[1]);
-        Fill(hairFront, Pts((4f, 18.5f), (5.5f, 14.4f), (9f, 15f), (7.6f, 19.5f), (8f, 25f), (5f, 26.5f)), Hair);
-        Curls(hairFront, new (float x, float y)[] { (5, 17), (4.5f, 22), (6.5f, 25.5f) }, 2.2f);
+        // the hair in front of the head: straight, it falls from the crown over the brow and the side of the head, over the ears (they do not show), and lies on the water
+        Fill(hairFront, Pts((3.5f, 17.5f), (5.5f, 14.4f), (9f, 15f), (8.2f, 18.4f), (12.8f, 19.3f), (15f, 22.8f), (14f, 27.5f), (5f, 28f), (2.8f, 23f)), Hair);
+        Strands(hairFront, 11f, 20.4f, 99f);
 
         FillEllipse(glow, 38f, b - 4f, 34f, 9f, new[] { P.Hex(0xFFF4C0, 38), P.Hex(0xFFF4C0, 38), P.Hex(0xFFE690, 20) });
 

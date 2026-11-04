@@ -47,6 +47,7 @@ public static partial class SelfTest
         RegisterStage4(T);
         RegisterStage5(T);
         RegisterField(T);
+        RegisterPatterns(T);
         RegisterArchitecture(T);
 
         int failed = 0;
@@ -71,6 +72,8 @@ public static partial class SelfTest
 
     private const float Dt = 1f / 60;
     private static PlayerInputComponent Idle() => new PlayerInputComponent();
+    private static PatternContext Ctx(BulletData[] pool, Rect2? field = null, Difficulty difficulty = Difficulty.Normal) =>
+        new PatternContext { Pool = pool, Field = field ?? World.PlayArea, Difficulty = difficulty, Origin = V(300, 200), Player = V(300, 650) };
     private static Vector2 V(float x, float y) => new Vector2(x, y);
     private static BulletData[] Pool(int n) => BulletSystem.NewPool(n);
     private static int ActiveCount(BulletData[] pool) => pool.Count(b => b.IsActive);

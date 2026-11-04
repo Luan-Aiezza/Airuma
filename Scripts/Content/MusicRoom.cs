@@ -23,6 +23,7 @@ public static class MusicRoom
         new Track(MusicPlayer.Theme.DivineStage, nameof(UIText.Stage5Music), 4),
         new Track(MusicPlayer.Theme.SerpentBoss, nameof(UIText.Boss5Music), 4),
         new Track(MusicPlayer.Theme.CosmicStage, nameof(UIText.Stage6Music), 5),
+        new Track(MusicPlayer.Theme.CosmicBoss, nameof(UIText.Boss6Music), 5),
         new Track(MusicPlayer.Theme.SadEnding, nameof(UIText.SadEndingMusic), -1),
         new Track(MusicPlayer.Theme.HappyEnding, nameof(UIText.HappyEndingMusic), -1),
     };

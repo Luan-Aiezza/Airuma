@@ -677,13 +677,18 @@ Cada carta tem um nome (**Título**) e uma descrição curta do que ela faz (**D
 
 | Chave | Português (PT-BR) | Inglês (EN) | Contexto |
 | --- | --- | --- | --- |
-| `MenuMusic` | ♪ Águas quietas (entrada e menu) | ♪ Quiet waters (opening and menu) | Texto sem contexto catalogado ainda. |
-| `SadEndingMusic` | ♪ Noite sem fim (final ruim) | ♪ Endless night (bad ending) | Texto sem contexto catalogado ainda. |
-| `HappyEndingMusic` | ♪ Aurora (final) | ♪ Daybreak (ending) | Texto sem contexto catalogado ainda. |
+| `Boss6Music` | ♪ O coro da lua devoradora | ♪ The choir of the devouring moon | Texto sem contexto catalogado ainda. |
+| `MenuMusic` | ♪ Águas quietas - entrada e menu | ♪ Quiet waters - opening and menu | Texto sem contexto catalogado ainda. |
+| `SadEndingMusic` | ♪ Noite sem fim - final ruim | ♪ Endless night - bad ending | Texto sem contexto catalogado ainda. |
+| `HappyEndingMusic` | ♪ Aurora - final | ♪ Daybreak - ending | Texto sem contexto catalogado ainda. |
 | `MusicRoomTitle` | Sala de música | Music Room | Texto sem contexto catalogado ainda. |
 | `RestartsLeft` | Reinícios restantes: | Restarts left: | Texto sem contexto catalogado ainda. |
 | `GameOver` | Game Over | Game Over | Texto sem contexto catalogado ainda. |
-| `GameOverMusic` | ♪ Luz que se apaga (game over) | ♪ Light going out (game over) | Texto sem contexto catalogado ainda. |
+| `GameOverMusic` | ♪ Luz que se apaga - game over | ♪ Light going out - game over | Texto sem contexto catalogado ainda. |
+| `AttackKillaCrescent` | Lua Crescente: Os Chifres de Prata | Crescent Moon: The Horns of Silver | Texto sem contexto catalogado ainda. |
+| `AttackKillaTide` | Maré Lunar: O Rio do Céu | Lunar Tide: The River of the Sky | Texto sem contexto catalogado ainda. |
+| `AttackKillaEclipse` | Eclipse Total: O Sol Coberto | Total Eclipse: The Covered Sun | Texto sem contexto catalogado ainda. |
+| `AttackKillaEternalNight` | Noite Eterna | Eternal Night | Texto sem contexto catalogado ainda. |
 | `BadEnd1` | Barrados na fronteira, Atli e Ukhumo voltaram ao rio, e a noite não terminou. | Turned back at the border, Atli and Ukhumo returned to the river, and the night did not end. | Texto sem contexto catalogado ainda. |
 | `BadEnd2` | Atli: Faz quanto tempo que a gente está parado aqui, Ukhumo? | Atli: How long have we been sitting here, Ukhumo? | Texto sem contexto catalogado ainda. |
 | `BadEnd3` | Ukhumo: Desde que o sol sumiu. E os peixes continuam sem morder. | Ukhumo: Since the sun vanished. And the fish still won't bite. | Texto sem contexto catalogado ainda. |
