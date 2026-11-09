@@ -332,6 +332,7 @@ public partial class GameScene : Node2D
         {
             var node = _lightNodes[i]; var item = World.Lights[i];
             if (!item.IsActive) { node.Visible = false; continue; }
+            node.Material = item.Kind == LightKind.Energy ? null : _lightAdd;               // the power squares are drawn plain; the spare lantern and boat glow
             if (item.Kind == LightKind.Bomb || item.Kind == LightKind.Life)
             {
                 node.Texture = (item.Kind == LightKind.Bomb ? _bombFrames : _lifeFrames)[(frame / 2 + i) % _bombFrames.Length];
@@ -339,8 +340,10 @@ public partial class GameScene : Node2D
             }
             else
             {
-                node.Texture = _lightFrames[(frame + i) % _lightFrames.Length];
-                FitTo(node, new Vector2(LightArt.Size * LightArt.Scale, LightArt.Size * LightArt.Scale));
+                int size = LightSystem.Size(item.Value);
+                node.Texture = _powerFrames[size][(frame / 2 + i) % _powerFrames[size].Length];
+                float side = LightArt.PowerPixels(size);
+                FitTo(node, new Vector2(side, side));
             }
             node.Position = Point(item.Position);
             node.Visible = true;

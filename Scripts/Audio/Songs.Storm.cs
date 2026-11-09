@@ -7,7 +7,7 @@ using System.Linq;
 ///
 /// "A tempestade sob o rio agitado" (the stage, 76 BPM, F minor): dark and sombre. The water churns under a piano that rolls in triplets while the left hand tolls low octaves; a trumpet,
 /// muted and lonely, sings a slow tune above; thunder rumbles in the toms, and now and then a lightning of high notes flashes. The chorus climbs, the trumpets in two voices.
-/// "A gata arisca brinca na tempestade" (the boss, 150 BPM, F minor): the same storm, and a cat playing in it. A much lower, heavier piano hammers a prowling pulse and chords on the offbeats,
+/// "A gata arisca brinca na tempestade" (the boss, 200 BPM, F minor): the same storm, and a cat playing in it. A much lower, heavier piano hammers a prowling pulse and chords on the offbeats,
 /// and the PIANO is the lead: its right hand sings the tune in octaves (in chords in the chorus) while the trumpets double and answer it, sharp and fierce; in the middle the cat plays (a staccato figure in the piano, answered by the trumpets).
 /// </summary>
 public static partial class Songs
@@ -159,7 +159,7 @@ public static partial class Songs
     /// <summary>"A gata arisca brinca na tempestade": the boss's theme of stage 3.</summary>
     public static (float[] left, float[] right) CatInTheStorm()
     {
-        const double bpm = 150;
+        const double bpm = 200;
         double spb = 60 / bpm, bar = 4 * spb;
         var chords = new List<Chord>();
         chords.AddRange(CatChordsIntro); chords.AddRange(CatChordsA); chords.AddRange(CatChordsB); chords.AddRange(CatChordsPlay); chords.AddRange(CatChordsA); chords.AddRange(CatChordsB);
@@ -188,6 +188,8 @@ public static partial class Songs
                 }
                 s.Bass(t0, bar, ch.Bass - 12, 0.13);
             }
+            else s.Bass(t0, bar, ch.Bass - 12, 0.1 + 0.03 * b);       // the opening is never silent: the low pedal from the very first beat
+
 
             // the right hand: chords hammered on the offbeats; in the cat's play, a staccato figure; in the chorus, fuller and higher
             if (b >= 4 && !play)
@@ -197,9 +199,10 @@ public static partial class Songs
                 for (int i = 0; i < 8; i++) s.Piano(t0 + i * spb / 2, spb * 0.3, ch.Tones[order[i]], (i % 4 == 0 ? 0.07 : 0.045), -0.3 + i * 0.09, 0.2);
 
             // the toms and the cymbals: a timpani on one and three, the thunder in the fills
-            if (b == 2 || b == 3)
+            if (b <= 3)
             {
-                for (int i = 0; i < 16; i++) s.Tom(t0 + i * spb / 4, 36 + (i % 4), 0.06 + 0.12 * ((b - 2) * 16 + i) / 32.0, -0.4 + (i % 4) * 0.25);
+                // the roll of the toms fills the whole opening (it used to begin on the third bar, and the first three seconds of the fight were silence), growing to the climb of the piano
+                for (int i = 0; i < 16; i++) s.Tom(t0 + i * spb / 4, 36 + (i % 4), 0.06 + 0.12 * (b * 16 + i) / 64.0, -0.4 + (i % 4) * 0.25);
                 if (b == 2) s.Crash(t0, 0.2);
             }
             else if (b >= 4)

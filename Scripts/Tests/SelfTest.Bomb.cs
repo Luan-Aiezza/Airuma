@@ -46,7 +46,7 @@ public static partial class SelfTest
         int before = world.Score;
         Run(world, 0.6f);
         Eq(world.Score - before, SpiritKind.Gunner.Points());
-        Eq(world.Lights.Count(l => l.IsActive) + (int)world.Player.Energy, SpiritKind.Gunner.Drops(), "its lights drop (or were gathered)");
+        Eq((int)(world.Lights.Where(l => l.IsActive).Sum(l => l.Value) + world.Player.Energy), SpiritKind.Gunner.Drops(), "its power square drops (or was gathered)");
         True(world.TakeEvents().Any(e => e.Kind == WorldEventKind.EnemyDefeated && e.Spirit == SpiritKind.Gunner));
     }
 

@@ -37,7 +37,7 @@ public sealed class BossBuilder
     private BossPhase Dress(BossPhase attack, MusicPlayer.Theme theme, string musicTitleKey, int health, bool enraged)
     {
         attack.NameKey = _nameKey; attack.Theme = theme; attack.MusicTitleKey = musicTitleKey;
-        attack.SpeedFactor = _speed; attack.HitboxRadius = _hitbox; attack.MaxHealth = Math.Max(10, (int)(health * TestHealthFactor)); attack.Enraged = enraged;
+        attack.SpeedFactor = _speed * attack.AttackSpeed; attack.HitboxRadius = _hitbox; attack.MaxHealth = Math.Max(10, (int)(health * TestHealthFactor)); attack.Enraged = enraged;
         return attack;
     }
 

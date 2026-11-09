@@ -22,7 +22,7 @@ public static partial class Attacks
     private static Shot RainDrop(float speed) => new Shot(BulletStyle.BeadBlue, speed).Sized(0.9f);
 
     /// <summary>A ring of `n` bullets in the colours of `styles` that comes out with a burst, slows to a stop in `stop` seconds and then flies at the boat (each from where it stopped, a little to one side or the other).</summary>
-    private static void StopAndAimRing(PatternContext c, Vector2 at, int n, float start, BulletStyle[] styles, float speed, float stop, float after)
+    public static void StopAndAimRing(PatternContext c, Vector2 at, int n, float start, BulletStyle[] styles, float speed, float stop, float after)
     {
         n = c.N(n, 6);
         for (int k = 0; k < n; k++)
@@ -30,7 +30,7 @@ public static partial class Attacks
     }
 
     /// <summary>A ring of `n` bullets that slows to a stop and then turns `turn` degrees and goes off again: the ring becomes a pinwheel (a second turn, the other way, makes a flower).</summary>
-    private static void PinwheelRing(PatternContext c, Vector2 at, int n, float start, BulletStyle[] styles, float speed, float stop, float turn, int times = 1)
+    public static void PinwheelRing(PatternContext c, Vector2 at, int n, float start, BulletStyle[] styles, float speed, float stop, float turn, int times = 1)
     {
         n = c.N(n, 6);
         for (int k = 0; k < n; k++)
@@ -90,7 +90,7 @@ public static partial class Attacks
             // 1) the walls of water (above)   2) walls of drops that fall from the top at random points (a gap of at least 200 px between two of them)
             Pat.Every(1.7f, c =>
             {
-                int walls = c.Difficulty == Difficulty.Easy ? 1 : 2;
+                int walls = 2;
                 float first = PatternContext.Rand(c.Left + 70, c.Right - 70);
                 for (int w = 0; w < walls; w++)
                 {
@@ -181,5 +181,6 @@ public static partial class Attacks
             Pat.Every(3.2f, c => PinwheelRing(c, LeftHalf(c), 16, c.Count * 9f, RainbowOrbs, 57, 0.8f, 80, times: 2)).After(0.5f),
             Pat.Every(3.2f, c => PinwheelRing(c, RightHalf(c), 16, c.Count * -9f, RainbowOrbs, 57, 0.8f, -80, times: 2)).After(2.1f),
         })
-        .Pressured(0.6f);
+        .Pressured(0.6f)
+        .Faster(1.5f);
 }

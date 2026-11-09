@@ -195,6 +195,20 @@ public sealed class Synth
         }, amp, pan, attack: 0.05, release: 0.25, sustain: 1.0, decay: 1.0);
     }
 
+    /// <summary>The organ struck short and hard (a quick attack and release), for the hammered chords and the galloping pulse of the fast pieces.</summary>
+    public void OrganStab(double start, double dur, double midi, double amp, double pan = 0)
+    {
+        double f = Hz(midi), phase = 0;
+        double[] ratio = { 1, 2, 3, 4, 6 }, level = { 1.0, 0.7, 0.45, 0.35, 0.18 };
+        Voice(start, dur, t =>
+        {
+            phase += 2 * Math.PI * f / Rate;
+            double s = 0;
+            for (int k = 0; k < ratio.Length; k++) s += level[k] * Math.Sin(ratio[k] * phase);
+            return (s + White() * 0.05 * Math.Exp(-t * 60)) * 0.4;
+        }, amp, pan, attack: 0.005, release: 0.04, sustain: 1.0, decay: 1.0);
+    }
+
     /// <summary>A tubular bell, struck: inharmonic partials that ring a long time.</summary>
     public void Bell(double start, double midi, double amp, double pan = 0)
     {

@@ -164,7 +164,7 @@ public static partial class SelfTest
             return w.Player.Transform.Position - before;
         }
         float easy = Drift(Difficulty.Easy).X, normal = Drift(Difficulty.Normal).X, hard = Drift(Difficulty.Hard).X;
-        Near(easy, 10, 0.01f, "the easy mode keeps the wind as it was");
+        Near(easy, 12, 0.01f, "the easy mode has the wind of the old normal");
         Greater(normal, easy); Greater(hard, normal);
     }
 

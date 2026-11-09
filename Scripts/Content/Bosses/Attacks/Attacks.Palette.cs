@@ -26,6 +26,9 @@ public static partial class Attacks
     /// <summary>Adds patterns to an attack without touching its pressure (the late bosses pile layers on layers).</summary>
     private static BossPhase Plus(this BossPhase phase, params PatternSpec[] more) { phase.Patterns.AddRange(more); return phase; }
 
+    /// <summary>Makes the bullets of the attack fly `factor` times as fast as its boss's others.</summary>
+    private static BossPhase Faster(this BossPhase phase, float factor) { phase.AttackSpeed = factor; return phase; }
+
     /// <summary>Sets how heavy the attack is made (see <see cref="PatternContext.Pressure"/>): tuned so that the bullets on the screen rise from boss to boss.</summary>
     private static BossPhase Pressured(this BossPhase phase, float pressure) { phase.Pressure = pressure; return phase; }
 

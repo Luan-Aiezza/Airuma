@@ -262,6 +262,13 @@ public partial class MenuScene : Node2D
 				_ui.AddChild(label);
 			}
 			_itemNodes.Add((normal, selected));
+			if (CurrentScreen == Screen.Difficulty && Entries[i].Action == ActionKind.Choose)
+			{
+				// (the number of stages of the difficulty), smaller, beside the name and on the same baseline
+				var stages = new PixelLabel(PixelLabel.Style.MenuDim, 2) { Position = ItemAt(i) + new Vector2(normal.Texture.GetWidth() * ItemScale + 16, 7 * (ItemScale - 2)) };
+				stages.SetText(UIText.DifficultyStages(Entries[i].Level == Difficulty.Easy ? 5 : 6));
+				_extras.AddChild(stages);
+			}
 			if (Entries[i].Action is ActionKind.Setting or ActionKind.KeyBind)
 			{
 				var value = new PixelLabel(PixelLabel.Style.Value, ItemScale) { Position = new Vector2(origin.X + 400, origin.Y + i * ItemPitch) };

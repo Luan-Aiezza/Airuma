@@ -26,6 +26,60 @@ public static class LightArt
         return c;
     }
 
+    // MARK: The power items: red squares with a "P"
+
+    /// <summary>The square of a power item is always 9 x 9 art pixels; the three sizes are the three scales it is shown at: 2 (18 px, the small one, type 1), 3 (27 px, the medium) and 4 (36 px, the large, type 3).</summary>
+    public const int PowerSide = 9;
+    public static readonly float[] PowerScales = { 2, 3, 4 };
+    public static float PowerPixels(int size) => PowerSide * PowerScales[size];
+
+    private static readonly string[] SmallP = { "###", "#.#", "###", "#..", "#.." };
+
+    /// <summary>
+    /// A power item: a plain red square, as unlike the bullets of the game as can be, with a dark rim, a lit edge at the top and the left, a shade at the bottom and the right, and a white "P" (for power) with a
+    /// dark shadow. It is the same picture at every size (`size` is only kept for the callers); the second frame passes a glint across the corner.
+    /// </summary>
+    public static PixelCanvas MakePowerCanvas(int size, int frame)
+    {
+        int n = PowerSide;
+        var c = new PixelCanvas(n, n);
+        var rim = PixelColor.Hex(0x4A0610); var lit = PixelColor.Hex(0xFF7A6A); var fill = PixelColor.Hex(0xE02424); var shade = PixelColor.Hex(0x9A0E18);
+        for (int y = 0; y < n; y++)
+            for (int x = 0; x < n; x++)
+            {
+                bool border = x == 0 || y == 0 || x == n - 1 || y == n - 1;
+                if (border) { c[x, y] = rim; continue; }
+                c[x, y] = (x == 1 || y == 1) ? lit : ((x == n - 2 || y == n - 2) ? shade : fill);
+            }
+        // the corners are cut by one pixel, so that the square is a little button
+        foreach (var (x, y) in new[] { (0, 0), (n - 1, 0), (0, n - 1), (n - 1, n - 1) }) c[x, y] = new PixelColor(0, 0, 0, 0);
+        var glyph = SmallP;
+        int k = 1;
+        int gw = glyph[0].Length * k, gh = glyph.Length * k;
+        int ox = (n - gw) / 2, oy = (n - gh) / 2;
+        var white = PixelColor.Hex(0xFFFFFF); var ink = PixelColor.Hex(0x6A0A14);
+        for (int pass = 0; pass < 2; pass++)
+            for (int gy = 0; gy < glyph.Length; gy++)
+                for (int gx = 0; gx < glyph[gy].Length; gx++)
+                {
+                    if (glyph[gy][gx] != '#') continue;
+                    for (int j = 0; j < k; j++)
+                        for (int i = 0; i < k; i++)
+                        {
+                            int px = ox + gx * k + i + (pass == 0 ? 1 : 0), py = oy + gy * k + j + (pass == 0 ? 1 : 0);
+                            if (px > 0 && py > 0 && px < n - 1 && py < n - 1) c[px, py] = pass == 0 ? ink : white;
+                        }
+                }
+        // the glint: a bright pixel (or two) that moves along the top edge in the second frame
+        var shine = PixelColor.Hex(0xFFE6DC);
+        int g1 = frame == 0 ? 2 : n - 3;
+        c[Math.Clamp(g1, 1, n - 2), 1] = shine;
+        return c;
+    }
+
+    public static Texture2D[] MakePowerFrames(int size) =>
+        Enumerable.Range(0, FrameCount).Select(f => (Texture2D)MakePowerCanvas(size, f).ToTexture()).ToArray();
+
     /// <summary>The spare lantern that now and then drops: the lantern of the HUD in a pale blue-white glow that pulses (13 x 13 pixels).</summary>
     public const int BombSize = 13;
 

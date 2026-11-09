@@ -30,3 +30,10 @@ Os testes (`Scripts/Tests`, em especial `SelfTest.Patterns.cs`) conferem a curva
 Entre as balas de um padrão de inimigo deve haver sempre espaço para o barco: a hitbox do barco tem 8 px, e o vão (borda a borda das hitboxes) deve ser de 2x a 3x isso: no mínimo `Pat.MinGap` (16 px) e, havendo espaço, `Pat.ComfortGap` (24 px). Como a hitbox de uma bala tem ~10 px, os centros ficam a `Pat.MinCentre` (30 px) ou mais.
 Na prática: anéis/leques devem abrir (ângulo ≥ 16 graus entre vizinhos nos leques), camadas devem ter velocidades bem distintas, galáxias (`PolarRing`) precisam de `radialSpeed x intervalo ≥ 30 px`, anéis que "mirram" depois de parar usam `Turning(3, ...)` (todos voam paralelos, a partir do ponto de origem, sem convergir) e a chuva rejeita gotas coladas (`PatternContext.IsFree`). Medição: `sim gaps <fase>` (mediana do vão por ataque) e o teste `TheBulletsOfStageFiveKeepRoomForTheBoat`.
 Lasers longos podem ficar transparentes e inofensivos (`blink: 2` em `Pat.Laser`: últimos 0,8 s de cada 2 s).
+
+## Regras das fases (antes de cada chefe)
+
+- Inimigos e balas só vêm de cima ou dos cantos superiores dos lados (nada de baixo): nada nasce abaixo de y=230 (nos lados, y<190) e os espíritos só atiram acima de `EnemySystem.FireLimitY` (330).
+- Fases 1 e 2: só tipos 1 e 2. Fase 3: o tipo 3 aparece isolado (sozinho na onda). Fase 4: tipo 3 em duplas, sozinhas na onda. Fase 5: duplas acompanhadas dos tipos 1 e 2. Fase 6: até trios.
+- Cada fase é um pouco maior que a anterior (ondas: 5, 6, 7, 8, 9, 10) e um pouco mais difícil.
+- Figuras suaves: 1 figura por vez em cada espírito (o tipo 3 faz uma série, uma figura por vez, com descanso), contagens baixas, regra dos espaços. Medição: `sim stagerun <fase> <dificuldade>`.

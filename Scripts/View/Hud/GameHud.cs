@@ -100,7 +100,7 @@ public partial class GameHud : Node2D
     public GameHud(HudTheme theme = null)
     {
         _theme = theme ?? HudTheme.Original();
-        _restartPlaque.Texture = _menuPlaque.Texture = HudArt.Plaque(36, 9, _theme).ToTexture();
+        _restartPlaque.Texture = _menuPlaque.Texture = HudArt.Plaque(46, 9, _theme).ToTexture();
         ZIndex = Z(10);
         BuildPanel();
         BuildFrame();
@@ -325,7 +325,8 @@ public partial class GameHud : Node2D
         _endPanel.Visible = false;
         _endPanel.Position = AtField(300, 288); // top-centre of the game field
         AddChild(_endPanel);
-        MakeSprite(HudArt.Box(100, 50, _theme).ToTexture(), Vector2.Zero, 0, new Vector2(0.5f, 1), null, _endPanel);
+        // (120 art pixels wide, 480 on the screen: the longest texts, "Reinícios restantes: 3", fit inside with room to spare; the plaques are wide enough for "Reiniciar")
+        MakeSprite(HudArt.Box(120, 50, _theme).ToTexture(), Vector2.Zero, 0, new Vector2(0.5f, 1), null, _endPanel);
         _victoryTitle.SetText(UIText.Victory);
         _defeatTitle.SetText(UIText.Defeat);
         var rows = new[] { (_victoryTitle, 24f), (_defeatTitle, 24f), (_endSubtitle, 60f), (_endPoints, 84f), (_endRecord, 116f) };
@@ -335,7 +336,7 @@ public partial class GameHud : Node2D
             l.ZIndex = Z(1);
             _endPanel.AddChild(l);
         }
-        var plaques = new[] { (_restartPlaque, UIText.Restart, -84f), (_menuPlaque, UIText.Menu, 84f) };
+        var plaques = new[] { (_restartPlaque, UIText.Restart, -104f), (_menuPlaque, UIText.Menu, 104f) };
         foreach (var (plaque, label, x) in plaques)
         {
             PlaceSprite(plaque, new Vector2(0.5f, 1), Art);

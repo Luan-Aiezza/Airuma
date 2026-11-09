@@ -50,7 +50,7 @@ public static partial class Songs
 	private static Chord[] RiverChordsHymn => new[] { AmB, F, C, GB, Dm, AmB, E, AmB };
 	private static Chord[] RiverChordsRiver => new[] { AmB, F, C, GB, AmB, F, E, AmB };
 
-	/// <summary>"O rio que percorre o universo": the theme of stage 6.</summary>
+	/// <summary>The theme of the fight with Killa, the last boss (it was the theme of the stage before); the titles stay with the slots, so it is shown as "A lua prateada reflete sob o lago".</summary>
 	public static (float[] left, float[] right) RiverThroughTheUniverse()
 	{
 		const double bpm = 288;

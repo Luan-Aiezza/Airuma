@@ -44,7 +44,7 @@ public sealed class PatternContext
     }
 
     /// <summary>The width of a gap for the difficulty: wider in the easy mode, narrower in the hard.</summary>
-    public float Gap(float width) => width * (Difficulty == Difficulty.Easy ? 1.35f : (Difficulty == Difficulty.Hard ? 0.88f : 1f));
+    public float Gap(float width) => width * Difficulty.Pick(1f, 0.88f, 0.78f);
 
     public static float Rand(float low, float high) => low + (float)Random.Shared.NextDouble() * (high - low);
 
@@ -100,7 +100,7 @@ public sealed class PatternSpec
     public PatternSpec NotOnEasy() { NotEasy = true; return this; }
     public PatternSpec OnlyOnHard() { HardOnly = true; return this; }
 
-    public bool Applies(Difficulty difficulty) => !(NotEasy && difficulty == Difficulty.Easy) && !(HardOnly && difficulty != Difficulty.Hard);
+    public bool Applies(Difficulty difficulty) => !(HardOnly && difficulty == Difficulty.Easy);
 }
 
 /// <summary>The state of a pattern while its attack lasts.</summary>

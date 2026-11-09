@@ -48,6 +48,8 @@ public sealed class BossPhase
     public float Pressure = 1;
     /// <summary>How much faster than written the bullets of the attack fly (set by the boss: see <see cref="BossBuilder"/>).</summary>
     public float SpeedFactor = 1;
+    /// <summary>How much faster than the rest of its boss the bullets of this one attack fly (1: the same); the builder multiplies it into <see cref="SpeedFactor"/>.</summary>
+    public float AttackSpeed = 1;
 
     /// <summary>On hard difficulty, a second pattern woven into an attack that has no <see cref="Sub"/>; unused if not active.</summary>
     public BulletEmitterComponent HardExtra;

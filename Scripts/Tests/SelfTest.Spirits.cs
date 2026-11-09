@@ -18,7 +18,7 @@ public static partial class SelfTest
         T("AHeavyShootsRingsFansAndSpirals", AHeavyShootsRingsFansAndSpirals);
         T("PatternsTakeTurns", PatternsTakeTurns);
         T("FairiesOnlyShootInsideTheScreen", FairiesOnlyShootInsideTheScreen);
-        T("StageOneHasOnlyTheBlueSpirits", StageOneHasOnlyTheBlueSpirits);
+        T("StageOneHasOnlyTheBlueSpiritsAndAFewPlainGunners", StageOneHasOnlyTheBlueSpiritsAndAFewPlainGunners);
     }
 
     private static void RunEnemy(EnemyEntity e, float seconds) { for (int i = 0; i < (int)(seconds * 60); i++) EnemySystem.Move(e, 1f / 60); }
@@ -159,11 +159,15 @@ public static partial class SelfTest
 
     // The script
 
-    private static void StageOneHasOnlyTheBlueSpirits()
+    private static void StageOneHasOnlyTheBlueSpiritsAndAFewPlainGunners()
     {
         var waves = Stage1Waves.Waves;
         Eq(waves.Count, 5);
-        True(waves.All(w => w.Spawns.All(s => s.Kind == SpiritKind.Swarm)), "the first stage is only the easy blue ones");
-        True(waves.All(w => w.Spawns.All(s => s.Patterns.Count == 0)), "and they do not shoot");
+        True(waves.All(w => w.Spawns.All(s => s.Kind != SpiritKind.Heavy)), "the first stage is only types 1 and 2");
+        True(waves.All(w => w.Spawns.Where(s => s.Kind == SpiritKind.Swarm).All(s => s.Patterns.Count == 0)), "the blue ones do not shoot");
+        True(waves.All(w => w.Spawns.Where(s => s.Kind == SpiritKind.Gunner).All(s => s.Patterns.Count <= 1)), "the gunners only fire their plain shot");
+        int gunners = waves.Sum(w => w.Spawns.Count(s => s.Kind == SpiritKind.Gunner));
+        Greater(gunners, 0, "there are gunners");
+        Less(gunners, Stage2Waves.Waves.Sum(w => w.Spawns.Count(s => s.Kind == SpiritKind.Gunner)), "fewer than in stage 2");
     }
 }

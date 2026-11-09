@@ -497,26 +497,22 @@ public sealed class HudTheme
 
     public const int OrnamentWidth = 74, OrnamentHeight = 22;
 
-    /// <summary>A fire serpent swimming across the panel from left to right: dark red at the tail, bright at the head, which has a
-    /// yellow slit eye, a forked tongue and a crest of flame.</summary>
+    /// <summary>The body of a fire serpent swimming across the panel from edge to edge: only the scales, with neither the head nor the tip of the tail.</summary>
     public static PixelCanvas SerpentOrnament()
     {
         var c = new PixelCanvas(OrnamentWidth, OrnamentHeight);
         var ramp = FirePalette.Ramp;   // white-hot .. dark red
-        const int bodyEnd = 62;
-        for (int x = 0; x < bodyEnd; x++)
+        for (int x = 0; x < OrnamentWidth; x++)
         {
-            float t = x / (float)bodyEnd;                                   // 0 at the tail
             float yc = 12 + 4.4f * MathF.Sin(x * 0.27f + 0.5f);
-            float half = 1.0f + 2.6f * MathF.Min(1, t * 1.6f);              // the body thickens towards the head
+            const float half = 3.4f;                                        // the same thickness all along
             for (int y = (int)MathF.Floor(yc - half - 1); y <= (int)MathF.Ceiling(yc + half + 1); y++)
             {
                 if (!c.Contains(x, y)) continue;
                 float d = (y + 0.5f - yc) / half;
                 if (MathF.Abs(d) > 1) continue;
                 // the back is dark and fiery, the belly pale gold
-                int index = d < -0.5f ? 4 : (d < 0.15f ? (t > 0.55f ? 3 : 4) : (d < 0.6f ? 2 : 1));
-                if (t < 0.25f) index = Math.Min(5, index + 1);
+                int index = d < -0.5f ? 4 : (d < 0.15f ? 3 : (d < 0.6f ? 2 : 1));
                 var color = ramp[index];
                 // scales: darker edges every third column, offset by row
                 if ((x + (y % 2)) % 3 == 0) color = color.Scaled(0.72f);
@@ -532,24 +528,6 @@ public sealed class HudTheme
                 if (copy[x, y].A != 0) continue;
                 foreach (var (dx, dy) in n)
                     if (copy.Contains(x + dx, y + dy) && copy[x + dx, y + dy].A > 0) { c[x, y] = P.Hex(0x120808); break; }
-            }
-        // the head
-        float hy = 12 + 4.4f * MathF.Sin(bodyEnd * 0.27f + 0.5f);
-        PixelPaint.Ellipse(c, 66.5f, hy, 5.5f, 4.2f, P.Hex(0x120808));
-        PixelPaint.Ellipse(c, 66.5f, hy, 4.6f, 3.4f, ramp[3]);
-        PixelPaint.Ellipse(c, 66f, hy - 0.8f, 3.2f, 2f, ramp[2]);
-        PixelPaint.Rect(c, 68, (int)hy - 2, 69, (int)hy - 1, ramp[0]);                   // the eye...
-        PixelPaint.Plot(c, 69, (int)hy - 2, P.Hex(0x120808));                              // ...with its slit
-        PixelPaint.Rect(c, 66, (int)hy + 1, 71, (int)hy + 1, ramp[4]);                    // the mouth
-        // the forked tongue
-        PixelPaint.Plot(c, 72, (int)hy + 1, ramp[4]); PixelPaint.Plot(c, 73, (int)hy, ramp[3]); PixelPaint.Plot(c, 73, (int)hy + 2, ramp[3]);
-        // the crest of flame
-        int[] crest = { 5, 4, 5, 3, 4 };
-        for (int i = 0; i < crest.Length; i++)
-            for (int k = 0; k < crest[i]; k++)
-            {
-                int x = 62 + i, y = (int)hy - 4 - k;
-                if (c.Contains(x, y)) c[x, y] = ramp[Math.Min(5, 1 + k * 4 / crest[i])];
             }
         // sparks of ember above the body
         foreach (var (x, y) in new[] { (12, 2), (24, 4), (34, 1), (46, 3), (54, 1) }) if (c.Contains(x, y)) c[x, y] = ramp[2];

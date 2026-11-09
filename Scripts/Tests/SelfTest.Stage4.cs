@@ -22,19 +22,15 @@ public static partial class SelfTest
 
     private static void StageFourPutsRedSpiritsInCombosOneAtATime()
     {
+        // stage 4: the red spirits come in PAIRS, alone in their wave
         var waves = Stages.Four.Waves;
-        Greater(Spawns(Stages.Four).Count(), Spawns(Stages.Three).Count(), "more spirits than stage 3");
-        var combos = waves.Where(w => w.Spawns.Any(s => s.Kind == SpiritKind.Heavy)).ToList();
-        GreaterEq(combos.Count, 3, "red spirits come more often than in stage 3");
-        Greater(combos.Count, Stages.Three.Waves.Count(w => w.Spawns.Any(s => s.Kind == SpiritKind.Heavy)));
-        foreach (var wave in combos)
+        var pairs = waves.Where(w => w.Spawns.Any(s => s.Kind == SpiritKind.Heavy)).ToList();
+        GreaterEq(pairs.Count, 2, "red spirits come in pairs");
+        foreach (var wave in pairs)
         {
-            Eq(wave.Spawns.Count(s => s.Kind == SpiritKind.Heavy), 1, "only one red spirit at a time");
-            True(wave.Spawns.Any(s => s.Kind == SpiritKind.Swarm) && wave.Spawns.Any(s => s.Kind == SpiritKind.Gunner), "with the other kinds round it (the combo)");
-            Greater(wave.Spawns.Count(s => s.Kind != SpiritKind.Heavy), 25, "a crowd");
+            Eq(wave.Spawns.Count(s => s.Kind == SpiritKind.Heavy), 2, "a pair");
+            Eq(wave.Spawns.Count, 2, "alone in its wave");
         }
-        // No wave has two red spirits, and a wave only begins once the one before has been dealt with, so they never share the field.
-        True(waves.All(w => w.Spawns.Count(s => s.Kind == SpiritKind.Heavy) <= 1));
     }
 
     private static void UkhumoHasSevenAttacksFourCalmAndThreeEnraged()
@@ -231,7 +227,7 @@ public static partial class SelfTest
                 foreach (var line in list)
                 {
                     True(!string.IsNullOrWhiteSpace(line.Text) && line.Text != line.Key, "has text");
-                    True(GameHud.Wrap(line.Text, 36, 3).Count <= 3, $"[{lang}] fits: {line.Text}");
+                    True(GameHud.Wrap(line.Text, 28, 99).Count <= 5, $"[{lang}] fits: {line.Text}");
                 }
         }
         Loc.Choose(Language.PortugueseBrazil);

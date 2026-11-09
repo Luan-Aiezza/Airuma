@@ -4,8 +4,9 @@ using Godot;
 /// <summary>Movement of the bosses: the dash.</summary>
 public static partial class MovementSystem
 {
-    /// <summary>The dash: seconds spent drifting down before lunging, the lunge's speed (times the boss's own), and the three lanes it comes back in: left, centre, right.</summary>
-    private const float DashWaitSeconds = 1.5f, DashWaitY = 100, DashSpeedFactor = 5, DashStartY = -50;
+    /// <summary>The dash: seconds spent drifting down before lunging (she stops where the other bosses stand, her feet on the horizon of the water, never above it), the lunge's speed (times the boss's own), and the three lanes it comes back in: left, centre, right.</summary>
+    /// <summary>The boss waits at least five seconds, still, before every lunge (the drift down from the top takes about two of them; the rest is spent standing still), on every difficulty.</summary>
+    private const float DashWaitSeconds = 7.2f, DashWaitY = Layout.BossY, DashSpeedFactor = 5, DashStartY = -50;
     private static readonly float[] DashLanes = { 100, 300, 500 };   // left, centre, right
 
     /// <summary>The dash: drifts down from the top, lunges down the screen, and comes back at the top in another lane.</summary>

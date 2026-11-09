@@ -87,17 +87,36 @@ public static partial class SelfTest
         world.Step(Dt, Idle());
     }
 
+    /// <summary>A defeated spirit leaves ONE red square with a "P", worth what the spirit drops, and the stronger the spirit the larger the square (small, medium, large).</summary>
     private static void DefeatedSpiritsLetGoOfLights()
     {
+        var sizes = new List<int>();
         foreach (var kind in Enum.GetValues<SpiritKind>())
         {
             var world = new World(withCards: false);
             world.StartWave(0);
             Defeat(kind, world, V(300, 200));
-            Eq(world.Lights.Count(l => l.IsActive), kind.Drops(), kind.ToString());
+            var items = world.Lights.Where(l => l.IsActive).ToList();
+            Eq(items.Count, 1, kind + ": one square");
+            Eq(items[0].Value, (float)kind.Drops(), kind + ": worth what the spirit drops");
+            sizes.Add(LightSystem.Size(items[0].Value));
         }
+        Eq(sizes.Distinct().Count(), 3, "three sizes of square");
+        True(sizes[0] < sizes[1] && sizes[1] < sizes[2], "the stronger the spirit, the larger the square");
         Less(SpiritKind.Swarm.Drops(), SpiritKind.Gunner.Drops());
         Less(SpiritKind.Gunner.Drops(), SpiritKind.Heavy.Drops());
+        // the squares are red, with a white "P" inside, and they grow with the size
+        for (int size = 0; size < 3; size++)
+        {
+            var art = LightArt.MakePowerCanvas(size, 0);
+            Eq(art.Width, LightArt.PowerSide); Eq(art.Height, art.Width);
+            Greater(art.Pixels.Count(px => px.A > 0 && px.R > 130 && px.G < 130 && px.B < 130 && px.R > 2 * px.G), art.Width * art.Width / 4, "mostly red");
+            Greater(art.Pixels.Count(px => px.A > 0 && px.R > 240 && px.G > 240 && px.B > 240), 6, "with a white P");
+        }
+        // on the screen: the small one is 18 px (half of what it was), the large one 36 px (what the small one was), the medium one between them
+        Eq(LightArt.PowerPixels(0), 18f); Eq(LightArt.PowerPixels(2), 36f); Eq(LightArt.PowerPixels(1), 27f);
+        // a bigger square is picked up from further away
+        Greater(LightSystem.PickupRadiusOf(new LightItem { Value = 8 }), LightSystem.PickupRadiusOf(new LightItem { Value = 1 }));
     }
 
     private static void LightsFallAndAreLostIfNotCaught()

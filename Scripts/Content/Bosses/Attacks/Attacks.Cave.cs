@@ -80,7 +80,10 @@ public static partial class Attacks
         patterns: new[]
         {
             Pat.Every(0.16f, c => Pat.Rain(c, Edge.Top, 1, 4, new Shot(BulletStyle.Stalactite, 300).Sized(1.3f), scale: false)).OnQuake(),
-            Pat.Every(1.1f, c => Pat.Rain(c, Edge.Top, 1, 0, new Shot(BulletStyle.Rock, 180).Zoomed(2.0f).Hitting(16).Splitting(0.9f, 6, BulletStyle.Rock, 110, childScale: 0.9f), scale: false)).OnQuake(),
+            // great stones that break, when they have fallen a while, into a ring of pebbles (more pebbles in the harder modes)
+            Pat.Every(0.9f, c => Pat.Rain(c, Edge.Top, 1, 0, new Shot(BulletStyle.Rock, 180).Zoomed(2.0f).Hitting(16).Splitting(0.9f, c.N(9, 6), BulletStyle.Rock, 115, childScale: 0.9f), scale: false)).OnQuake(),
+            // and a rain of pebbles
+            Pat.Every(0.28f, c => Pat.Rain(c, Edge.Top, 2, 10, new Shot(BulletStyle.Rock, 220).Sized(1.0f))).OnQuake(),
         })
         .Pressured(3.0f);
 

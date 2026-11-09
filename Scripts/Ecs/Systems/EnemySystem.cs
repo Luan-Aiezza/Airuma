@@ -70,12 +70,15 @@ public static class EnemySystem
 
     private static readonly PatternContext FigureContext = new PatternContext();
 
+    /// <summary>Spirits only shoot in the upper part of the field: nothing comes at the boat from the bottom (see Docs/Danmaku.md).</summary>
+    public const float FireLimitY = 330;
+
     /// <summary>Enemies only shoot while they are inside the play area.</summary>
-    public static void Fire(EnemyEntity e, Vector2 target, BulletData[] pool, Rect2 bounds, float delta, Difficulty difficulty = Difficulty.Normal)
+    public static void Fire(EnemyEntity e, Vector2 target, BulletData[] pool, Rect2 bounds, float delta, Difficulty difficulty = Difficulty.Easy)
     {
         if (e.Patterns.Count == 0 || !(e.Age > 0.25f)
             || !(e.Position.X > bounds.Position.X) || !(e.Position.X < bounds.End.X)
-            || !(e.Position.Y > bounds.Position.Y) || !(e.Position.Y < bounds.End.Y))
+            || !(e.Position.Y > bounds.Position.Y) || !(e.Position.Y < bounds.End.Y) || e.Position.Y > FireLimitY)
             return;
 
         // Move on to the next pattern when this one has run its course.
@@ -100,13 +103,17 @@ public static class EnemySystem
 
             case FirePatternKind.Aimed:
                 e.Shots++;
-                // Easy: every second shot is left out. Hard: the shot becomes a three-way volley.
-                if (difficulty == Difficulty.Easy && e.Shots % 2 == 0) break;
+                // Easy: the shot as it is. Normal: a three-way volley. Hard: a five-way volley.
                 Shoot(pool, e, aim, pattern, BulletStyle.OrbGreen, 0);
-                if (difficulty == Difficulty.Hard)
+                if (difficulty != Difficulty.Easy)
                 {
                     Shoot(pool, e, aim - 14, pattern, BulletStyle.OrbGreen, 1);
                     Shoot(pool, e, aim + 14, pattern, BulletStyle.OrbGreen, 2);
+                }
+                if (difficulty == Difficulty.Hard)
+                {
+                    Shoot(pool, e, aim - 28, pattern, BulletStyle.OrbGreen, 3);
+                    Shoot(pool, e, aim + 28, pattern, BulletStyle.OrbGreen, 4);
                 }
                 break;
 
@@ -116,8 +123,9 @@ public static class EnemySystem
                 int count = difficulty.Scale(pattern.Count, 4);
                 for (int i = 0; i < count; i++)
                     Shoot(pool, e, e.Spin + 360 * (float)i / count, pattern, BulletStyle.OrbRed, i);
-                // Hard: one more bullet in every ring, straight at the boat.
-                if (difficulty == Difficulty.Hard) Shoot(pool, e, aim, pattern, BulletStyle.OrbRed, 0, 1.15f);
+                // Normal: one more bullet in every ring, straight at the boat; Hard: two, one faster.
+                if (difficulty != Difficulty.Easy) Shoot(pool, e, aim, pattern, BulletStyle.OrbRed, 0, 1.15f);
+                if (difficulty == Difficulty.Hard) Shoot(pool, e, aim, pattern, BulletStyle.OrbRed, 0, 1.4f);
                 break;
             }
 
@@ -144,8 +152,8 @@ public static class EnemySystem
             case FirePatternKind.Spiral:
             {
                 e.Spin += pattern.Step;
-                // Easy: one arm fewer; Hard: one arm more.
-                int arms = difficulty == Difficulty.Easy ? Math.Max(1, pattern.Arms - 1) : (difficulty == Difficulty.Hard ? pattern.Arms + 1 : pattern.Arms);
+                // Easy: the arms as they are; Normal: one arm more; Hard: two more.
+                int arms = difficulty.Pick(pattern.Arms, pattern.Arms + 1, pattern.Arms + 2);
                 for (int i = 0; i < arms; i++)
                     Shoot(pool, e, e.Spin + 360 * (float)i / arms, pattern, BulletStyle.RiceRed, i);
                 break;

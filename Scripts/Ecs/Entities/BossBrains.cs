@@ -54,8 +54,8 @@ public sealed class SweepBrain
     public void Reset(Difficulty difficulty)
     {
         State = SweepState.ToLeft; Clock = 0; BeamWarn = BeamOn = false;
-        GapScale = difficulty == Difficulty.Easy ? 1.4f : (difficulty == Difficulty.Hard ? 0.8f : 1);
-        SpeedScale = difficulty == Difficulty.Easy ? 0.85f : (difficulty == Difficulty.Hard ? 1.15f : 1);
+        GapScale = difficulty.Pick(1f, 0.8f, 0.65f);
+        SpeedScale = difficulty.Pick(1f, 1.15f, 1.3f);
     }
 }
 

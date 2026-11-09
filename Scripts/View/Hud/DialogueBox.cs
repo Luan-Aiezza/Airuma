@@ -5,7 +5,8 @@ using System.Linq;
 
 /// <summary>
 /// A conversation in the style of Touhou's pre-stage chatter: a wooden text box along the bottom of the river with the speaker's
-/// name on a plaque (at the left for Atli, at the right for Airu). There are no portraits for now. Text is typed out;
+/// name on a plaque (at the left for Atli, at the right for Airu) and, in a square at the left end of the box, the FACE of whoever speaks (a picture, see <see cref="PortraitArt"/>;
+/// the lantern spirit is only its flame). Text is typed out;
 /// Advance finishes the line, or moves to the next one; Skip ends the whole conversation.
 /// Place at the scene origin (like the HUD); it covers the river and leaves the side panel visible. ZIndex 140 (between the HUD
 /// and the card picker).
@@ -15,14 +16,21 @@ public partial class DialogueBox : Node2D
     public event Action Finished;
 
     private const float Art = HudArt.Scale;
-    private const int LineWidth = 36;       // letters per line
-    private const int MaxLines = 3;
+    private const int LineWidth = 28;       // letters per line (the square of the face takes the left end of the box)
+    private const int MaxLines = 5;
     private const float TypeSpeed = 48;     // letters per second
     private const float InputLock = 0.45f;  // seconds after starting during which input is ignored
 
-    private static readonly float BoxX = 19, BoxY = 592, BoxW = 720, BoxH = 168;
+    private static readonly float BoxX = 19, BoxY = 570, BoxW = 720, BoxH = 190;
+    /// <summary>The square of the face, 136 px, at the left end of the box: the faces are 32 x 32 pixels of art (34 with the frame) shown at 4 times their size; the flame of the lantern spirit is 64 x 64, at twice.</summary>
+    private const float FaceSize = 136, FaceMargin = 24;
 
     private readonly Sprite2D _plaque = new() { Centered = false };
+    private readonly Sprite2D _face = new() { Centered = false, TextureFilter = CanvasItem.TextureFilterEnum.Nearest, Visible = false };
+    private readonly Dictionary<(DialogueSpeaker, int, Emotion, int), Texture2D> _faces = new();
+    private DialogueSpeaker _speaker;
+    private Emotion _emotion;
+    private int _faceFrame;
     private readonly PixelLabel _name = new(PixelLabel.Style.Gold, 3, PixelLabel.Align.Center);
     private readonly PixelLabel[] _lines = new PixelLabel[MaxLines];
     private readonly PixelLabel _hint = new(PixelLabel.Style.Dim, 2, PixelLabel.Align.Right);
@@ -67,6 +75,9 @@ public partial class DialogueBox : Node2D
             Texture = HudArt.Box((int)(BoxW / Art), (int)(BoxH / Art)).ToTexture(), Centered = false,
             Scale = new Vector2(Art, Art), Position = new Vector2(BoxX, BoxY), ZIndex = 5,
         });
+        _face.Position = new Vector2(BoxX + FaceMargin, BoxY + (BoxH - FaceSize) / 2);
+        _face.ZIndex = 6;
+        AddChild(_face);
         _plaque.Texture = HudArt.Plaque(34, 9).ToTexture();
         _plaque.Scale = new Vector2(Art, Art);
         _plaque.ZIndex = 6;
@@ -76,10 +87,10 @@ public partial class DialogueBox : Node2D
         for (int i = 0; i < MaxLines; i++)
         {
             _lines[i] = new PixelLabel(PixelLabel.Style.Value, 3, PixelLabel.Align.Left) { ZIndex = 7 };
-            _lines[i].Position = new Vector2(BoxX + 30, BoxY + 30 + i * 30);
+            _lines[i].Position = new Vector2(BoxX + FaceMargin + FaceSize + FaceMargin, BoxY + 26 + i * 30);
             AddChild(_lines[i]);
         }
-        _hint.Position = new Vector2(BoxX + BoxW - 20, BoxY + BoxH - 28);
+        _hint.Position = new Vector2(BoxX + BoxW - 20, BoxY + BoxH - 26);
         _hint.ZIndex = 7;
         _hint.SetText(UIText.DialogueHint);
         AddChild(_hint);
@@ -87,6 +98,8 @@ public partial class DialogueBox : Node2D
 
     /// <summary>The name shown when the boss speaks (the stage's boss).</summary>
     public string BossName = "";
+    /// <summary>The number of the stage of the talk (1...6): the boss who speaks is a different person in each.</summary>
+    public int BossStage = 1;
 
     private string NameOf(DialogueSpeaker speaker) => speaker switch
     {
@@ -115,8 +128,6 @@ public partial class DialogueBox : Node2D
     private void Show(int index)
     {
         var line = _script[index];
-        bool left = line.Speaker == DialogueSpeaker.Atli;
-
         string name = NameOf(line.Speaker);
         _name.SetText(name);
         float plaqueW = 34 * Art;
@@ -125,12 +136,29 @@ public partial class DialogueBox : Node2D
         _plaque.Position = new Vector2(px, BoxY - 24);
         _name.Position = new Vector2(px + plaqueW / 2, BoxY - 24 + 8);
 
+        _speaker = line.Speaker; _emotion = line.Emotion; _faceFrame = 0;
+        ShowFace();
+
         _shake = line.Shout ? ShakeTime : 0;
         if (line.Shout) SfxPlayer.Instance?.Play(SfxBank.Sound.HitBoss);
         _wrapped = GameHud.Wrap(line.Text, LineWidth, MaxLines);
         _total = _wrapped.Sum(l => l.Length);
         _typed = 0;
         ShowTyped();
+    }
+
+    /// <summary>The face of whoever speaks, in the square at the left of the box (only its frame while the speaker has no face drawn yet).</summary>
+    private void ShowFace()
+    {
+        var key = (_speaker, BossStage, _emotion, _faceFrame);
+        if (!_faces.TryGetValue(key, out var texture))
+        {
+            var art = PortraitArt.Square(_speaker, BossStage, _emotion, _faceFrame);
+            _faces[key] = texture = art?.ToTexture();
+        }
+        _face.Texture = texture;
+        _face.Visible = true;
+        if (texture != null) _face.Scale = new Vector2(FaceSize / texture.GetWidth(), FaceSize / texture.GetWidth());
     }
 
     private void ShowTyped()
@@ -168,6 +196,8 @@ public partial class DialogueBox : Node2D
             return;
         }
         _clock += dt;
+        // the flame of the lantern spirit flickers
+        if (_speaker == DialogueSpeaker.Airu && (int)(_clock * 4) % 2 != _faceFrame) { _faceFrame = (int)(_clock * 4) % 2; ShowFace(); }
         _lock = Math.Max(0, _lock - dt);
         if (_shake > 0) { _shake = Math.Max(0, _shake - dt); ApplyFade(); }
         if (_typed < _total)

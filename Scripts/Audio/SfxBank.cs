@@ -16,7 +16,7 @@ public static class SfxBank
         DefeatSwarm, DefeatGunner, DefeatHeavy, BossBroken,
         OrbGreen, OrbRed, RiceRed, Fireball, FlameDart, Spark, VenomOrb, LotusPetal, MagmaOrb, FireSerpent, Ember,
         Bomb, Pickup, LevelUp, MenuMove, MenuSelect, MenuBack, DialogueNext,
-        HitGunner, HitHeavy, HitBoss, Twirl, Splash, Jet, Rage, RagePulse, Thunder, Slash, Roar, Quake, Rock,
+        HitGunner, HitHeavy, HitBoss, Twirl, Splash, Jet, Rage, RagePulse, Thunder, Slash, Roar, Quake, Rock, Gravity,
     }
 
     /// <summary>Volume in dB, and the least time in seconds between two plays (so volleys do not pile up into noise).</summary>
@@ -25,12 +25,13 @@ public static class SfxBank
         Sound.PlayerShot => (-20f, 0.05f), Sound.PlayerWisp => (-15f, 0.1f),
         Sound.PlayerHit => (-5f, 0.2f), Sound.WardBroke => (-7f, 0.2f),
         Sound.DefeatSwarm => (-13f, 0.03f), Sound.DefeatGunner => (-11f, 0.04f), Sound.DefeatHeavy => (-7f, 0.1f), Sound.BossBroken => (-3f, 0.5f),
-        Sound.OrbGreen => (-16f, 0.06f), Sound.OrbRed => (-16f, 0.08f), Sound.RiceRed => (-22f, 0.05f),
-        Sound.Fireball => (-13f, 0.12f), Sound.FlameDart => (-15f, 0.12f), Sound.Spark => (-21f, 0.06f), Sound.VenomOrb => (-19f, 0.06f),
-        Sound.LotusPetal => (-14f, 0.15f), Sound.MagmaOrb => (-9f, 0.2f), Sound.FireSerpent => (-25f, 0.05f), Sound.Ember => (-24f, 0.05f),
+        Sound.OrbGreen => (-16f, 0.06f), Sound.OrbRed => (-17f, 0.08f), Sound.RiceRed => (-17f, 0.05f),
+        Sound.Fireball => (-13f, 0.12f), Sound.FlameDart => (-15f, 0.12f), Sound.Spark => (-17f, 0.06f), Sound.VenomOrb => (-17f, 0.06f),
+        Sound.LotusPetal => (-14f, 0.15f), Sound.MagmaOrb => (-9f, 0.2f), Sound.FireSerpent => (-18f, 0.05f), Sound.Ember => (-18f, 0.05f),
         Sound.Bomb => (-5f, 0.5f), Sound.Pickup => (-19f, 0.035f), Sound.LevelUp => (-8f, 0.3f),
         Sound.MenuMove => (-15f, 0.03f), Sound.MenuSelect => (-11f, 0.1f), Sound.MenuBack => (-13f, 0.1f), Sound.DialogueNext => (-16f, 0.05f),
-        Sound.HitGunner => (-18f, 0.05f), Sound.HitHeavy => (-16f, 0.05f), Sound.HitBoss => (-14f, 0.06f), Sound.Twirl => (-12f, 0.3f), Sound.Splash => (-9f, 0.15f), Sound.Jet => (-8f, 0.5f), Sound.Rage => (-3f, 1.0f), Sound.Thunder => (-6f, 1.0f), Sound.RagePulse => (-17f, 0.5f), Sound.Slash => (-7f, 0.2f), Sound.Roar => (-3f, 1.0f), Sound.Quake => (-4f, 1.0f), Sound.Rock => (-19f, 0.07f),
+        Sound.HitGunner => (-18f, 0.05f), Sound.HitHeavy => (-16f, 0.05f), Sound.HitBoss => (-14f, 0.06f), Sound.Twirl => (-12f, 0.3f), Sound.Splash => (-9f, 0.15f), Sound.Jet => (-8f, 0.5f), Sound.Rage => (-3f, 1.0f), Sound.Thunder => (-6f, 1.0f), Sound.RagePulse => (-17f, 0.5f), Sound.Slash => (-9f, 0.2f), Sound.Roar => (-3f, 1.0f), Sound.Quake => (-4f, 1.0f), Sound.Rock => (-17f, 0.07f),
+        Sound.Gravity => (-11f, 1.0f),
         _ => (-12f, 0.05f),
     };
 
@@ -48,11 +49,18 @@ public static class SfxBank
         BulletStyle.Spark => Sound.Spark,
         BulletStyle.BoltYellow or BulletStyle.BoltBlue or BulletStyle.BoltRed => Sound.Spark,
         BulletStyle.Star => Sound.Spark,
+        // the families of coloured bullets (orbs, beads, rice, kunai, stars, great orbs) have a sound of their own kind, at the same loudness in every stage
+        >= BulletStyle.OrbBlue and <= BulletStyle.OrbPink => style is BulletStyle.OrbYellow or BulletStyle.OrbOrange or BulletStyle.OrbPink ? Sound.OrbRed : Sound.OrbGreen,
+        >= BulletStyle.BeadRed and <= BulletStyle.BeadPink => Sound.RiceRed,
+        >= BulletStyle.RiceBlue and <= BulletStyle.RiceCyan => Sound.RiceRed,
+        >= BulletStyle.KunaiRed and <= BulletStyle.KunaiViolet => Sound.FlameDart,
+        >= BulletStyle.StarBlue and <= BulletStyle.StarPink => Sound.Spark,
+        >= BulletStyle.GiantRed and <= BulletStyle.GiantWhite => Sound.MagmaOrb,
         BulletStyle.Hail => Sound.RiceRed,
         BulletStyle.Claw => Sound.Spark,
         BulletStyle.Rock or BulletStyle.Stalactite or BulletStyle.MossBoulder or BulletStyle.GiantStalactite => Sound.Rock,
         BulletStyle.Bite => Sound.Slash,
-        BulletStyle.NoteGold or BulletStyle.NotePink or BulletStyle.NoteCyan or BulletStyle.NoteBeamed => Sound.OrbGreen,
+        BulletStyle.NoteGold or BulletStyle.NotePink or BulletStyle.NoteCyan or BulletStyle.NoteBeamed => Sound.PlayerWisp,
         BulletStyle.Shard => Sound.RiceRed,
         BulletStyle.VenomOrb => Sound.VenomOrb,
         BulletStyle.LotusPetal => Sound.LotusPetal,
@@ -386,6 +394,19 @@ public static class SfxBank
                 var thump = Sweep(t => 95 * Math.Exp(-t * 8) + 42);
                 var crackle = HighNoise(43, 0.7);
                 return Render(0.35, t => thump(t) * Env(t, 0.003, 10) * 0.9 + crackle(t) * Math.Exp(-t * 30) * 0.3);
+            }
+            case Sound.Gravity: // a deep pull: a low tone that sinks and wobbles, and a rush of air drawn inwards, rising and then settling, with a soft thud at the start
+            {
+                var sink = Sweep(t => 96 * Math.Exp(-t * 0.42) + 34);
+                var sub = Sweep(t => 48 * Math.Exp(-t * 0.3) + 30);
+                var rush = LowNoise(71, t => 0.01 + 0.07 * Math.Sin(Math.Min(1, t / 1.6) * Math.PI * 0.5) * Math.Exp(-Math.Max(0, t - 1.6) * 1.8));
+                return Render(2.5, t =>
+                {
+                    double swell = Math.Min(1, t / 0.35) * Math.Exp(-Math.Max(0, t - 1.5) * 1.3);
+                    double wobble = 0.72 + 0.28 * Math.Sin(2 * Math.PI * (4 + 3 * t) * t);
+                    double thud = Math.Sin(2 * Math.PI * 58 * t) * Math.Exp(-t * 9) * 0.7;
+                    return (sink(t) * 0.45 + sub(t) * 0.5) * swell * wobble + rush(t) * swell * 2.6 + thud;
+                });
             }
             case Sound.Thunder: // a crack, then a long rumble that rolls away
             {

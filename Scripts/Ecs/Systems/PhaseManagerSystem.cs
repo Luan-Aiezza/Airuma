@@ -1,3 +1,4 @@
+using System;
 using Godot;
 
 /// <summary>Starts the attack a boss has lives left for: reads it from the boss's definition and puts it on the boss.</summary>
@@ -39,10 +40,10 @@ public static class PhaseManagerSystem
         twin.NextMovementType = phase.Fused ? BossMovementType.Stationary : phase.TwinMovement;
         twin.TargetPosition = phase.Fused ? phase.Target : phase.TwinTarget;
         twin.Patrol.Reset(); twin.Roam.Reset(); twin.Dive.Reset(); twin.Dash.Reset(twin.TargetPosition.X); twin.Cross.Reset();
-        twin.Sweep.Reset(Difficulty.Normal);
+        twin.Sweep.Reset(Difficulty.Easy);
     }
 
-    public static void ChangePhase(BossEntity boss, int currentLives, Difficulty difficulty = Difficulty.Normal)
+    public static void ChangePhase(BossEntity boss, int currentLives, Difficulty difficulty = Difficulty.Easy)
     {
         // No lives left: the boss is defeated.
         if (currentLives <= 0)
@@ -89,27 +90,22 @@ public static class PhaseManagerSystem
         return runs.ToArray();
     }
 
-    /// <summary>Easy: fewer bullets in every volley. Hard: more bullets, and a second, slower attack woven into some of the patterns.</summary>
+    /// <summary>Each level has more bullets than the one before, and from normal on a second, slower attack is woven into some of the patterns.</summary>
     private static void ApplyDifficulty(BossEntity boss, BossPhase phase, Difficulty difficulty)
     {
-        if (phase.EmbersOneStepDown)
-        {
-            // The embers come one step down the difficulties: none on easy, easy's on normal, normal's on hard.
-            if (difficulty == Difficulty.Easy) { boss.EmitterMain.IsActive = false; boss.EmitterSub.IsActive = false; return; }
-            difficulty = difficulty == Difficulty.Hard ? Difficulty.Normal : Difficulty.Easy;
-            if (difficulty == Difficulty.Normal) return;
-        }
-        if (difficulty == Difficulty.Normal) return;
-        ScaleEmitter(ref boss.EmitterMain, difficulty);
-        ScaleEmitter(ref boss.EmitterSub, difficulty);
-        if (difficulty == Difficulty.Hard && !boss.EmitterSub.IsActive && phase.HardExtra.IsActive) boss.EmitterSub = phase.HardExtra;
+        // The embers come one step down the difficulties: easy's are fewer than the pattern's, normal's are the pattern's, hard's are as many as normal's others.
+        float embers = phase.EmbersOneStepDown ? difficulty.Pick(0.6f, 1f, 1.35f) : difficulty.BulletFactor();
+        float gap = phase.EmbersOneStepDown ? difficulty.Pick(1.35f, 1f, 0.85f) : difficulty.Pick(1f, 0.85f, 0.75f);
+        ScaleEmitter(ref boss.EmitterMain, embers, gap);
+        ScaleEmitter(ref boss.EmitterSub, embers, gap);
+        if (difficulty != Difficulty.Easy && !boss.EmitterSub.IsActive && phase.HardExtra.IsActive) boss.EmitterSub = phase.HardExtra;
     }
 
-    /// <summary>Easy: fewer bullets in a volley, a wider gap in a curtain. Hard: more bullets, a narrower gap. A constellation keeps its shape.</summary>
-    private static void ScaleEmitter(ref BulletEmitterComponent emitter, Difficulty difficulty)
+    /// <summary>The bullets of a volley times `bulletFactor` and the gap of a curtain times `gapFactor`. A constellation keeps its shape.</summary>
+    private static void ScaleEmitter(ref BulletEmitterComponent emitter, float bulletFactor, float gapFactor)
     {
         if (!emitter.IsActive) return;
-        if (emitter.Curtain) emitter.CurtainGap *= difficulty == Difficulty.Easy ? 1.35f : (difficulty == Difficulty.Hard ? 0.85f : 1);
-        else if (!emitter.Link) emitter.BulletsPerVolley = difficulty.Scale(emitter.BulletsPerVolley);
+        if (emitter.Curtain) emitter.CurtainGap *= gapFactor;
+        else if (!emitter.Link) emitter.BulletsPerVolley = Math.Max(1, (int)MathF.Round(emitter.BulletsPerVolley * bulletFactor, MidpointRounding.AwayFromZero));
     }
 }

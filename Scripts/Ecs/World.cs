@@ -105,7 +105,7 @@ public partial class World
     /// <summary>What the run brings from the stage before (null in the first stage); applied again whenever the stage restarts.</summary>
     public readonly RunCarry Carry;
 
-    public World(int? practicePhase = null, bool withCards = true, ulong? seed = null, Difficulty difficulty = Difficulty.Normal, StageDefinition stage = null, RunCarry carry = null, bool stagePractice = false, bool? noLifeLoss = null)
+    public World(int? practicePhase = null, bool withCards = true, ulong? seed = null, Difficulty difficulty = Difficulty.Easy, StageDefinition stage = null, RunCarry carry = null, bool stagePractice = false, bool? noLifeLoss = null)
     {
         NoLifeLoss = noLifeLoss ?? (practicePhase.HasValue || stagePractice);
         Carry = carry;
@@ -185,6 +185,10 @@ public partial class World
         Effects = Run.Effects;
         CardSystem.Apply(Player, Effects);
         _score.Points = carry.Score;
+        // the prizes that the score carried over has already earned were given in the stage before: they are not given again at the start of this one
+        _score.BombPrizes = 0; _score.LifePrizes = 0;
+        while (carry.Score >= ScoreSystem.BombScore(_score.BombPrizes)) _score.BombPrizes++;
+        while (carry.Score >= ScoreSystem.LifeScore(_score.LifePrizes)) _score.LifePrizes++;
         Player.Health.Lives = Math.Max(1, Math.Min(MaxLives, carry.Lives));
         Player.Bomb.BombsLeft = Math.Max(0, Math.Min(3, carry.Bombs));
         Player.Energy = carry.Energy;
@@ -365,7 +369,7 @@ public partial class World
         {
             AddScore(defeat.kind.Points());
             _events.Add(WorldEvent.EnemyDefeated(defeat.kind, defeat.position));
-            for (int k = 0; k < defeat.kind.Drops(); k++) LightSystem.Spawn(Lights, defeat.position, 1);
+            LightSystem.Spawn(Lights, defeat.position, defeat.kind.Drops());      // one square, the larger the stronger the spirit
         }
         Enemies.RemoveAll(e => e.Health <= 0);
     }

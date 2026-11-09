@@ -1,6 +1,6 @@
 using Godot;
 
-public enum WorldEventKind { WaveStarted, EnemyDefeated, BossEntered, PowerUp, WardBroke, CardTaken, BombRefilled, LifeRefilled, BulletsFired, PlayerHit, BossBroken, BombFired, LightGathered, EnemyHit, BossHit, SlashStruck, Roared, QuakeStarted }
+public enum WorldEventKind { WaveStarted, EnemyDefeated, BossEntered, PowerUp, WardBroke, CardTaken, BombRefilled, LifeRefilled, BulletsFired, PlayerHit, BossBroken, BombFired, LightGathered, EnemyHit, BossHit, SlashStruck, Roared, QuakeStarted, GravityPulled }
 
 /// <summary>Something that happened in the world that the scene may want to show or tell.</summary>
 public class WorldEvent
@@ -27,6 +27,7 @@ public class WorldEvent
     public static WorldEvent BossHit() => new WorldEvent { Kind = WorldEventKind.BossHit };
     public static WorldEvent SlashStruck() => new WorldEvent { Kind = WorldEventKind.SlashStruck };
     public static WorldEvent Roared(Vector2 at) => new WorldEvent { Kind = WorldEventKind.Roared, Position = at };
+    public static WorldEvent GravityPulled() => new WorldEvent { Kind = WorldEventKind.GravityPulled };
     public static WorldEvent QuakeStarted() => new WorldEvent { Kind = WorldEventKind.QuakeStarted };
     public static WorldEvent BombFired() => new WorldEvent { Kind = WorldEventKind.BombFired };
     public static WorldEvent LightGathered() => new WorldEvent { Kind = WorldEventKind.LightGathered };

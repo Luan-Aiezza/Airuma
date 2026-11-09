@@ -25,7 +25,7 @@ public partial class MusicPlayer : Node
 	/// <summary>How each theme is composed, in the order of <see cref="Theme"/>.</summary>
 	private static readonly Func<(float[], float[])>[] Composers =
 	{
-		Songs.QuietWater, Songs.EmberSerpent, Songs.InfernoSerpent, Songs.AnimatedNight, Songs.StarDancer, Songs.StormUnderTheRiver, Songs.CatInTheStorm, Songs.CaveHibernation, Songs.GreatBeast, Songs.SerpentUnderTheMountain, Songs.HymnToTheGuardian, Songs.RiverThroughTheUniverse, Songs.EndlessNight, Songs.Daybreak, Songs.LightGoingOut, Songs.MoonOfFury,
+		Songs.QuietWater, Songs.EmberSerpent, Songs.InfernoSerpent, Songs.AnimatedNight, Songs.StarDancer, Songs.StormUnderTheRiver, Songs.CatInTheStorm, Songs.CaveHibernation, Songs.GreatBeast, Songs.SerpentUnderTheMountain, Songs.HymnToTheGuardian, Songs.SilverMoonOverTheLake, Songs.EndlessNight, Songs.Daybreak, Songs.LightGoingOut, Songs.RiverThroughTheUniverse,
 	};
 
 	/// <summary>Starts rendering a theme, if it has not been started (a theme that is wanted now goes first, whatever the order of the background chain).</summary>
@@ -55,13 +55,12 @@ public partial class MusicPlayer : Node
 		AddChild(_player);
 		// Every song is rendered at the start, one after the other, on a background thread (the menu's first, then stage 1's...), so that each is ready long before its stage; one that is
 		// wanted sooner is started at once by Prepare. (They are all rendered here, and not as each is wanted, because a song takes some seconds to render.)
+		// (a few at a time, in the order they are wanted: the first songs are ready at once, and a long song does not hold up the ones that come after it)
 		Task.Run(() =>
 		{
-			for (int i = 0; i < ThemeCount; i++)
-			{
-				Prepare((Theme)i);
-				try { _tasks[i].Wait(); } catch (Exception) { /* reported when it is wanted */ }
-			}
+			int degree = Math.Clamp(System.Environment.ProcessorCount / 2, 1, 3);
+			try { Parallel.For(0, ThemeCount, new ParallelOptions { MaxDegreeOfParallelism = degree }, i => { Prepare((Theme)i); try { _tasks[i].Wait(); } catch (Exception) { /* reported when it is wanted */ } }); }
+			catch (Exception) { /* reported when it is wanted */ }
 		});
 	}
 

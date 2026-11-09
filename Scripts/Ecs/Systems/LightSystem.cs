@@ -21,7 +21,19 @@ public static class LightSystem
         return items;
     }
 
-    /// <summary>Lets go of a light that pops out a little and then falls.</summary>
+    /// <summary>
+    /// The power items are red squares with a "P", in three sizes: a small one is worth 1, a medium one 2 to 4 and a large one 5 or more (see <see cref="Size"/>). The stronger the spirit, the larger the square it leaves,
+    /// instead of many small ones.
+    /// </summary>
+    public const float MediumFrom = 2, LargeFrom = 5;
+
+    /// <summary>0 (small), 1 (medium) or 2 (large): the size of the square that an item of this value is.</summary>
+    public static int Size(float value) => value >= LargeFrom ? 2 : (value >= MediumFrom ? 1 : 0);
+
+    /// <summary>How close the boat has to be to pick an item up: the larger the square, the wider.</summary>
+    public static float PickupRadiusOf(LightItem item) => item.Kind != LightKind.Energy ? PickupRadius : PickupRadius + 8 * Size(item.Value);
+
+    /// <summary>Lets go of a power item (a square: small, medium or large by its value) that pops out a little and then falls.</summary>
     public static void Spawn(LightItem[] items, Vector2 position, float value, float scatter = 1)
     {
         int i = Array.FindIndex(items, it => !it.IsActive);
@@ -66,7 +78,7 @@ public static class LightSystem
             Vector2 toPlayer = player - items[i].Position;
             float distance = toPlayer.Length();
 
-            if (distance < PickupRadius)
+            if (distance < PickupRadiusOf(items[i]))
             {
                 if (items[i].Kind == LightKind.Bomb) bombs++; else if (items[i].Kind == LightKind.Life) lives++; else gathered += items[i].Value;
                 items[i].IsActive = false;

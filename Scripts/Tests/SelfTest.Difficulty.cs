@@ -9,7 +9,7 @@ public static partial class SelfTest
     private static void RegisterDifficulty(Action<string, Action> T)
     {
         T("RingsFanAndSpiralsGrowWithTheDifficulty", RingsFanAndSpiralsGrowWithTheDifficulty);
-        T("AGunnersShotIsHalvedOnEasyAndTripledOnHard", AGunnersShotIsHalvedOnEasyAndTripledOnHard);
+        T("AGunnersShotIsTripledOnNormalAndQuintupledOnHard", AGunnersShotIsTripledOnNormalAndQuintupledOnHard);
         T("TheBossFiresFewerBulletsOnEasyAndMoreOnHard", TheBossFiresFewerBulletsOnEasyAndMoreOnHard);
         T("DifficultyChangesNothingButTheBullets", DifficultyChangesNothingButTheBullets);
         T("TheScoreTableRemembersTheDifficulty", TheScoreTableRemembersTheDifficulty);
@@ -23,23 +23,23 @@ public static partial class SelfTest
     {
         var ring = FirePattern.Ring(1, 14, 100, 9);
         True(Volley(Difficulty.Easy, SpiritKind.Heavy, ring) < Volley(Difficulty.Normal, SpiritKind.Heavy, ring));
-        Eq(Volley(Difficulty.Normal, SpiritKind.Heavy, ring), 14, "normal is the game as designed");
-        True(Volley(Difficulty.Hard, SpiritKind.Heavy, ring) > 14 + 1, "hard has more, and an extra aimed one");
+        Eq(Volley(Difficulty.Easy, SpiritKind.Heavy, ring), 14, "easy is the game as designed");
+        True(Volley(Difficulty.Hard, SpiritKind.Heavy, ring) > Volley(Difficulty.Normal, SpiritKind.Heavy, ring), "hard has more");
         var fan = FirePattern.Fan(1, 7, 60, 200);
-        True(Volley(Difficulty.Easy, SpiritKind.Heavy, fan) < 7 && Volley(Difficulty.Hard, SpiritKind.Heavy, fan) > 7);
+        True(Volley(Difficulty.Easy, SpiritKind.Heavy, fan) == 7 && Volley(Difficulty.Normal, SpiritKind.Heavy, fan) > 7 && Volley(Difficulty.Hard, SpiritKind.Heavy, fan) > Volley(Difficulty.Normal, SpiritKind.Heavy, fan));
         var spiral = FirePattern.Spiral(0.1f, 3, 8, 120);
         True(Volley(Difficulty.Easy, SpiritKind.Heavy, spiral) < Volley(Difficulty.Normal, SpiritKind.Heavy, spiral));
         True(Volley(Difficulty.Hard, SpiritKind.Heavy, spiral) > Volley(Difficulty.Normal, SpiritKind.Heavy, spiral));
     }
 
-    private static void AGunnersShotIsHalvedOnEasyAndTripledOnHard()
+    private static void AGunnersShotIsTripledOnNormalAndQuintupledOnHard()
     {
         var aimed = FirePattern.Aimed(0.5f, 200);
-        int normal = Volley(Difficulty.Normal, SpiritKind.Gunner, aimed, 2.6f);
         int easy = Volley(Difficulty.Easy, SpiritKind.Gunner, aimed, 2.6f);
+        int normal = Volley(Difficulty.Normal, SpiritKind.Gunner, aimed, 2.6f);
         int hard = Volley(Difficulty.Hard, SpiritKind.Gunner, aimed, 2.6f);
-        True(easy < normal, $"easy {easy} < normal {normal}");
-        Eq(hard, normal * 3, "three-way volleys on hard");
+        Eq(normal, easy * 3, "three-way volleys on normal");
+        Eq(hard, easy * 5, "five-way volleys on hard");
     }
 
     private static void TheBossFiresFewerBulletsOnEasyAndMoreOnHard()

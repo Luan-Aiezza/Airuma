@@ -32,7 +32,7 @@ def encode(text):
 
 # ---------------------------------------------------------------- dialogue metadata (who says what, in which talk)
 
-SPEAKERS = {'Atli': 'Atli', 'Airu': 'Airu (espírito da lamparina)', 'Boss': 'o chefe da fase', 'Ukhumo': 'Ukhumo', 'LeftSerpent': 'Serpente esquerda',
+SPEAKERS = {'Atli': 'Atli', 'Airu': 'Naru (espírito da lamparina)', 'Boss': 'o chefe da fase', 'Ukhumo': 'Ukhumo', 'LeftSerpent': 'Serpente esquerda',
             'RightSerpent': 'Serpente direita', 'Illari': 'Illari (a sacerdotisa)'}
 EMOTIONS = {'Neutral': 'neutra', 'Annoyed': 'irritada', 'Sheepish': 'sem graça', 'Surprised': 'surpresa', 'Happy': 'feliz', 'Worried': 'preocupada'}
 
@@ -153,7 +153,7 @@ def export():
     out.append('- Nas falas, o personagem "o chefe da fase" mostra o nome do chefe da fase (veja a tabela de nomes de cada fase).')
     out.append('- A fonte do jogo não tem alguns sinais, como parênteses, aspas e ponto e vírgula; prefira vírgula, ponto, dois pontos, traço, `!`, `?`, `/`, `+`, `%` e `...`.')
     out.append('- Os nomes dos ataques dos chefes aparecem como o título de uma carta de feitiço ("Tema: Nome") quando o ataque começa.')
-    out.append('- O espírito da lamparina ainda se chama **Airu** nas falas (chave `FairyName`); no painel só aparece o título dela (`FairyRole`).\n')
+    out.append('- O espírito da lamparina ainda se chama **Naru** nas falas (chave `FairyName`); no painel só aparece o título dela (`FairyRole`).\n')
 
     out.append('---\n\n## Interface\n')
     for title, keys in INTERFACE:

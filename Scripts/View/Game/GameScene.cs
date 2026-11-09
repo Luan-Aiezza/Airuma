@@ -52,6 +52,8 @@ public partial class GameScene : Node2D
     private float _bombDelta;
     private readonly List<Sprite2D> _lightNodes = new();
     private Texture2D[] _lightFrames, _bombFrames, _lifeFrames;
+    private readonly Texture2D[][] _powerFrames = new Texture2D[3][];
+    private readonly CanvasItemMaterial _lightAdd = ViewKit.AddMaterial();
     private readonly WindEffect _windEffect = new(new Vector2(Layout.RiverWidth, Layout.Height));
     private (Vector2 direction, float strength) _lastWind;
 
@@ -121,13 +123,19 @@ public partial class GameScene : Node2D
 
     public override void _Ready()
     {
+        // Everything of the game is cut at the edges of the picture of the game: the boat that reaches the left edge (in the open scenes, where the banks have gone), and the bullets
+        // that fly out of the field, go no further than the edge; they no longer pass in front of the pillars that fill the sides of a wide screen (see SideFrame).
+        RenderingServer.CanvasItemSetClip(GetCanvasItem(), true);
+        RenderingServer.CanvasItemSetCustomRect(GetCanvasItem(), true, new Rect2(Vector2.Zero, Layout.SceneSize));
         _lightFrames = LightArt.MakeFrames();
+        for (int size = 0; size < 3; size++) _powerFrames[size] = LightArt.MakePowerFrames(size);
         _bombFrames = LightArt.MakeBombFrames();
         _lifeFrames = LightArt.MakeLifeFrames();
         BuildWorldNodes();
         AddChild(_hud);
         _hud.SetBossName(Stage.Boss.Name);
         _dialogue.BossName = Stage.Boss.Name;
+        _dialogue.BossStage = System.Linq.Enumerable.ToList(Stages.All).IndexOf(Stage) + 1;
         AddChild(_picker);
         AddChild(_dialogue);
         AddChild(_title);

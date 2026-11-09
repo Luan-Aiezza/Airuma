@@ -43,7 +43,7 @@ public static partial class Attacks
         const float speed = 85, fuse = 2.0f;
         var centre = c.Origin;
         var burst = centre + Pat.Dir(heading) * speed * fuse;                 // where the centre of the figure is when it bursts
-        int perEdge = c.Difficulty == Difficulty.Easy ? 2 : perEdgeNormal;
+        int perEdge = perEdgeNormal;
         for (int i = 0; i < 5; i++)
         {
             var a = Pat.Round(centre, radius, rotation + 72f * (i * 2 % 5));
@@ -65,7 +65,7 @@ public static partial class Attacks
         {
             float boat = System.Math.Clamp(c.Player.X, c.Left + 40, c.Right - 40);
             var xs = new System.Collections.Generic.List<float> { boat };
-            for (int tries = 0; xs.Count < (c.Difficulty == Difficulty.Easy ? 2 : 3) && tries < 30; tries++)
+            for (int tries = 0; xs.Count < 3 && tries < 30; tries++)
             {
                 float x = PatternContext.Rand(c.Left + 40, c.Right - 40);
                 bool apart = true; foreach (float o in xs) if (System.Math.Abs(o - x) < 170) apart = false;

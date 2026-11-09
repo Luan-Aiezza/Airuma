@@ -172,6 +172,7 @@ public static class UIText
     public static string DifficultyTitle => Loc.Get(nameof(DifficultyTitle));
     public static string DifficultyEasy => Loc.Get(nameof(DifficultyEasy));
     public static string DifficultyNormal => Loc.Get(nameof(DifficultyNormal));
+    public static string DifficultyStages(int count) => string.Format(Loc.Get("DifficultyStages"), count);
     public static string DifficultyHard => Loc.Get(nameof(DifficultyHard));
 
     // Stage 2: the river of the parties, and Baylo

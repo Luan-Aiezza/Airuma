@@ -82,7 +82,7 @@ public static class Pat
     {
         if (c.Slashes == null) return;
         float h = Mathx.Radians(heading);
-        float time = c.Difficulty == Difficulty.Easy ? 1.25f : (c.Difficulty == Difficulty.Hard ? 0.9f : 1);
+        float time = c.Difficulty.Pick(1f, 0.9f, 0.8f);
         c.Slashes.Add(new SlashData
         {
             Top = from, Angle = MathF.PI / 2 - h, Telegraph = warn * time, Strike = strike, Width = width, Leader = true, Len = 2300, Beam = true, Tint = tint,

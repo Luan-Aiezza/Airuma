@@ -13,8 +13,8 @@ public partial class PauseMenu : Node2D
 
     private const float Art = HudArt.Scale;
     private static readonly Vector2 Centre = new Vector2(Layout.FieldInset + Layout.PlayWidth / 2, 288);
-    private const float PlaqueY = 156, PlaqueX = 98;
-    private const int PlaqueWidth = 44;
+    private const float PlaqueY = 156, PlaqueX = 112;
+    private const int PlaqueWidth = 48;
 
     private readonly Node2D _panel = new();
     private readonly Sprite2D[] _plaques = new Sprite2D[2];
@@ -46,8 +46,8 @@ public partial class PauseMenu : Node2D
         AddChild(_panel);
         _panel.AddChild(new Sprite2D
         {
-            Texture = HudArt.Box(100, 50, _theme).ToTexture(), Centered = false, Scale = new Vector2(Art, Art),
-            Position = new Vector2(-50 * Art, 0),
+            Texture = HudArt.Box(120, 50, _theme).ToTexture(), Centered = false, Scale = new Vector2(Art, Art),
+            Position = new Vector2(-60 * Art, 0),
         });
 
         AddLabel(PixelLabel.Style.Gold, 5, UIText.Paused, 0, 24);

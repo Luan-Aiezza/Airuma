@@ -247,7 +247,7 @@ public static partial class SelfTest
                 foreach (var line in list)
                 {
                     True(!string.IsNullOrWhiteSpace(line.Text), "has text");
-                    True(GameHud.Wrap(line.Text, 36, 3).Count <= 3, $"[{lang}] fits: {line.Text}");
+                    True(GameHud.Wrap(line.Text, 28, 99).Count <= 5, $"[{lang}] fits: {line.Text}");
                 }
         }
         Loc.Choose(Language.PortugueseBrazil);

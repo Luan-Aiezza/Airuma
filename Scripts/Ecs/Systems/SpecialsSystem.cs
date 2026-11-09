@@ -12,14 +12,14 @@ public static class SpecialsSystem
     public static BossSpecials Begin(BossPhase phase, Difficulty difficulty)
     {
         var s = new BossSpecials { Slashes = phase.Slashes, Quake = phase.Quake, Roar = phase.Roar, Gravity = phase.Gravity };
-        float time = difficulty == Difficulty.Easy ? 1.2f : (difficulty == Difficulty.Hard ? 0.85f : 1);
-        if (s.Slashes.IsActive) { s.Slashes.Telegraph *= difficulty == Difficulty.Easy ? 1.25f : (difficulty == Difficulty.Hard ? 0.88f : 1); s.Slashes.Interval *= time; s.SlashClock = s.Slashes.Interval * 0.4f; }
+        float time = difficulty.Pick(1f, 0.85f, 0.75f);
+        if (s.Slashes.IsActive) { s.Slashes.Telegraph *= difficulty.Pick(1f, 0.88f, 0.78f); s.Slashes.Interval *= time; s.SlashClock = s.Slashes.Interval * 0.4f; }
         if (s.Quake.IsActive) { s.Quake.Interval *= time; s.QuakeClock = s.Quake.Interval * 0.4f; }
-        if (s.Roar.IsActive) { s.Roar.Interval *= time; s.Roar.Push *= difficulty == Difficulty.Easy ? 0.8f : 1; s.RoarClock = s.Roar.Interval * 0.5f; }
+        if (s.Roar.IsActive) { s.Roar.Interval *= time; s.Roar.Push *= difficulty.Pick(1f, 1f, 1.1f); s.RoarClock = s.Roar.Interval * 0.5f; }
         if (s.Gravity.IsActive)
         {
-            s.Gravity.Interval *= time; s.Gravity.Pull *= difficulty == Difficulty.Easy ? 0.75f : (difficulty == Difficulty.Hard ? 1.1f : 1);
-            s.Gravity.Warn *= difficulty == Difficulty.Easy ? 1.25f : 1; s.GravityClock = s.Gravity.Interval * 0.4f;
+            s.Gravity.Interval *= time; s.Gravity.Pull *= difficulty.Pick(1f, 1.1f, 1.2f);
+            s.Gravity.Warn *= difficulty.Pick(1f, 1f, 0.9f); s.GravityClock = s.Gravity.Interval * 0.4f;
         }
         return s;
     }
@@ -116,7 +116,7 @@ public static class SpecialsSystem
                 else if (s.WarnLeft > 0)
                 {
                     s.WarnLeft = Math.Max(0, s.WarnLeft - delta);
-                    if (s.WarnLeft <= 0) s.PullLeft = g.Duration;
+                    if (s.WarnLeft <= 0) { s.PullLeft = g.Duration; events.Add(WorldEvent.GravityPulled()); }
                 }
                 else
                 {

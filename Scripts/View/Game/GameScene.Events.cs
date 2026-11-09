@@ -33,6 +33,7 @@ public partial class GameScene : Node2D
                     break;
                 case WorldEventKind.BossHit: SfxPlayer.Instance?.Play(SfxBank.Sound.HitBoss); break;
                 case WorldEventKind.SlashStruck: SfxPlayer.Instance?.Play(SfxBank.Sound.Slash); break;
+                case WorldEventKind.GravityPulled: SfxPlayer.Instance?.Play(SfxBank.Sound.Gravity); break;
                 case WorldEventKind.QuakeStarted: SfxPlayer.Instance?.Play(SfxBank.Sound.Quake); break;
                 case WorldEventKind.Roared:
                     SfxPlayer.Instance?.Play(SfxBank.Sound.Roar);

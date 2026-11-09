@@ -10,7 +10,7 @@ Este documento reúne **todos os textos que aparecem no jogo**, com o contexto d
 - Nas falas, o personagem "o chefe da fase" mostra o nome do chefe da fase (veja a tabela de nomes de cada fase).
 - A fonte do jogo não tem alguns sinais, como parênteses, aspas e ponto e vírgula; prefira vírgula, ponto, dois pontos, traço, `!`, `?`, `/`, `+`, `%` e `...`.
 - Os nomes dos ataques dos chefes aparecem como o título de uma carta de feitiço ("Tema: Nome") quando o ataque começa.
-- O espírito da lamparina ainda se chama **Airu** nas falas (chave `FairyName`); no painel só aparece o título dela (`FairyRole`).
+- O espírito da lamparina ainda se chama **Naru** nas falas (chave `FairyName`); no painel só aparece o título dela (`FairyRole`).
 
 ---
 
@@ -94,7 +94,7 @@ Este documento reúne **todos os textos que aparecem no jogo**, com o contexto d
 | `South` | Sul | South | Direção do vento: sul. |
 | `East` | Leste | East | Direção do vento: leste. |
 | `West` | Oeste | West | Direção do vento: oeste. |
-| `FairyName` | Airu | Airu | Nome do espírito da lamparina. NÃO aparece mais no painel; ainda é o nome mostrado nas falas dela (ela ainda vai ganhar outro nome). |
+| `FairyName` | Naru | Naru | Nome do espírito da lamparina. NÃO aparece mais no painel; ainda é o nome mostrado nas falas dela (ela ainda vai ganhar outro nome). |
 | `FairyRole` | Espírito da lamparina | Lantern Spirit | Título mostrado ao lado do retrato do espírito da lamparina, no painel (quebra em duas linhas). |
 | `BoyName` | Atli | Atli | Nome do menino (o jogador), nas falas. |
 | `DialogueHint` | Z: Avançar   X: Pular | Z: Next   X: Skip | Dica das teclas, no canto da caixa de diálogo. |
@@ -118,7 +118,7 @@ Este documento reúne **todos os textos que aparecem no jogo**, com o contexto d
 | --- | --- | --- | --- |
 | `ChooseCard` | Escolha uma carta | Choose a card | Título da escolha de carta (genérico). |
 | `ChooseCardStart` | Uma nova fase começa | A new stage begins | Título da escolha de carta no começo de uma fase. |
-| `ChooseCardBoss` | O chefe deixa um presente | The boss leaves a gift | Título da escolha de carta depois de vencer um chefe. |
+| `ChooseCardBoss` | Um grande poder! | A great power! | Título da escolha de carta depois de vencer um chefe. |
 | `CardsHint` | Esq Dir: Escolher   Z: Pegar | Left Right: Pick   Z: Take | Dica das teclas, na escolha de carta. |
 | `YourCards` | Suas cartas | Your cards | Rótulo da lista das cartas que o jogador já tem. |
 
@@ -128,48 +128,48 @@ Este documento reúne **todos os textos que aparecem no jogo**, com o contexto d
 | --- | --- | --- | --- |
 | `SayStart` | Vamos lá! | Let's go! | Fala no começo da partida. |
 | `SayHit` | Ai! Aguenta firme! | Ouch! Hang in there! | Fala quando o barco é atingido. |
-| `SayBomb` | A luz protege! | The light protects! | Fala quando o jogador usa uma bomba. |
-| `SayRage` | A coisa ficou séria! | Things just got serious! | Fala quando o chefe entra na segunda forma (fúria). |
-| `SayEnraged` | Lá vem outro ataque! | Here comes another one! | Fala a cada novo ataque do chefe enfurecido. |
-| `SayVictory` | Conseguimos! | We did it! | Fala na tela de vitória. |
-| `SayDefeat` | Não desista! Tente de novo. | Don't give up! Try again. | Fala na tela de derrota. |
-| `SayPowerUp` | Mais luz! | More light! | Fala quando o poder da lamparina sobe. |
-| `SayFullPower` | Luz total! | Full light! | Fala quando o poder chega ao máximo. |
+| `SayBomb` | Eu te protejo! | I'll protect you! | Fala quando o jogador usa uma bomba. |
+| `SayRage` | Ficou furioso! | Now it's furious! | Fala quando o chefe entra na segunda forma (fúria). |
+| `SayEnraged` | Lá vem outro! | Here comes another! | Fala a cada novo ataque do chefe enfurecido. |
+| `SayVictory` | Vencemos!!! | We won!!! | Fala na tela de vitória. |
+| `SayDefeat` | Não desista! | Don't give up! | Fala na tela de derrota. |
+| `SayPowerUp` | Me sinto mais forte! | I feel stronger! | Fala quando o poder da lamparina sobe. |
+| `SayFullPower` | Poder total! | Full power! | Fala quando o poder chega ao máximo. |
 | `SayBombRefill` | Uma bomba reserva! | A spare bomb! | Fala quando uma bomba reserva é pega. |
-| `SayLifeRefill` | Um barco reserva! Não afunde! | A spare boat! Don't sink it! | Fala quando uma vida reserva é pega. |
+| `SayLifeRefill` | Uma vida reserva! | A spare life! | Fala quando uma vida reserva é pega. |
 | `SayCard` | Boa escolha! | Nice pick! | Fala quando o jogador escolhe uma carta. |
-| `SayWard` | O escudo segurou! | The ward held! | Fala quando o escudo de uma carta segura um golpe. |
+| `SayWard` | Estamos salvos! | We're safe! | Fala quando o escudo de uma carta segura um golpe. |
 
 ### História contada fora das falas (abertura e fim)
 
 | Chave | Português (PT-BR) | Inglês (EN) | Contexto |
 | --- | --- | --- | --- |
 | `IntroHint` | Pressione qualquer tecla | Press any key | Dica no canto de baixo à direita, na abertura do jogo e na cena do fim da história (cada uma fecha sozinha em 10 segundos, ou com qualquer tecla). |
-| `IntroPage1` | A Sacerdotisa das terras sagradas foi sequestrada. | The priestess of the sacred lands has been taken. | Abertura do jogo: parágrafo 1 da história, escrito na escuridão, embaixo à esquerda, sobre a cena da noite sem fim (os quatro aparecem juntos). |
-| `IntroPage2` | Sem ela para realizar o ritual anual do solstício, o mundo cai na noite eterna. | Without her to perform the yearly ritual of the solstice, the world falls into eternal night. | Abertura do jogo: parágrafo 2 da história, escrito na escuridão, embaixo à esquerda, sobre a cena da noite sem fim (os quatro aparecem juntos). |
-| `IntroPage3` | O jovem velejador Atli, junto de sua lamparina, parte em busca de encontrá-la... | The young sailor Atli, with his lantern, sets out to find her... | Abertura do jogo: parágrafo 3 da história, escrito na escuridão, embaixo à esquerda, sobre a cena da noite sem fim (os quatro aparecem juntos). |
+| `IntroPage1` | A sacerdotisa das terras sagradas sumiu. | The priestess of the sacred lands has vanished. | Abertura do jogo: parágrafo 1 da história, escrito na escuridão, embaixo à esquerda, sobre a cena da noite sem fim (os quatro aparecem juntos). |
+| `IntroPage2` | Sem ela para realizar o rito de solstício anual, o mundo cai na noite eterna. | Without her to perform the yearly solstice ritual, the world falls into eternal night. | Abertura do jogo: parágrafo 2 da história, escrito na escuridão, embaixo à esquerda, sobre a cena da noite sem fim (os quatro aparecem juntos). |
+| `IntroPage3` | O jovem velejador, acompanhado de sua lamparina, parte em uma jornada para encontrá-la... | The young sailor, accompanied by his lantern, sets out on a journey to find her... | Abertura do jogo: parágrafo 3 da história, escrito na escuridão, embaixo à esquerda, sobre a cena da noite sem fim (os quatro aparecem juntos). |
 | `IntroPage4` | ...para que o sol possa nascer novamente. | ...so that the sun may rise again. | Abertura do jogo: parágrafo 4 da história, escrito na escuridão, embaixo à esquerda, sobre a cena da noite sem fim (os quatro aparecem juntos). |
-| `S6Epi01` | Atli desceu do céu com Illari, pela ponte de água que Kuychu fez brilhar uma última vez. | Atli came down from the sky with Illari, over the bridge of water that Kuychu made shine one last time. | Fim do jogo: parágrafo 1 da história final, escrito embaixo da cena do nascer do sol (os quatro aparecem juntos). |
+| `S6Epi01` | Após voltarem do reino espiritual, Atli leva a sacerdotisa Ariah de volta para casa, para que ela possa completar o rito de solstício. | After returning from the spirit realm, Atli takes the priestess Ariah back home, so that she can complete the solstice rite. | Fim do jogo: parágrafo 1 da história final, escrito embaixo da cena do nascer do sol (os quatro aparecem juntos). |
 | `S6Epi02` | A sacerdotisa subiu ao alto da colina e completou o ritual antes que a noite terminasse de ceder. | The priestess climbed to the top of the hill and finished the ritual before the night had stopped giving way. | Fim do jogo: parágrafo 2 da história final, escrito embaixo da cena do nascer do sol (os quatro aparecem juntos). |
 | `S6Epi03` | E o sol nasceu de novo, quente demais, como sempre. Atli suou, reclamou... e achou graça. | And the sun rose again, too hot, as always. Atli sweated, complained... and found it funny. | Fim do jogo: parágrafo 3 da história final, escrito embaixo da cena do nascer do sol (os quatro aparecem juntos). |
-| `S6Epi04` | Dizem que, desde aquele dia, a lua ganhou um poema: dez horas e meia de noite, e uma brisa ao meio-dia. | They say that since that day the moon has had a poem: ten and a half hours of night, and a breeze at noon. | Fim do jogo: parágrafo 4 da história final, escrito embaixo da cena do nascer do sol (os quatro aparecem juntos). |
+| `S6Epi04` | Ambos então sentam à beira do rio e admiram o nascer do sol que resplandece sob as águas, uma vez mais. | The two then sit by the river and admire the sunrise that shines upon the waters once more. | Fim do jogo: parágrafo 4 da história final, escrito embaixo da cena do nascer do sol (os quatro aparecem juntos). |
 | `TheEnd` | FIM | THE END | Fim do jogo: escrito bem grande embaixo, no centro, na cena do nascer do sol que fecha a história. |
 
 ### Música
 
 | Chave | Português (PT-BR) | Inglês (EN) | Contexto |
 | --- | --- | --- | --- |
-| `StageMusic` | ♪ Serpente de Brasas | ♪ Ember Serpent | Nome da música da fase 1, mostrado no título da fase. |
-| `Stage2Music` | ♪ Uma noite animada em meio à escuridão | ♪ A Lively Night in the Midst of the Dark | Nome da música da fase 2, mostrado no título da fase: um quadro animado, com trompetes, saxofones e bateria. |
-| `Stage3Music` | ♪ A tempestade sob o rio agitado | ♪ The Storm Under the Restless River | Nome da música da fase 3, mostrado no título da fase: sombria, com trompetes e pianos. |
-| `Boss3Music` | ♪ A gata arisca brinca na tempestade | ♪ The Wild Cat Plays in the Storm | Nome da música do chefe da fase 3 (Thaqai), em toda a luta: mais forte, com piano grave e trompetes. |
+| `StageMusic` | ♪ Os espíritos tomam a noite | ♪ The Spirits Take the Night | Nome da música da fase 1, mostrado no título da fase. |
+| `Stage2Music` | ♪ Um festival animado para a noite | ♪ A Lively Festival for the Night | Nome da música da fase 2, mostrado no título da fase: um quadro animado, com trompetes, saxofones e bateria. |
+| `Stage3Music` | ♪ Criaturas brincalhonas sob a tempestade | ♪ Playful Creatures Under the Storm | Nome da música da fase 3, mostrado no título da fase: sombria, com trompetes e pianos. |
+| `Boss3Music` | ♪ A servente arisca que espirra raios | ♪ The Skittish Servant Who Spits Lightning | Nome da música do chefe da fase 3 (Thaqai), em toda a luta: mais forte, com piano grave e trompetes. |
 | `Stage4Music` | ♪ Hibernação em meio a morcegos e musgo | ♪ Hibernation Among Bats and Moss | Nome da música da fase 4, mostrado no título da fase: calma, com tambores lentos e trompetes. |
 | `Boss4Music` | ♪ A grande fera Deidane | ♪ The Great Beast Deidane | Nome da música do chefe da fase 4 (Ukhumo), em toda a luta: violenta, animalesca, com tambores e trompetes. |
-| `Stage5Music` | ♪ A grande serpe sob a montanha | ♪ The Great Serpent Under the Mountain | Nome da música da fase 5, mostrado no título da fase: épica, com flautas, trompetes e saxofones (era a música do chefe). |
-| `Boss5Music` | ♪ Hino ao guardião dos dois reinos | ♪ Hymn to the Guardian of the Two Realms | Nome da música do chefe da fase 5 (Kuychu), em toda a luta: um hino divino, com trompetes e coros, que lembra a música católica. |
+| `Stage5Music` | ♪ Cachoeira invertida e mil maravilhas | ♪ The Inverted Waterfall and a Thousand Wonders | Nome da música da fase 5, mostrado no título da fase: épica, com flautas, trompetes e saxofones (era a música do chefe). |
+| `Boss5Music` | ♪ A serpe guardiã dos dois reinos | ♪ The Serpent Guardian of the Two Realms | Nome da música do chefe da fase 5 (Kuychu), em toda a luta: um hino divino, com trompetes e coros, que lembra a música católica. |
 | `Stage6Music` | ♪ O rio que percorre o universo | ♪ The River That Runs Through the Universe | Nome da música da fase 6, mostrado no título da fase: divina e cósmica, com órgão, piano, coros, canto gregoriano e trompetes. |
 | `Boss2Music` | ♪ O dançarino das estrelas | ♪ The Dancer of the Stars | Nome da música do chefe da fase 2 (Baylo), em toda a luta: intensa, com trompetes, saxofones e bateria. |
-| `BossMusic` | ♪ Serpente Infernal | ♪ Inferno Serpent | Nome da música do chefe da fase 1 (Iryssh), em toda a luta. |
+| `BossMusic` | ♪ Um veneno que queima como fogo | ♪ A Venom That Burns Like Fire | Nome da música do chefe da fase 1 (Iryssh), em toda a luta. |
 
 ---
 
@@ -190,8 +190,8 @@ Este documento reúne **todos os textos que aparecem no jogo**, com o contexto d
 | `AttackPiercingTongue` | Chama: Língua Perfurante | Flame: Piercing Tongue | Nome do ataque do chefe da fase 1 (a primeira forma, calma). |
 | `AttackTwinWhirlwinds` | Labareda: Redemoinhos Gêmeos | Blaze: Twin Whirlwinds | Nome do ataque do chefe da fase 1 (a primeira forma, calma). |
 | `AttackBlazingBloom` | Lótus: Flor Flamejante | Lotus: Blazing Bloom | Nome do ataque do chefe da fase 1 (a segunda forma, enfurecida). |
-| `AttackFuryOfTheRiver` | Magma: Fúria do Rio | Magma: Fury of the River | Nome do ataque do chefe da fase 1 (a segunda forma, enfurecida). |
-| `AttackTideOfEmbers` | Maré: Investida de Brasas | Tide: Charge of Embers | Nome do ataque do chefe da fase 1 (a segunda forma, enfurecida). |
+| `AttackFuryOfTheRiver` | Fúria do Rio Incandescente | Fury of the Blazing River | Nome do ataque do chefe da fase 1 (a segunda forma, enfurecida). |
+| `AttackTideOfEmbers` | Investida da Grande Serpente | Charge of the Great Serpent | Nome do ataque do chefe da fase 1 (a segunda forma, enfurecida). |
 
 ### Falas: Abertura da fase (antes dos inimigos)
 
@@ -199,17 +199,17 @@ Este documento reúne **todos os textos que aparecem no jogo**, com o contexto d
 
 | Chave | Português (PT-BR) | Inglês (EN) | Contexto |
 | --- | --- | --- | --- |
-| `Intro01` | Atli. Pergunta rápida. Onde estamos? | Atli. Quick question. Where are we? | 1ª fala; quem fala: Airu (espírito da lamparina); expressão irritada. |
-| `Intro02` | No rio! Óbvio! | On the river! Obviously! | 2ª fala; quem fala: Atli; expressão neutra. |
-| `Intro03` | QUAL parte do rio?! | WHICH part of the river?! | 3ª fala; quem fala: Airu (espírito da lamparina); expressão irritada; GRITADA (a caixa treme). |
-| `Intro04` | A... parte molhada. Hehe. | The... wet part. Hehe. | 4ª fala; quem fala: Atli; expressão sem graça. |
-| `Intro05` | Aquela árvore parece familiar. As outras doze também. | That tree looks familiar. So did twelve others. | 5ª fala; quem fala: Airu (espírito da lamparina); expressão preocupada. |
-| `Intro06` | Árvores são todas iguais. É isso que as faz árvores. | Trees look alike. That's what makes them trees. | 6ª fala; quem fala: Atli; expressão neutra. |
-| `Intro07` | A gente está PERDIDO, Atli! | We're LOST, Atli! | 7ª fala; quem fala: Airu (espírito da lamparina); expressão irritada; GRITADA (a caixa treme). |
+| `Intro01` | Hmm... tenho certeza que já vi aquela árvore. | Hmm... I'm sure I've seen that tree before. | 1ª fala; quem fala: Naru (espírito da lamparina); expressão irritada. |
+| `Intro02` | É porque já vimos aquela árvore. | That's because we've already seen that tree. | 2ª fala; quem fala: Atli; expressão neutra. |
+| `Intro03` | ESTAMOS PERDIDOS?! | ARE WE LOST?! | 3ª fala; quem fala: Naru (espírito da lamparina); expressão irritada; GRITADA (a caixa treme). |
+| `Intro04` | Não estamos perdidos... só está difícil enxergar nesse escuro. | We're not lost... it's just hard to see in this darkness. | 4ª fala; quem fala: Atli; expressão sem graça. |
+| `Intro05` | Peraí, você tá me culpando?! A culpa não é minha, estou quase sem óleo! | Wait, are you blaming me?! It's not my fault, I'm almost out of oil! | 5ª fala; quem fala: Naru (espírito da lamparina); expressão preocupada. |
+| `Intro06` | Foi mal, foi mal... vou colocar óleo mais tarde. | My bad, my bad... I'll add some oil later. | 6ª fala; quem fala: Atli; expressão neutra. |
+| `Intro07` | A gente está PERDIDO, Atli! | We're LOST, Atli! | 7ª fala; quem fala: Naru (espírito da lamparina); expressão irritada; GRITADA (a caixa treme). |
 | `Intro08` | Rota panorâmica. Rápida. Fiuuu! | Scenic route. Fast. Whoosh! | 8ª fala; quem fala: Atli; expressão sem graça. |
-| `Intro09` | Então vai pela ESQUERDA! A outra esquerda! Argh! | Then scenic-route LEFT! Your other left! Argh! | 9ª fala; quem fala: Airu (espírito da lamparina); expressão feliz; GRITADA (a caixa treme). |
+| `Intro09` | Então vai pela ESQUERDA! A outra esquerda! Argh! | Then scenic-route LEFT! Your other left! Argh! | 9ª fala; quem fala: Naru (espírito da lamparina); expressão feliz; GRITADA (a caixa treme). |
 | `Intro10` | Espera... fru-fru... tem algo se mexendo. | Wait... rustle, rustle... something's moving. | 10ª fala; quem fala: Atli; expressão surpresa. |
-| `Intro11` | Moradores! Peça informação. Educadamente! | Locals! Ask for directions. Politely! | 11ª fala; quem fala: Airu (espírito da lamparina); expressão preocupada. |
+| `Intro11` | Moradores! Peça informação. Educadamente! | Locals! Ask for directions. Politely! | 11ª fala; quem fala: Naru (espírito da lamparina); expressão preocupada. |
 | `Intro12` | Estão brilhando. E de mau humor. SEGURA! | They're glowing. And cranky. HOLD ON! | 12ª fala; quem fala: Atli; expressão neutra; GRITADA (a caixa treme). |
 
 ### Falas: Chegada ao chefe (antes de ele aparecer)
@@ -218,11 +218,11 @@ Este documento reúne **todos os textos que aparecem no jogo**, com o contexto d
 
 | Chave | Português (PT-BR) | Inglês (EN) | Contexto |
 | --- | --- | --- | --- |
-| `BossA1` | Atli, as árvores acabaram! Um lago! | Atli, the trees are gone! A lake! | 1ª fala; quem fala: Airu (espírito da lamparina); expressão feliz. |
-| `BossA2` | Água aberta, lua cheia. Uau... | Open water, full moon. Wow... | 2ª fala; quem fala: Atli; expressão surpresa. |
-| `BossA3` | A gente nunca veio aqui, gênio. | We've never been here, genius. | 3ª fala; quem fala: Airu (espírito da lamparina); expressão irritada. |
-| `BossA4` | Então não pode ser o caminho errado! | So it can't be the wrong way! | 4ª fala; quem fala: Atli; expressão neutra. |
-| `BossA5` | ...A água ficou muito parada. | ...The water just went very still. | 5ª fala; quem fala: Airu (espírito da lamparina); expressão preocupada. |
+| `BossA1` | Atli, um lago! Conseguimos sair! | Atli, a lake! We made it out! | 1ª fala; quem fala: Naru (espírito da lamparina); expressão feliz. |
+| `BossA2` | Tem muitos espíritos nessa região, isso não é bom sinal... | There are a lot of spirits in this region, that's not a good sign... | 2ª fala; quem fala: Atli; expressão surpresa. |
+| `BossA3` | Não importa! Agora eu preciso de óleo! | Never mind that! Now I need oil! | 3ª fala; quem fala: Naru (espírito da lamparina); expressão irritada. |
+| `BossA4` | Entendi, entendi... Acho que devo ter guard... | Got it, got it... I think I must have sav... | 4ª fala; quem fala: Atli; expressão neutra. |
+| `BossA5` | *Tremores* | *Tremors* | 5ª fala; quem fala: Naru (espírito da lamparina); expressão preocupada. |
 
 ### Falas: Encontro com o chefe (antes da luta)
 
@@ -230,13 +230,13 @@ Este documento reúne **todos os textos que aparecem no jogo**, com o contexto d
 
 | Chave | Português (PT-BR) | Inglês (EN) | Contexto |
 | --- | --- | --- | --- |
-| `BossB1` | QUEM chapinha no meu lago a essa hora?! | WHO splashes in my lake at this hour?! | 1ª fala; quem fala: o chefe da fase; expressão irritada; GRITADA (a caixa treme). |
-| `BossB2` | Meu sono da beleza leva TEMPO, sabia? | My beauty sleep takes TIME, you know. | 2ª fala; quem fala: o chefe da fase; expressão neutra. |
-| `BossB3` | A gente... só estava de passagem? | We... were just passing through? | 3ª fala; quem fala: Atli; expressão sem graça. |
-| `BossB4` | Pelo meu quarto! Com uma BOMBA! | Through my bedchamber! With a BOMB! | 4ª fala; quem fala: o chefe da fase; expressão irritada; GRITADA (a caixa treme). |
-| `BossB5` | Bomba educada. Só ilumino as coisas. | Polite bomb. I only shine at things. | 5ª fala; quem fala: Airu (espírito da lamparina); expressão irritada. |
-| `BossB6` | Então ilumine o seu TÚMULO! | Then shine on your GRAVE! | 6ª fala; quem fala: o chefe da fase; expressão irritada; GRITADA (a caixa treme). |
-| `BossB7` | Airu, fique acesa. A noite vai ser longa. | Airu, stay lit. Long night ahead. | 7ª fala; quem fala: Atli; expressão neutra. |
+| `BossB1` | Quem está fazendo tanto barulho no meu território?! | Who is making so much noise in my territory?! | 1ª fala; quem fala: o chefe da fase; expressão irritada; GRITADA (a caixa treme). |
+| `BossB2` | Estão atrapalhando meu sono da beleza! | You're disturbing my beauty sleep! | 2ª fala; quem fala: o chefe da fase; expressão neutra. |
+| `BossB3` | Sono da beleza? Embaixo da água? | Beauty sleep? Underwater? | 3ª fala; quem fala: Atli; expressão sem graça. |
+| `BossB4` | A água faz bem para o cabelo e para a pele, pirralho! Um garoto que nem você não entende nada de beleza! | Water is good for the hair and the skin, brat! A boy like you knows nothing about beauty! | 4ª fala; quem fala: o chefe da fase; expressão irritada; GRITADA (a caixa treme). |
+| `BossB5` | E não parece estar dando muito certo... | And it doesn't seem to be working very well... | 5ª fala; quem fala: Naru (espírito da lamparina); expressão irritada. |
+| `BossB6` | COMO É?! VOCÊS VÃO PAGAR POR ISSO, INVASORES!!! | WHAT?! YOU'LL PAY FOR THIS, INTRUDERS!!! | 6ª fala; quem fala: o chefe da fase; expressão irritada; GRITADA (a caixa treme). |
+| `BossB7` | Pode esquecer o óleo que eu prometi... lamparina desbocada. | Forget the oil I promised... you foul-mouthed lantern. | 7ª fala; quem fala: Atli; expressão neutra. |
 
 ### Falas: Final da fase (depois da luta)
 
@@ -244,13 +244,13 @@ Este documento reúne **todos os textos que aparecem no jogo**, com o contexto d
 
 | Chave | Português (PT-BR) | Inglês (EN) | Contexto |
 | --- | --- | --- | --- |
-| `EndE1` | Ela... dormiu de novo? | Is she... asleep again? | 1ª fala; quem fala: Airu (espírito da lamparina); expressão preocupada. |
-| `EndE2` | Apagou. Até ronca. Zzz... | Out cold. Snoring, even. Zzz... | 2ª fala; quem fala: Atli; expressão neutra. |
-| `EndE3` | O sono da beleza dela quase nos TORROU! | Her beauty sleep nearly ROASTED us! | 3ª fala; quem fala: Airu (espírito da lamparina); expressão irritada; GRITADA (a caixa treme). |
+| `EndE1` | Ela... dormiu de novo? | Is she... asleep again? | 1ª fala; quem fala: Naru (espírito da lamparina); expressão preocupada. |
+| `EndE2` | E durma para sempre agora! | And sleep forever now! | 2ª fala; quem fala: Atli; expressão neutra. |
+| `EndE3` | O sono da beleza dela quase nos TORROU! | Her beauty sleep nearly ROASTED us! | 3ª fala; quem fala: Naru (espírito da lamparina); expressão irritada; GRITADA (a caixa treme). |
 | `EndE4` | Talvez ela devesse dormir para sempre. | Maybe she should sleep forever. | 4ª fala; quem fala: Atli; expressão sem graça. |
-| `EndE5` | Concordo. Na ponta dos pés. Corre depois! | Agreed. Tiptoe now. Run later! | 5ª fala; quem fala: Airu (espírito da lamparina); expressão feliz. |
+| `EndE5` | Concordo. Na ponta dos pés. Corre depois! | Agreed. Tiptoe now. Run later! | 5ª fala; quem fala: Naru (espírito da lamparina); expressão feliz. |
 | `EndE6` | Então... qual é a saída? | So... which way is out? | 6ª fala; quem fala: Atli; expressão neutra. |
-| `EndE7` | ...Não olha pra mim. Hmpf. | ...Don't look at me. Hmph. | 7ª fala; quem fala: Airu (espírito da lamparina); expressão irritada. |
+| `EndE7` | ...Não olha pra mim. Hmpf. | ...Don't look at me. Hmph. | 7ª fala; quem fala: Naru (espírito da lamparina); expressão irritada. |
 
 ---
 
@@ -268,10 +268,10 @@ Este documento reúne **todos os textos que aparecem no jogo**, com o contexto d
 | Chave | Português (PT-BR) | Inglês (EN) | Contexto |
 | --- | --- | --- | --- |
 | `AttackDoubleStep` | Dança: Passo Duplo | Dance: Double Step | Nome do ataque do chefe da fase 2 (a primeira forma, calma). |
-| `AttackConfettiRain` | Confete: Chuva de Notas | Confetti: Rain of Notes | Nome do ataque do chefe da fase 2 (a primeira forma, calma). |
-| `AttackSambaWheel` | Samba: Roda de Pétalas | Samba: Wheel of Petals | Nome do ataque do chefe da fase 2 (a primeira forma, calma). |
-| `AttackDolphinLeap` | Dança: Grande Mergulho | Dance: Great Dive | Nome do ataque do chefe da fase 2 (a primeira forma, calma). |
-| `AttackPartyWave` | Água: Jato de Folia | Water: Jet of Revelry | Nome do ataque do chefe da fase 2 (a primeira forma, calma). |
+| `AttackConfettiRain` | Música: Chuva de Notas | Music: Rain of Notes | Nome do ataque do chefe da fase 2 (a primeira forma, calma). |
+| `AttackSambaWheel` | Música: Roda de Pétalas | Music: Wheel of Petals | Nome do ataque do chefe da fase 2 (a primeira forma, calma). |
+| `AttackDolphinLeap` | Grande Mergulho do Rei | The King's Great Dive | Nome do ataque do chefe da fase 2 (a primeira forma, calma). |
+| `AttackPartyWave` | Jato do Rio Profundo | Jet of the Deep River | Nome do ataque do chefe da fase 2 (a primeira forma, calma). |
 
 ### Falas: Abertura da fase (antes dos inimigos)
 
@@ -279,12 +279,12 @@ Este documento reúne **todos os textos que aparecem no jogo**, com o contexto d
 
 | Chave | Português (PT-BR) | Inglês (EN) | Contexto |
 | --- | --- | --- | --- |
-| `S2Intro01` | O rastro voltou! A correnteza guarda tudo! | The trail is back! The current keeps everything! | 1ª fala; quem fala: Atli; expressão feliz. |
-| `S2Intro02` | E tem barcos demais. Todos com luzinhas, música... | And there are too many boats. All with lanterns, music... | 2ª fala; quem fala: Airu (espírito da lamparina); expressão preocupada. |
-| `S2Intro03` | Isso é uma festa? Eu adoro festa! | Is that a party? I love parties! | 3ª fala; quem fala: Atli; expressão surpresa. |
-| `S2Intro04` | Estamos procurando a Illari, lembra? | We're looking for Illari, remember? | 4ª fala; quem fala: Airu (espírito da lamparina); expressão irritada. |
-| `S2Intro05` | Dá para procurar e dançar. | You can search and dance. | 5ª fala; quem fala: Atli; expressão sem graça. |
-| `S2Intro06` | NÃO DÁ! | WE CAN'T! | 6ª fala; quem fala: Airu (espírito da lamparina); expressão irritada; GRITADA (a caixa treme). |
+| `S2Intro01` | Acho que encontramos um caminho, talvez para o norte? | I think we found a path, maybe to the north? | 1ª fala; quem fala: Atli; expressão feliz. |
+| `S2Intro02` | Isso são luzes coloridas? Uma festa?! | Are those colored lights? A party?! | 2ª fala; quem fala: Naru (espírito da lamparina); expressão preocupada. |
+| `S2Intro03` | É o que parece... mas uma festa no meio do nada? | That's what it looks like... but a party in the middle of nowhere? | 3ª fala; quem fala: Atli; expressão surpresa. |
+| `S2Intro04` | Talvez encontremos alguém que saiba de algo! | Maybe we'll find someone who knows something! | 4ª fala; quem fala: Naru (espírito da lamparina); expressão irritada. |
+| `S2Intro05` | Quem sabe... | Who knows... | 5ª fala; quem fala: Atli; expressão sem graça. |
+| `S2Intro06` | NÃO DÁ! | WE CAN'T! | 6ª fala; quem fala: Naru (espírito da lamparina); expressão irritada; GRITADA (a caixa treme). |
 
 ### Falas: Encontro com o chefe (antes da luta)
 
@@ -292,12 +292,12 @@ Este documento reúne **todos os textos que aparecem no jogo**, com o contexto d
 
 | Chave | Português (PT-BR) | Inglês (EN) | Contexto |
 | --- | --- | --- | --- |
-| `S2Meet01` | Ora, ora! Convidados novos! Que alegria! | Well, well! New guests! What a joy! | 1ª fala; quem fala: o chefe da fase; expressão feliz. |
-| `S2Meet02` | Eu sou o Baylo. E vocês, claro, vão dançar comigo. | I'm Baylo. And you'll dance with me, of course. | 2ª fala; quem fala: o chefe da fase; expressão feliz. |
-| `S2Meet03` | A gente está com pressa. | We're in a hurry. | 3ª fala; quem fala: Atli; expressão sem graça. |
+| `S2Meet01` | Ora, ora! Temos convidados! Que alegria! | Well, well! We have guests! What a joy! | 1ª fala; quem fala: o chefe da fase; expressão feliz. |
+| `S2Meet02` | O que acham de se divertir comigo? | How about having some fun with me? | 2ª fala; quem fala: o chefe da fase; expressão feliz. |
+| `S2Meet03` | Valeu, mas a gente meio que está com pressa... | Thanks, but we're kind of in a hurry... | 3ª fala; quem fala: Atli; expressão sem graça. |
 | `S2Meet04` | Quem tem pressa não tem ritmo, meu amigo! | Whoever's in a hurry has no rhythm, my friend! | 4ª fala; quem fala: o chefe da fase; expressão feliz. |
-| `S2Meet05` | Ele não aceita um não. | He won't take no for an answer. | 5ª fala; quem fala: Airu (espírito da lamparina); expressão preocupada. |
-| `S2Meet06` | Um, dois, três... VAMOS DANÇAR! | One, two, three... LET'S DANCE! | 6ª fala; quem fala: o chefe da fase; expressão feliz; GRITADA (a caixa treme). |
+| `S2Meet05` | O quê? Mas o que uma coisa tem a ve... | What? But what does that have to do wi... | 5ª fala; quem fala: Naru (espírito da lamparina); expressão preocupada. |
+| `S2Meet06` | VAMOS DANÇAR, MEU POVO! | LET'S DANCE, EVERYONE! | 6ª fala; quem fala: o chefe da fase; expressão feliz; GRITADA (a caixa treme). |
 
 ### Falas: Final da fase (depois da luta)
 
@@ -305,16 +305,16 @@ Este documento reúne **todos os textos que aparecem no jogo**, com o contexto d
 
 | Chave | Português (PT-BR) | Inglês (EN) | Contexto |
 | --- | --- | --- | --- |
-| `S2End01` | Ha ha! Faz anos que ninguém me acompanhava assim! Estou tonto! | Ha ha! Nobody's kept up with me like that in years! I'm dizzy! | 1ª fala; quem fala: o chefe da fase; expressão feliz. |
-| `S2End02` | Você viu um barco prateado? Com uma moça de branco? | Did you see a silver boat? With a girl in white? | 2ª fala; quem fala: Atli; expressão neutra. |
-| `S2End03` | Vi! Passou direto, nem olhou para a festa. Que grosseria! | I did! She sailed right past, didn't even look at the party. How rude! | 3ª fala; quem fala: o chefe da fase; expressão irritada. |
-| `S2End04` | Foi para o lago onde cai granizo. Lá mora uma gata. | She went to the lake where the hail falls. A cat lives there. | 4ª fala; quem fala: o chefe da fase; expressão neutra. |
-| `S2End05` | Uma gata? | A cat? | 5ª fala; quem fala: Airu (espírito da lamparina); expressão surpresa. |
-| `S2End06` | Mal-humorada. Ela vai gostar de ver vocês, tenho certeza. Mandem lembranças! | A grumpy one. She'll love to see you, I'm sure. Send her my regards! | 6ª fala; quem fala: o chefe da fase; expressão feliz. |
-| `S2End07` | Você só está contando porque vai ser engraçado. | You're only telling us because it'll be funny. | 7ª fala; quem fala: Atli; expressão irritada. |
-| `S2End08` | Claro! Mais nada, estragaria a graça. | Of course! Nothing more, it'd spoil the fun. | 8ª fala; quem fala: o chefe da fase; expressão feliz. |
-| `S2End09` | Ah, o seu chapéu! Fica comigo, combina com o meu terno. | Ah, your hat! It stays with me, it goes with my suit. | 9ª fala; quem fala: o chefe da fase; expressão feliz. |
-| `S2End10` | ...Era meu único chapéu. | ...It was my only hat. | 10ª fala; quem fala: Atli; expressão sem graça. |
+| `S2End01` | Ha ha! Faz anos que alguém não me acompanhava assim! | Ha ha! It's been years since anyone kept up with me like that! | 1ª fala; quem fala: o chefe da fase; expressão feliz. |
+| `S2End02` | Nós podemos ir agora? Estamos no meio de algo importante... | Can we go now? We're in the middle of something important... | 2ª fala; quem fala: Atli; expressão neutra. |
+| `S2End03` | Mas vocês sabem para onde estão indo, meus jovens? | But do you know where you're going, my young ones? | 3ª fala; quem fala: o chefe da fase; expressão irritada. |
+| `S2End04` | Ehhh... | Ehhh... | 4ª fala; quem fala: o chefe da fase; expressão neutra. |
+| `S2End05` | Hahaha! Eu realmente curti vocês, hmm... acho que não tem problema contar. | Hahaha! I really enjoyed you two, hmm... I guess there's no harm in telling. | 5ª fala; quem fala: Naru (espírito da lamparina); expressão surpresa. |
+| `S2End06` | Sigam pelo veio direito do rio, lá talvez encontrem uma pista do que procuram. | Follow the right branch of the river, there you might find a clue to what you're looking for. | 6ª fala; quem fala: o chefe da fase; expressão feliz. |
+| `S2End07` | Hã? Mas você nem sab... | Huh? But you don't even kno... | 7ª fala; quem fala: Atli; expressão irritada. |
+| `S2End08` | Confie em mim... uma recompensa por terem me entretido. | Trust me... a reward for entertaining me. | 8ª fala; quem fala: o chefe da fase; expressão feliz. |
+| `S2End09` | Não é como se vocês tivessem muita escolha, haha! | It's not like you have much choice, haha! | 9ª fala; quem fala: o chefe da fase; expressão feliz. |
+| `S2End10` | *Suspiros* Acho que não tem jeito, vamos lá então... | *Sighs* I guess there's no way around it, let's go then... | 10ª fala; quem fala: Atli; expressão sem graça. |
 
 ---
 
@@ -345,9 +345,9 @@ Este documento reúne **todos os textos que aparecem no jogo**, com o contexto d
 | Chave | Português (PT-BR) | Inglês (EN) | Contexto |
 | --- | --- | --- | --- |
 | `S3Intro01` | Estou com frio. | I'm cold. | 1ª fala; quem fala: Atli; expressão preocupada. |
-| `S3Intro02` | Está caindo... gelo? | Is that... ice falling? | 2ª fala; quem fala: Airu (espírito da lamparina); expressão surpresa. |
+| `S3Intro02` | Está caindo... gelo? | Is that... ice falling? | 2ª fala; quem fala: Naru (espírito da lamparina); expressão surpresa. |
 | `S3Intro03` | Ai! Granizo! Na minha cabeça! | Ow! Hail! On my head! | 3ª fala; quem fala: Atli; expressão surpresa; GRITADA (a caixa treme). |
-| `S3Intro04` | Você perdeu o chapéu. | You lost your hat. | 4ª fala; quem fala: Airu (espírito da lamparina); expressão irritada. |
+| `S3Intro04` | Você perdeu o chapéu. | You lost your hat. | 4ª fala; quem fala: Naru (espírito da lamparina); expressão irritada. |
 | `S3Intro05` | Sem chapéu, o granizo é pessoal. | Without a hat, the hail is personal. | 5ª fala; quem fala: Atli; expressão sem graça. |
 
 ### Falas: Encontro com o chefe (antes da luta)
@@ -359,7 +359,7 @@ Este documento reúne **todos os textos que aparecem no jogo**, com o contexto d
 | `S3Meet01` | Parados. Ninguém passa por este lago. | Halt. No one passes this lake. | 1ª fala; quem fala: o chefe da fase; expressão irritada. |
 | `S3Meet02` | Por ordem de quem? | On whose orders? | 2ª fala; quem fala: Atli; expressão neutra. |
 | `S3Meet03` | Isso não é da sua conta. Estou aqui para que ninguém atrapalhe. | That is none of your business. I am here so that no one gets in the way. | 3ª fala; quem fala: o chefe da fase; expressão irritada. |
-| `S3Meet04` | Atrapalhe o quê? | Gets in the way of what? | 4ª fala; quem fala: Airu (espírito da lamparina); expressão preocupada. |
+| `S3Meet04` | Atrapalhe o quê? | Gets in the way of what? | 4ª fala; quem fala: Naru (espírito da lamparina); expressão preocupada. |
 | `S3Meet05` | Eu disse que não é da sua conta! Vocês são uma AFRONTA! | I said it is none of your business! You are an AFFRONT! | 5ª fala; quem fala: o chefe da fase; expressão irritada; GRITADA (a caixa treme). |
 
 ### Falas: Final da fase (depois da luta)
@@ -373,13 +373,13 @@ Este documento reúne **todos os textos que aparecem no jogo**, com o contexto d
 | `S3End03` | Ela? | She? | 3ª fala; quem fala: Atli; expressão surpresa. |
 | `S3End04` | ...Eu não disse nada. Eu NÃO disse NADA! | ...I didn't say anything. I did NOT say ANYTHING! | 4ª fala; quem fala: o chefe da fase; expressão surpresa; GRITADA (a caixa treme). |
 | `S3End05` | Ela quem? | She who? | 5ª fala; quem fala: Atli; expressão neutra. |
-| `S3End06` | Uma gata alada, com estrelas no pelo, que obedece a alguém... Isso não é bicho de qualquer um. | A winged cat with stars in her fur that obeys someone... That is no one's ordinary pet. | 6ª fala; quem fala: Airu (espírito da lamparina); expressão preocupada. |
-| `S3End07` | Deve ser de alguém grande. Um deus, talvez. | It must belong to someone great. A god, maybe. | 7ª fala; quem fala: Airu (espírito da lamparina); expressão preocupada. |
+| `S3End06` | Uma gata alada, com estrelas no pelo, que obedece a alguém... Isso não é bicho de qualquer um. | A winged cat with stars in her fur that obeys someone... That is no one's ordinary pet. | 6ª fala; quem fala: Naru (espírito da lamparina); expressão preocupada. |
+| `S3End07` | Deve ser de alguém grande. Um deus, talvez. | It must belong to someone great. A god, maybe. | 7ª fala; quem fala: Naru (espírito da lamparina); expressão preocupada. |
 | `S3End08` | Um deus levou a Illari? | A god took Illari? | 8ª fala; quem fala: Atli; expressão surpresa. |
-| `S3End09` | Eu não disse isso. Disse que a gata é de alguém grande. | I didn't say that. I said the cat belongs to someone great. | 9ª fala; quem fala: Airu (espírito da lamparina); expressão irritada. |
-| `S3End10` | Mas tem alguém que sabe das coisas entre os mundos: a grande serpente, que guarda a fronteira. | But someone knows about the things between the worlds: the great serpent, who guards the border. | 10ª fala; quem fala: Airu (espírito da lamparina); expressão neutra. |
+| `S3End09` | Eu não disse isso. Disse que a gata é de alguém grande. | I didn't say that. I said the cat belongs to someone great. | 9ª fala; quem fala: Naru (espírito da lamparina); expressão irritada. |
+| `S3End10` | Mas tem alguém que sabe das coisas entre os mundos: a grande serpente, que guarda a fronteira. | But someone knows about the things between the worlds: the great serpent, who guards the border. | 10ª fala; quem fala: Naru (espírito da lamparina); expressão neutra. |
 | `S3End11` | Onde ela mora? | Where does she live? | 11ª fala; quem fala: Atli; expressão neutra. |
-| `S3End12` | Onde a água cai. O rastro entra na montanha. Vamos pela caverna. | Where the water falls. The trail goes into the mountain. We take the cave. | 12ª fala; quem fala: Airu (espírito da lamparina); expressão neutra. |
+| `S3End12` | Onde a água cai. O rastro entra na montanha. Vamos pela caverna. | Where the water falls. The trail goes into the mountain. We take the cave. | 12ª fala; quem fala: Naru (espírito da lamparina); expressão neutra. |
 
 ---
 
@@ -411,9 +411,9 @@ Este documento reúne **todos os textos que aparecem no jogo**, com o contexto d
 | Chave | Português (PT-BR) | Inglês (EN) | Contexto |
 | --- | --- | --- | --- |
 | `S4Intro01` | Escuro. Muito escuro. | Dark. Very dark. | 1ª fala; quem fala: Atli; expressão preocupada. |
-| `S4Intro02` | Fica perto de mim. | Stay close to me. | 2ª fala; quem fala: Airu (espírito da lamparina); expressão preocupada. |
+| `S4Intro02` | Fica perto de mim. | Stay close to me. | 2ª fala; quem fala: Naru (espírito da lamparina); expressão preocupada. |
 | `S4Intro03` | Grrr... Isso foi você? | Grrr... Was that you? | 3ª fala; quem fala: Atli; expressão sem graça. |
-| `S4Intro04` | Eu não tenho barriga. | I have no stomach. | 4ª fala; quem fala: Airu (espírito da lamparina); expressão irritada. |
+| `S4Intro04` | Eu não tenho barriga. | I have no stomach. | 4ª fala; quem fala: Naru (espírito da lamparina); expressão irritada. |
 | `S4Intro05` | Então foi o eco. Que eco bonzinho. | Then it was the echo. What a friendly echo. | 5ª fala; quem fala: Atli; expressão feliz. |
 
 ### Falas: Encontro com o chefe (antes da luta)
@@ -425,7 +425,7 @@ Este documento reúne **todos os textos que aparecem no jogo**, com o contexto d
 | `S4Meet01` | Fungando... Milho tostado. | Sniff, sniff... Toasted corn. | 1ª fala; quem fala: o chefe da fase; expressão neutra. |
 | `S4Meet02` | É a minha merenda! | That's my snack! | 2ª fala; quem fala: Atli; expressão surpresa. |
 | `S4Meet03` | Grrr... Passa para cá. | Grrr... Hand it over. | 3ª fala; quem fala: o chefe da fase; expressão irritada. |
-| `S4Meet04` | Ela não está de brincadeira. | She's not joking. | 4ª fala; quem fala: Airu (espírito da lamparina); expressão preocupada. |
+| `S4Meet04` | Ela não está de brincadeira. | She's not joking. | 4ª fala; quem fala: Naru (espírito da lamparina); expressão preocupada. |
 | `S4Meet05` | FAZ DIAS QUE EU NÃO COMO NADA! | I HAVEN'T EATEN FOR DAYS! | 5ª fala; quem fala: o chefe da fase; expressão irritada; GRITADA (a caixa treme). |
 
 ### Falas: Final da fase (depois da luta)
@@ -441,7 +441,7 @@ Este documento reúne **todos os textos que aparecem no jogo**, com o contexto d
 | `S4End05` | ...Ninguém nunca me deu comida. Só tomavam. | ...Nobody ever gave me food. They only took it. | 5ª fala; quem fala: o chefe da fase; expressão feliz. |
 | `S4End06` | Eu vou ajudar vocês. O que procuram? | I'll help you. What are you looking for? | 6ª fala; quem fala: o chefe da fase; expressão feliz. |
 | `S4End07` | Uma sacerdotisa. Levaram ela num barco prateado. | A priestess. They took her away in a silver boat. | 7ª fala; quem fala: Atli; expressão neutra. |
-| `S4End08` | E o dia que sumiu. Procuramos a grande serpente. | And the day that vanished. We're looking for the great serpent. | 8ª fala; quem fala: Airu (espírito da lamparina); expressão neutra. |
+| `S4End08` | E o dia que sumiu. Procuramos a grande serpente. | And the day that vanished. We're looking for the great serpent. | 8ª fala; quem fala: Naru (espírito da lamparina); expressão neutra. |
 | `S4End09` | O dragão da Grande Queda? Eu sei onde ele mora. | The dragon of the Great Fall? I know where he lives. | 9ª fala; quem fala: o chefe da fase; expressão surpresa. |
 | `S4End10` | Os túneis confundem quem não é urso. Venham. | The tunnels confuse anyone who isn't a bear. Come. | 10ª fala; quem fala: o chefe da fase; expressão neutra. |
 | `S4End11` | Ele guarda a porta entre os mundos. Deve saber da sua amiga. | He guards the door between the worlds. He must know about your friend. | 11ª fala; quem fala: o chefe da fase; expressão neutra. |
@@ -483,7 +483,7 @@ Este documento reúne **todos os textos que aparecem no jogo**, com o contexto d
 | `S5Intro02` | Obrigado pela ajuda. | Thanks for the help. | 2ª fala; quem fala: Atli; expressão feliz. |
 | `S5Intro03` | E obrigada pela merenda. | And thanks for the snack. | 3ª fala; quem fala: Ukhumo; expressão feliz. |
 | `S5Intro04` | Cuidado com as duas cabeças. Elas brigam o tempo todo. | Beware of the two heads. They fight all the time. | 4ª fala; quem fala: Ukhumo; expressão preocupada. |
-| `S5Intro05` | Todo mundo por aqui tem um defeito... | Everyone here has a flaw... | 5ª fala; quem fala: Airu (espírito da lamparina); expressão irritada. |
+| `S5Intro05` | Todo mundo por aqui tem um defeito... | Everyone here has a flaw... | 5ª fala; quem fala: Naru (espírito da lamparina); expressão irritada. |
 
 ### Falas: Encontro com o chefe (antes da luta)
 
@@ -496,7 +496,7 @@ Este documento reúne **todos os textos que aparecem no jogo**, com o contexto d
 | `S5Meet03` | Parem, vocês dois. | Stop, you two. | 3ª fala; quem fala: o chefe da fase; expressão irritada. |
 | `S5Meet04` | A gente quer atravessar a fronteira. | We want to cross the border. | 4ª fala; quem fala: Atli; expressão neutra. |
 | `S5Meet05` | Ninguém cruza sem provar o seu valor. É meu dever proteger os dois reinos. | No one crosses without proving their worth. It is my duty to protect the two realms. | 5ª fala; quem fala: o chefe da fase; expressão neutra. |
-| `S5Meet06` | Prova... como? | Proving it... how? | 6ª fala; quem fala: Airu (espírito da lamparina); expressão preocupada. |
+| `S5Meet06` | Prova... como? | Proving it... how? | 6ª fala; quem fala: Naru (espírito da lamparina); expressão preocupada. |
 | `S5Meet07` | Lutando, claro! | By fighting, of course! | 7ª fala; quem fala: o chefe da fase; expressão irritada; GRITADA (a caixa treme). |
 
 ### Falas: Final da fase (depois da luta)
@@ -515,7 +515,7 @@ Este documento reúne **todos os textos que aparecem no jogo**, com o contexto d
 | `S5End08` | Aquela birrenta... Quer uma coisa e o mundo inteiro paga por isso. | That brat... She wants one thing and the whole world pays for it. | 8ª fala; quem fala: o chefe da fase; expressão irritada. |
 | `S5End09` | Quem? | Who? | 9ª fala; quem fala: Atli; expressão surpresa. |
 | `S5End10` | Vão encontrar ela. Não me cabe dizer. | You will find her. It is not for me to say. | 10ª fala; quem fala: o chefe da fase; expressão neutra. |
-| `S5End11` | O senhor sabe, mas não diz. | You know, but you won't tell. | 11ª fala; quem fala: Airu (espírito da lamparina); expressão preocupada. |
+| `S5End11` | O senhor sabe, mas não diz. | You know, but you won't tell. | 11ª fala; quem fala: Naru (espírito da lamparina); expressão preocupada. |
 | `S5End12` | Guardiões sabem de tudo e falam de nada. | Guardians know everything and say nothing. | 12ª fala; quem fala: o chefe da fase; expressão neutra. |
 | `S5End13` | Vou ajudar vocês a chegarem até ela. | I will help you get to her. | 13ª fala; quem fala: o chefe da fase; expressão neutra. |
 | `S5End14` | Eu guardo os dois reinos: não gosto de quem desequilibra a ordem. | I guard the two realms: I do not like those who unbalance the order. | 14ª fala; quem fala: o chefe da fase; expressão neutra. |
@@ -535,7 +535,7 @@ Este documento reúne **todos os textos que aparecem no jogo**, com o contexto d
 | `S5Easy04` | Vitória sem suor não prova valor algum. Quem passa assim, sem ter sido posto à prova de verdade, não é digno de cruzar a fronteira. | A victory without sweat proves no worth at all. Whoever passes like this, never truly tested, is not worthy of crossing the border. | 4ª fala; quem fala: o chefe da fase; expressão neutra. |
 | `S5Easy05` | Mas... a gente ganhou! | But... we won! | 5ª fala; quem fala: Atli; expressão surpresa. |
 | `S5Easy06` | Indignos! Voltem para o rio, e só me procurem quando souberem o que é lutar! | Unworthy! Go back to the river, and look for me only when you know what a fight is! | 6ª fala; quem fala: o chefe da fase; expressão irritada; GRITADA (a caixa treme). |
-| `S5Easy07` | Atli... acho que a gente não vai passar. | Atli... I don't think we're getting through. | 7ª fala; quem fala: Airu (espírito da lamparina); expressão preocupada. |
+| `S5Easy07` | Atli... acho que a gente não vai passar. | Atli... I don't think we're getting through. | 7ª fala; quem fala: Naru (espírito da lamparina); expressão preocupada. |
 
 ---
 
@@ -560,9 +560,9 @@ A Killa ainda usa os ataques da fase 3 (Thaqai); os nomes são os mesmos daquela
 | Chave | Português (PT-BR) | Inglês (EN) | Contexto |
 | --- | --- | --- | --- |
 | `S6Intro01` | É... água. Só que brilhando. | It's... water. Only it's shining. | 1ª fala; quem fala: Atli; expressão surpresa. |
-| `S6Intro02` | Fica perto de mim. Tudo aqui é estranho. | Stay close to me. Everything here is strange. | 2ª fala; quem fala: Airu (espírito da lamparina); expressão preocupada. |
+| `S6Intro02` | Fica perto de mim. Tudo aqui é estranho. | Stay close to me. Everything here is strange. | 2ª fala; quem fala: Naru (espírito da lamparina); expressão preocupada. |
 | `S6Intro03` | O rastro do barco continua! | The boat's trail goes on! | 3ª fala; quem fala: Atli; expressão feliz. |
-| `S6Intro04` | Então estamos perto. | Then we are close. | 4ª fala; quem fala: Airu (espírito da lamparina); expressão neutra. |
+| `S6Intro04` | Então estamos perto. | Then we are close. | 4ª fala; quem fala: Naru (espírito da lamparina); expressão neutra. |
 
 ### Falas: Chegada ao chefe (antes de ele aparecer)
 
@@ -571,7 +571,7 @@ A Killa ainda usa os ataques da fase 3 (Thaqai); os nomes são os mesmos daquela
 | Chave | Português (PT-BR) | Inglês (EN) | Contexto |
 | --- | --- | --- | --- |
 | `S6Arr01` | Illari! Ela está ali, deitada no chão! | Illari! She is over there, lying on the ground! | 1ª fala; quem fala: Atli; expressão surpresa. |
-| `S6Arr02` | Calma. Ela está só dormindo. Isso aqui tem cheiro de armadilha. | Easy. She is only sleeping. This smells like a trap. | 2ª fala; quem fala: Airu (espírito da lamparina); expressão preocupada. |
+| `S6Arr02` | Calma. Ela está só dormindo. Isso aqui tem cheiro de armadilha. | Easy. She is only sleeping. This smells like a trap. | 2ª fala; quem fala: Naru (espírito da lamparina); expressão preocupada. |
 | `S6Arr03` | Aquela gata! Então a dona dela é... | That cat! Then her owner is... | 3ª fala; quem fala: Atli; expressão preocupada. |
 
 ### Falas: Encontro com o chefe (antes da luta)
@@ -584,11 +584,11 @@ A Killa ainda usa os ataques da fase 3 (Thaqai); os nomes são os mesmos daquela
 | `S6Meet02` | E vocês são o barquinho que incomodou a minha gata. | And you are the little boat that bothered my cat. | 2ª fala; quem fala: o chefe da fase; expressão irritada. |
 | `S6Meet03` | Ei! Cadê a Illari? Ela estava bem aqui! | Hey! Where is Illari? She was right here! | 3ª fala; quem fala: Atli; expressão surpresa. |
 | `S6Meet04` | Mandei para um lugar sossegado. Lutar com moça dormindo no meio é deselegante. | I sent her somewhere quiet. Fighting with a girl asleep in the middle is unseemly. | 4ª fala; quem fala: o chefe da fase; expressão neutra. |
-| `S6Meet05` | Deselegante é sequestrar uma sacerdotisa. | Unseemly is kidnapping a priestess. | 5ª fala; quem fala: Airu (espírito da lamparina); expressão irritada. |
+| `S6Meet05` | Deselegante é sequestrar uma sacerdotisa. | Unseemly is kidnapping a priestess. | 5ª fala; quem fala: Naru (espírito da lamparina); expressão irritada. |
 | `S6Meet06` | Está bem. Muito bem. Melhor do que você, pelo visto. | Very well. She is fine. Better than you, it seems. | 6ª fala; quem fala: o chefe da fase; expressão irritada. |
 | `S6Meet07` | Devolve. | Give her back. | 7ª fala; quem fala: Atli; expressão neutra. |
 | `S6Meet08` | Não. A noite fica. | No. The night stays. | 8ª fala; quem fala: o chefe da fase; expressão neutra. |
-| `S6Meet09` | Ela não vai mudar de ideia. | She won't change her mind. | 9ª fala; quem fala: Airu (espírito da lamparina); expressão preocupada. |
+| `S6Meet09` | Ela não vai mudar de ideia. | She won't change her mind. | 9ª fala; quem fala: Naru (espírito da lamparina); expressão preocupada. |
 | `S6Meet10` | Nem vocês vão me fazer mudar! | Not even you will make me change! | 10ª fala; quem fala: o chefe da fase; expressão irritada; GRITADA (a caixa treme). |
 
 ### Falas: Final da fase (depois da luta)
@@ -603,7 +603,7 @@ A Killa ainda usa os ataques da fase 3 (Thaqai); os nomes são os mesmos daquela
 | `S6End04` | O dia é muito quente. Eu suo. Eu queimo. Ninguém pediu isso. | The day is too hot. I sweat. I burn. Nobody asked for that. | 4ª fala; quem fala: Atli; expressão neutra. |
 | `S6End05` | Então você entende! Que a noite fique! | Then you understand! Let the night stay! | 5ª fala; quem fala: o chefe da fase; expressão feliz. |
 | `S6End06` | Mas pensa: se o dia não existisse, ninguém teria com o que comparar a noite. | But think: if the day did not exist, there would be nothing to compare the night with. | 6ª fala; quem fala: Atli; expressão neutra. |
-| `S6End07` | Ninguém agradece o clima. | Nobody thanks the weather. | 7ª fala; quem fala: Airu (espírito da lamparina); expressão irritada. |
+| `S6End07` | Ninguém agradece o clima. | Nobody thanks the weather. | 7ª fala; quem fala: Naru (espírito da lamparina); expressão irritada. |
 | `S6End08` | Aí as pessoas deixam de gostar da noite. Ela viraria só... como as coisas são. | Then people stop liking the night. It would be just... how things are. | 8ª fala; quem fala: Atli; expressão neutra. |
 | `S6End09` | ...Ninguém agradece o clima. | ...Nobody thanks the weather. | 9ª fala; quem fala: o chefe da fase; expressão sem graça. |
 | `S6End10` | E quem escreveria poemas sobre a noite? | And who would write poems about the night? | 10ª fala; quem fala: Atli; expressão feliz. |
@@ -618,7 +618,7 @@ A Killa ainda usa os ataques da fase 3 (Thaqai); os nomes são os mesmos daquela
 | `S6End19` | Ela só não me deixava sair. Está sozinha, sabe. | She just wouldn't let me leave. She is lonely, you know. | 19ª fala; quem fala: Illari (a sacerdotisa); expressão preocupada. |
 | `S6End20` | Eu não estou sozinha. | I am not lonely. | 20ª fala; quem fala: o chefe da fase; expressão sem graça. |
 | `S6End21` | Vamos, Illari. O ritual está esperando. | Come on, Illari. The ritual is waiting. | 21ª fala; quem fala: Atli; expressão feliz. |
-| `S6End22` | E o sol não vai nascer sozinho. | And the sun won't rise by itself. | 22ª fala; quem fala: Airu (espírito da lamparina); expressão feliz. |
+| `S6End22` | E o sol não vai nascer sozinho. | And the sun won't rise by itself. | 22ª fala; quem fala: Naru (espírito da lamparina); expressão feliz. |
 
 ---
 
@@ -677,7 +677,7 @@ Cada carta tem um nome (**Título**) e uma descrição curta do que ela faz (**D
 
 | Chave | Português (PT-BR) | Inglês (EN) | Contexto |
 | --- | --- | --- | --- |
-| `Boss6Music` | ♪ O coro da lua devoradora | ♪ The choir of the devouring moon | Texto sem contexto catalogado ainda. |
+| `Boss6Music` | ♪ A lua prateada reflete sob o lago | ♪ The Silver Moon Reflects on the Lake | Texto sem contexto catalogado ainda. |
 | `MenuMusic` | ♪ Águas quietas - entrada e menu | ♪ Quiet waters - opening and menu | Texto sem contexto catalogado ainda. |
 | `SadEndingMusic` | ♪ Noite sem fim - final ruim | ♪ Endless night - bad ending | Texto sem contexto catalogado ainda. |
 | `HappyEndingMusic` | ♪ Aurora - final | ♪ Daybreak - ending | Texto sem contexto catalogado ainda. |

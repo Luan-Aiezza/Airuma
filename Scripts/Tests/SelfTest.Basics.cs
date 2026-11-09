@@ -333,12 +333,12 @@ public static partial class SelfTest
     {
         var boss = new BossEntity(IrysshBoss.Definition);
         PhaseManagerSystem.ChangePhase(boss, 1, Difficulty.Easy);
-        False(boss.EmitterMain.IsActive, "easy: no embers");
+        True(boss.EmitterMain.IsActive, "easy: embers");
+        True(boss.EmitterMain.BulletsPerVolley < 8, "easy: fewer than the design");
         PhaseManagerSystem.ChangePhase(boss, 1, Difficulty.Normal);
-        True(boss.EmitterMain.IsActive, "normal: embers");
-        True(boss.EmitterMain.BulletsPerVolley < 8, "normal: what easy would have had");
-        PhaseManagerSystem.ChangePhase(boss, 1, Difficulty.Hard);
         Eq(boss.EmitterMain.BulletsPerVolley, 8);
+        PhaseManagerSystem.ChangePhase(boss, 1, Difficulty.Hard);
+        True(boss.EmitterMain.BulletsPerVolley > 8, "hard: more");
         False(boss.EmitterSub.IsActive, "hard: no aimed embers any more");
     }
 

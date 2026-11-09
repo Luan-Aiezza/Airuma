@@ -151,7 +151,7 @@ public static partial class BulletSystem
         }
     }
 
-    public static void UpdateBossWeapons(BossEntity boss, PlayerEntity player, BulletData[] pool, float delta, Difficulty difficulty = Difficulty.Normal, Rect2? field = null, BossEntity twin = null, List<SlashData> slashes = null)
+    public static void UpdateBossWeapons(BossEntity boss, PlayerEntity player, BulletData[] pool, float delta, Difficulty difficulty = Difficulty.Easy, Rect2? field = null, BossEntity twin = null, List<SlashData> slashes = null)
     {
         // No shooting during the breather between phases.
         if (boss.MovementType == BossMovementType.Transition) return;

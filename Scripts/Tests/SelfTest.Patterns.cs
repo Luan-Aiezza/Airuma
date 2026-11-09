@@ -17,7 +17,15 @@ public static partial class SelfTest
         T("ASplittingBulletBreaksIntoARing", ASplittingBulletBreaksIntoARing);
         T("BouncingBulletsTurnBackAtTheSides", BouncingBulletsTurnBackAtTheSides);
         T("ABulletThatTurnsStopsAndThenFliesAtTheBoat", ABulletThatTurnsStopsAndThenFliesAtTheBoat);
+        T("TheSerpentStandsStillForFiveSecondsBeforeEveryLunge", TheSerpentStandsStillForFiveSecondsBeforeEveryLunge);
+        T("TheTextsOfThePauseAndDefeatBoxesFitInsideThem", TheTextsOfThePauseAndDefeatBoxesFitInsideThem);
+        T("EverySpeakerHasAFaceForTheDialogueBox", EverySpeakerHasAFaceForTheDialogueBox);
+        T("TheBulletsOfEveryStageSoundAtTheSameLevel", TheBulletsOfEveryStageSoundAtTheSameLevel);
+        T("TheGravityMoonPullsWithASound", TheGravityMoonPullsWithASound);
+        T("TheNextStageDoesNotDropTheLivesAndBombsTheLastOneGave", TheNextStageDoesNotDropTheLivesAndBombsTheLastOneGave);
+        T("TheCatBossBeginsWithSoundAtOnce", TheCatBossBeginsWithSoundAtOnce);
         T("ALaserIsWarnedOfAndThenStrikes", ALaserIsWarnedOfAndThenStrikes);
+        T("TheStagesBringTheKindsOfSpiritsOfTheirOwnFromTheTopOnly", TheStagesBringTheKindsOfSpiritsOfTheirOwnFromTheTopOnly);
         T("TheMoonComesToTheMiddleAndPullsTheBoat", TheMoonComesToTheMiddleAndPullsTheBoat);
         T("ALaserGoesTransparentSoTheBoatCanCross", ALaserGoesTransparentSoTheBoatCanCross);
         T("TheBulletsOfStageFiveKeepRoomForTheBoat", TheBulletsOfStageFiveKeepRoomForTheBoat);
@@ -203,6 +211,164 @@ public static partial class SelfTest
         True(SpecialsSystem.HitByMoon(boss.Specials, player), "touching the moon hurts");
     }
 
+    /// <summary>The rules of the stages: types 1 and 2 only up to stage 2, the red ones alone in stage 3, in pairs in stage 4, in pairs with the others in stage 5, in trios in stage 6; and nothing from below.</summary>
+    private static void TheStagesBringTheKindsOfSpiritsOfTheirOwnFromTheTopOnly()
+    {
+        int stageNumber = 0;
+        foreach (var stage in Stages.All)
+        {
+            stageNumber++;
+            foreach (var wave in stage.Waves)
+            {
+                int heavy = wave.Spawns.Count(s => s.Kind == SpiritKind.Heavy);
+                int others = wave.Spawns.Count(s => s.Kind != SpiritKind.Heavy);
+                if (stageNumber <= 2) Eq(heavy, 0, $"stage {stageNumber}: no red spirits");
+                if (stageNumber == 3) { LessEq(heavy, 1, "stage 3: red spirits alone"); if (heavy == 1) Eq(others, 0, "stage 3: and nothing with them"); }
+                if (stageNumber == 4) { True(heavy == 0 || heavy == 2, "stage 4: in pairs"); if (heavy > 0) Eq(others, 0, "stage 4: the pairs come alone"); }
+                if (stageNumber == 5) { True(heavy <= 2, "stage 5: up to a pair"); }
+                if (stageNumber == 6) { LessEq(heavy, 3, "stage 6: up to a trio"); }
+                if (stageNumber == 1) True(wave.Spawns.All(s => s.Kind != SpiritKind.Heavy), "stage 1: only types 1 and 2");
+                foreach (var spawn in wave.Spawns)
+                {
+                    // from the top, or from the top of the sides: never from the bottom, and the sides only high up
+                    Less(spawn.Position.Y, 230, $"stage {stageNumber}: spirits begin at the top");
+                    if (spawn.Position.X < 0 || spawn.Position.X > 600) Less(spawn.Position.Y, 190, $"stage {stageNumber}: and from the top of the sides");
+                }
+            }
+            if (stageNumber >= 5) True(stage.Waves.Any(w => w.Spawns.Count(s => s.Kind == SpiritKind.Heavy) == 2 && w.Spawns.Any(s => s.Kind != SpiritKind.Heavy)), "pairs with the others from stage 5");
+            if (stageNumber == 6) True(stage.Waves.Any(w => w.Spawns.Count(s => s.Kind == SpiritKind.Heavy) == 3), "trios in stage 6");
+        }
+        // each stage is a little longer than the one before
+        for (int i = 1; i < Stages.All.Count; i++) GreaterEq(Stages.All[i].Waves.Count, Stages.All[i - 1].Waves.Count, "stage " + (i + 1) + " is not shorter");
+        // a spirit does not shoot from the lower half of the field
+        var pool = BulletSystem.NewPool();
+        var low = new EnemyEntity(1, SpiritKind.Gunner, V(300, 500), EnemyPath.Straight(V(0, 0)), 0, SpiritFire.HailFan) { Age = 5 };
+        EnemySystem.Fire(low, V(300, 700), pool, World.PlayArea, 5f);
+        Eq(ActiveCount(pool), 0, "no shots from the lower half");
+    }
+
+    private static void TheSerpentStandsStillForFiveSecondsBeforeEveryLunge()
+    {
+        var bounds = World.PlayArea;
+        var boss = BossEntity.Create(Stages.One.Boss);
+        PhaseManagerSystem.ChangePhase(boss, 1);          // the last attack: the lunges
+        boss.MovementType = BossMovementType.Dash;
+        boss.Transform.Position = V(300, -50);
+        boss.Dash.Timer = 0;
+        float still = 0, longest = 0; Vector2 last = boss.Transform.Position;
+        for (int i = 0; i < 60 * 40; i++)
+        {
+            MovementSystem.MoveBoss(boss, bounds, 1f / 60);
+            if ((boss.Transform.Position - last).Length() < 0.01f) still += 1f / 60; else { if (still > 0.5f) longest = MathF.Max(longest, still); still = 0; }
+            last = boss.Transform.Position;
+        }
+        GreaterEq(longest, 5f, "it stands still at least five seconds before it lunges again");
+    }
+
+    /// <summary>The boxes of the pause and the defeat are 120 art pixels wide (480 on the screen); their plaques, 46 and 48 (184 and 192); the texts must fit, with a margin, in every language.</summary>
+    private static void TheTextsOfThePauseAndDefeatBoxesFitInsideThem()
+    {
+        const float boxInner = 480 - 32, plaqueInner = 184 - 16;
+        foreach (var language in Loc.Available)
+        {
+            var t = Loc.TableOf(language);
+            float W(string text, float scale) => PixelFont.Columns(text) * scale;
+            foreach (var key in new[] { "Victory", "Defeat", "Paused" }) LessEq(W(t[key], 5), boxInner, $"{language}: {key} fits the box");
+            LessEq(W(t["PauseHint"], 3), boxInner, $"{language}: the pause hint fits");
+            LessEq(W(t["RestartsLeft"] + " 3", 3), boxInner, $"{language}: the restarts left fit the box");
+            LessEq(W(t["Score"] + " 0000000", 3), boxInner, $"{language}: the score fits");
+            LessEq(W(t["NewRecord"], 3), boxInner, $"{language}: the record fits");
+            foreach (var key in new[] { "Restart", "Menu", "Continue", "GiveUp" }) LessEq(W(t[key], 3), plaqueInner, $"{language}: {key} fits its plaque");
+        }
+    }
+
+    /// <summary>Every one who speaks has a face of 32 x 32 pixels in six expressions that differ (the lantern spirit, a flame of 64 x 64 that flickers), and the bosses of the six stages each have their own; the square for the box is 34 x 34 (68 x 68 for the flame).</summary>
+    private static void EverySpeakerHasAFaceForTheDialogueBox()
+    {
+        // for now only the flame has a face; the others show the empty frame
+        foreach (var emotion in Enum.GetValues<Emotion>())
+        {
+            var art = PortraitArt.Face(DialogueSpeaker.Airu, 1, emotion);
+            Eq(art.Width, 64); Eq(art.Height, 64);
+            Eq(PortraitArt.Square(DialogueSpeaker.Airu, 1, emotion, 0).Width, 68);
+        }
+        True(!PortraitArt.Face(DialogueSpeaker.Airu, 1, Emotion.Neutral, 0).Pixels.Select(px => px.R).SequenceEqual(PortraitArt.Face(DialogueSpeaker.Airu, 1, Emotion.Neutral, 1).Pixels.Select(px => px.R)), "the flame flickers");
+        foreach (var speaker in new[] { DialogueSpeaker.Atli, DialogueSpeaker.Boss, DialogueSpeaker.Illari })
+            Eq(PortraitArt.Square(speaker, 1, Emotion.Neutral, 0).Width, 34, $"{speaker}: the empty frame");
+    }
+
+    /// <summary>Every style of bullet of the bosses has a sound whose peak, with the volume of the game, is within a few dB of the others' (no stage is quieter than the first).</summary>
+    private static void TheBulletsOfEveryStageSoundAtTheSameLevel()
+    {
+        float Peak(SfxBank.Sound sound)
+        {
+            var data = SfxBank.Make(sound); float peak = 0;
+            foreach (var v in data) peak = MathF.Max(peak, MathF.Abs(v));
+            return 20 * MathF.Log10(peak + 1e-9f) + SfxBank.Settings(sound).db;
+        }
+        foreach (var style in Enum.GetValues<BulletStyle>())
+        {
+            if (style == BulletStyle.LightBolt) continue;                      // the boat's own shot
+            float peak = Peak(SfxBank.ForBullet(style));
+            GreaterEq(peak, -20f, $"{style} is not too quiet ({peak:0.0} dB)");
+            LessEq(peak, -4f, $"{style} is not too loud ({peak:0.0} dB)");
+        }
+        // the sounds of the small bullets (the most frequent) are within 4 dB of each other
+        var small = new[] { SfxBank.Sound.OrbGreen, SfxBank.Sound.OrbRed, SfxBank.Sound.RiceRed, SfxBank.Sound.Spark, SfxBank.Sound.VenomOrb, SfxBank.Sound.Ember, SfxBank.Sound.FireSerpent, SfxBank.Sound.Rock, SfxBank.Sound.FlameDart };
+        LessEq(small.Max(Peak) - small.Min(Peak), 8f, "the small bullets are at about the same level");
+    }
+
+    /// <summary>The moon of gravity makes a sound when it begins to pull (an event for the scene to play), once per pull.</summary>
+    private static void TheGravityMoonPullsWithASound()
+    {
+        var phase = Attacks.KillaConstellations();
+        var boss = BossEntity.Create(Stages.Six.Boss);
+        boss.Transform.Position = V(300, 150);
+        boss.Specials = SpecialsSystem.Begin(phase, Difficulty.Normal);
+        var player = PlayerEntity.Create(); player.Transform.Position = V(100, 650);
+        var slashes = new List<SlashData>(); var events = new List<WorldEvent>(); var rng = new SeededGenerator(1);
+        int pulls = 0; float pullFirstAt = -1;
+        for (int i = 0; i < 60 * 20; i++)
+        {
+            events.Clear();
+            SpecialsSystem.Update(boss, player, slashes, 1f / 60, events, rng);
+            foreach (var e in events) if (e.Kind == WorldEventKind.GravityPulled) { pulls++; if (pullFirstAt < 0) pullFirstAt = i / 60f; }
+        }
+        GreaterEq(pulls, 2, "it pulls again and again");
+        LessEq(pulls, 4, "once per pull, not on every frame");
+        Greater(pullFirstAt, 5f, "after the moon has come to the middle");
+        True(SfxBank.Make(SfxBank.Sound.Gravity).Length > SfxBank.Rate * 2, "the sound lasts as long as the pull begins");
+    }
+
+    /// <summary>The prizes of the score (spare lanterns and boats) already given in a stage are not given again when the next stage begins with that score.</summary>
+    private static void TheNextStageDoesNotDropTheLivesAndBombsTheLastOneGave()
+    {
+        var carry = new RunCarry { Score = 500_000, Lives = 3, Bombs = 2 };
+        var world = new World(withCards: false, stage: Stages.Two, carry: carry);
+        world.Step(1f / 60, new PlayerInputComponent());
+        foreach (var kind in new[] { LightKind.Bomb, LightKind.Life })
+            Eq(world.Lights.Count(l => l.IsActive && l.Kind == kind), 0, $"no spare {kind} at the start of the stage");
+        // and the next prize beyond that score is still to come
+        var board = new ScoreBoard { Points = 0 };
+        var lights = LightSystem.NewPool();
+        ScoreSystem.Add(ref board, 1, 1f, lights);
+        Eq(lights.Count(l => l.IsActive), 0);
+    }
+
+    /// <summary>The theme of the third boss no longer begins with seconds of silence: there is sound in the first second.</summary>
+    private static void TheCatBossBeginsWithSoundAtOnce()
+    {
+        var (left, _) = Songs.CatInTheStorm();
+        int second = SfxBank.Rate > 0 ? Synth.Rate : 44100;
+        for (int sec = 0; sec < 4; sec++)
+        {
+            double e = 0; for (int k = 0; k < second / 2; k++) { var v = left[sec * second + k]; e += v * (double)v; }
+            double rms = Math.Sqrt(e / (second / 2));
+            double sum = 0; foreach (var v in left) sum += v * (double)v; double all = Math.Sqrt(sum / left.Length);
+            Greater((float)(rms / all), 0.15f, $"second {sec} of the cat's song has sound");
+        }
+    }
+
     private static void ALaserGoesTransparentSoTheBoatCanCross()
     {
         var laser = new SlashData { Top = V(300, 0), Angle = 0, Telegraph = 1, Strike = 5, Width = 30, Len = 2000, Beam = true, Blink = 2 };
@@ -258,11 +424,11 @@ public static partial class SelfTest
         int Count(Difficulty d) { var p = BulletSystem.NewPool(); Pat.Ring(Ctx(p, null, d), V(300, 200), 20, 0, new Shot(BulletStyle.OrbRed, 100)); return p.Count(b => b.IsActive); }
         Less(Count(Difficulty.Easy), Count(Difficulty.Normal));
         Less(Count(Difficulty.Normal), Count(Difficulty.Hard));
-        // the patterns of the hard mode alone, and the ones the easy mode does without
+        // the patterns that the easy mode does without
         var hardOnly = new PatternSpec { Fire = _ => { } }.OnlyOnHard();
         var notEasy = new PatternSpec { Fire = _ => { } }.NotOnEasy();
-        True(hardOnly.Applies(Difficulty.Hard) && !hardOnly.Applies(Difficulty.Normal) && !hardOnly.Applies(Difficulty.Easy));
-        True(notEasy.Applies(Difficulty.Normal) && notEasy.Applies(Difficulty.Hard) && !notEasy.Applies(Difficulty.Easy));
+        True(hardOnly.Applies(Difficulty.Hard) && hardOnly.Applies(Difficulty.Normal) && !hardOnly.Applies(Difficulty.Easy));
+        True(notEasy.Applies(Difficulty.Normal) && notEasy.Applies(Difficulty.Hard) && notEasy.Applies(Difficulty.Easy), "(the easy mode is the old normal now)");
     }
 
     private static void APatternWaitsForItsDelayAndRestsBetweenBursts()
