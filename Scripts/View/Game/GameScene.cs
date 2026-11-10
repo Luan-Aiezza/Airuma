@@ -138,6 +138,7 @@ public partial class GameScene : Node2D
         _dialogue.BossStage = System.Linq.Enumerable.ToList(Stages.All).IndexOf(Stage) + 1;
         AddChild(_picker);
         AddChild(_dialogue);
+        _dialogue.LineShown += OnDialogueLine;
         AddChild(_title);
         AddChild(_pause);
         _pause.Continue += Resume;

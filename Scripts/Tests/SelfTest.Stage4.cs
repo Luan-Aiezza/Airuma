@@ -231,8 +231,8 @@ public static partial class SelfTest
                 }
         }
         Loc.Choose(Language.PortugueseBrazil);
-        Eq(Dialogues.StageFourIntro.Count, 5);
-        Eq(Dialogues.StageFourMeeting.Count, 5);
+        Eq(Dialogues.StageFourIntro.Count, 4);
+        Eq(Dialogues.StageFourMeeting.Count, 7);
         True(Dialogues.StageFourEnding.Any(l => l.Speaker == DialogueSpeaker.Boss) && Dialogues.StageFourEnding.Any(l => l.Speaker == DialogueSpeaker.Atli), "the ending");
     }
 }

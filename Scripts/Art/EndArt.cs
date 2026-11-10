@@ -4,8 +4,8 @@ using Godot;
 using P = PixelColor;
 
 /// <summary>
-/// The picture of the end of the story: a sunrise, all in gold and in shadow. The sun rises over the Andes, the river holds its light; on the bank, at the right and far off, two small silhouettes sit side by side
-/// and watch it, a boy who holds up his lantern and the priestess with her long hair; at the left, against the bank, the shadow of his boat with its sail, moored. The top of the sky is in shadow, for the writing; the foot is in shadow too, and there goes the word FIM. The
+/// The picture of the end of the story: a sunrise, all in gold and in shadow. The sun rises over the Andes, the river holds its light; on the bank, at the right and far off, a small silhouette sits
+/// and watches it, a boy who holds up his lantern; at the left, against the bank, the shadow of his boat with its sail, moored. The top of the sky is in shadow, for the writing; the foot is in shadow too, and there goes the word FIM. The
 /// picture is 222 x 155 art pixels (shown at 5 points each).
 /// </summary>
 public static class EndArt
@@ -187,7 +187,7 @@ public static class EndArt
 
     private const int SittersBank = 182;                  // where on the right bank the two sit (the column of the boy's seat)
 
-    /// <summary>The boy and the priestess, small and far, sitting side by side on the right bank, watching the sun: the boy a little hunched, holding up a lantern; she with her long hair down her back.</summary>
+    /// <summary>The boy, small and far, sitting on the right bank, watching the sun, a little hunched, holding up a lantern.</summary>
     private static void DrawSitters(PixelCanvas sil)
     {
         int b = BankTop(SittersBank) + 1;
@@ -198,12 +198,6 @@ public static class EndArt
         Poly(sil, Shadow, (ax - 4, b - 3), (ax - 13, b - 3), (ax - 13, b), (ax - 4, b));
         Line(sil, ax - 2, b - 9, ax - 10, b - 13, Shadow); Line(sil, ax - 3, b - 9, ax - 10, b - 12, Shadow);
         Line(sil, ax - 10, b - 13, ax - 12, b - 17, Shadow); Line(sil, ax - 11, b - 13, ax - 13, b - 17, Shadow);
-        // she, close to him: the head a little towards his shoulder, the long hair
-        int bx = SittersBank + 4;
-        Poly(sil, Shadow, (bx - 3, b - 12), (bx + 4, b - 12), (bx + 7, b), (bx - 4, b));
-        PixelPaint.Ellipse(sil, bx - 0.5f, b - 15.5f, 3.2f, 3.5f, Shadow);
-        Poly(sil, Shadow, (bx, b - 19), (bx + 5, b - 17), (bx + 9, b - 3), (bx + 3, b - 4));
-        Poly(sil, Shadow, (bx - 4, b - 3), (bx - 11, b - 2), (bx - 11, b), (bx - 4, b));
     }
 
     /// <summary>The lantern: a small flame of gold in his raised hand, with a halo.</summary>

@@ -1,5 +1,5 @@
 /// <summary>
-/// The boss of stage 6, a PROTOTYPE to fit the flow of the stage into: Mama Killa, the Moon, who took Illari so that the night would never end. Ten attacks (6 calm and 4 enraged): the phases of the moon,
+/// The boss of stage 6, a PROTOTYPE to fit the flow of the stage into: Mama Killa, the Moon, who took Ariah so that the night would never end. Ten attacks (6 calm and 4 enraged): the phases of the moon,
 /// from the new moon to the eternal night (see Attacks.Cosmos.cs).
 /// </summary>
 public static class KillaBoss

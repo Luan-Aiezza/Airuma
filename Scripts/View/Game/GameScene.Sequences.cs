@@ -88,7 +88,7 @@ public partial class GameScene : Node2D
                 float u = Mathf.Clamp(_sequenceClock / DescendTime, 0, 1);
                 float ease = 1 - (1 - u) * (1 - u) * (1 - u);
                 if (!River.HasPlatform) World.PlaceBoss(new Vector2(300, Mathf.Lerp(-170, World.Definition.Boss.StandY, ease)));
-                if (_sequenceClock >= DescendTime + 0.5f) { _bossSequence = BossSequence.TalkTwo; StartTalk(Stage.BossEncounter); SendPriestessAway(); }
+                if (_sequenceClock >= DescendTime + 0.5f) { _bossSequence = BossSequence.TalkTwo; StartTalk(Stage.BossEncounter); }
                 return true;
             }
             case BossSequence.TalkTwo:
@@ -112,7 +112,6 @@ public partial class GameScene : Node2D
                 if (_sequenceClock >= EndingDelay) { _endSequence = EndSequence.Talking; StartTalk(EasyEnds ? () => Dialogues.StageFiveEasyEnding : Stage.Ending); }
                 return true;
             case EndSequence.Talking:
-                UpdatePriestessEnding();
                 if (!_dialogue.IsOnScreen) _endSequence = EndSequence.Done;
                 return true;
         }
@@ -143,7 +142,6 @@ public partial class GameScene : Node2D
         World.PlaceBoss(new Vector2(300, -170));
         River.BeginOpenWater(3.2f);
         MusicPlayer.Instance?.Stop(1.2f);
-        ShowPriestess();
     }
 
     /// <summary>Boss practice: the river opens and the boss comes down at once, with her title and music.</summary>

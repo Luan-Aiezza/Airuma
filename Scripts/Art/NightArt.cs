@@ -51,7 +51,7 @@ public static class NightArt
         }
     }
 
-    /// <summary>`fishing`: the picture of the bad ending: the boy fishes with a rod, a bear sits beside him in the boat, and the lantern hangs from the mast.</summary>
+    /// <summary>`fishing`: the picture of the bad ending: the boy fishes alone with a rod, and the lantern hangs from the mast.</summary>
     public static PixelCanvas MakeScene(bool fishing = false)
     {
         var c = new PixelCanvas(Width, Height);
@@ -178,13 +178,9 @@ public static class NightArt
         if (!fishing) { Line(sil, bx - 6, by - 16, bx - 10, by - 12, k); Line(sil, bx - 5, by - 16, bx - 9, by - 12, k); }                // the arms to the lantern
         if (fishing)
         {
-            // the arms hold a long rod out over the water, to the left; and a bear sits at the stern, hunched, with its round ears and its heavy shoulders
+            // the arms hold a long rod out over the water, to the left; 
             Line(sil, bx - 6, by - 16, bx - 9, by - 14, k); Line(sil, bx - 5, by - 15, bx - 8, by - 14, k);
             Line(sil, bx - 9, by - 15, bx - 36, by - 36, k);
-            Blob(sil, bx - 15, by - 6, 5.2f, 5.6f, k);                  // the body
-            Blob(sil, bx - 15, by - 14, 3.3f, 3.1f, k);                 // the head
-            Blob(sil, bx - 18, by - 17, 1.5f, 1.5f, k); Blob(sil, bx - 12, by - 17, 1.5f, 1.5f, k);   // the ears
-            Blob(sil, bx - 15, by - 12, 1.8f, 1.4f, k);                 // the snout
         }
     }
 

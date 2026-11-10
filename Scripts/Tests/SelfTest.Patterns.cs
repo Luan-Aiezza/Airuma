@@ -38,6 +38,7 @@ public static partial class SelfTest
         T("TheWallsOfAMazeAreNotMovedByTheWind", TheWallsOfAMazeAreNotMovedByTheWind);
         T("APentagramFliesAsOneAndBursts", APentagramFliesAsOneAndBursts);
         T("EveryNewStyleOfBulletHasADrawing", EveryNewStyleOfBulletHasADrawing);
+        T("EveryTalkHasItsTextsAndFitsTheBoxInBothLanguages", EveryTalkHasItsTextsAndFitsTheBoxInBothLanguages);
     }
 
     /// <summary>Patterns at once, per attack, at the least, for stages 2 to 6.</summary>
@@ -293,8 +294,26 @@ public static partial class SelfTest
             Eq(PortraitArt.Square(DialogueSpeaker.Airu, 1, emotion, 0).Width, 68);
         }
         True(!PortraitArt.Face(DialogueSpeaker.Airu, 1, Emotion.Neutral, 0).Pixels.Select(px => px.R).SequenceEqual(PortraitArt.Face(DialogueSpeaker.Airu, 1, Emotion.Neutral, 1).Pixels.Select(px => px.R)), "the flame flickers");
-        foreach (var speaker in new[] { DialogueSpeaker.Atli, DialogueSpeaker.Boss, DialogueSpeaker.Illari })
+        foreach (var speaker in new[] { DialogueSpeaker.Atli, DialogueSpeaker.Boss, DialogueSpeaker.Narrator })
             Eq(PortraitArt.Square(speaker, 1, Emotion.Neutral, 0).Width, 34, $"{speaker}: the empty frame");
+    }
+
+    private static void EveryTalkHasItsTextsAndFitsTheBoxInBothLanguages()
+    {
+        var talks = typeof(Dialogues).GetProperties().Where(p => typeof(IReadOnlyList<DialogueLine>).IsAssignableFrom(p.PropertyType)).Select(p => (p.Name, (IReadOnlyList<DialogueLine>)p.GetValue(null))).ToList();
+        Eq(talks.Count, 21, "all the talks");
+        foreach (var lang in new[] { Language.English, Language.PortugueseBrazil })
+        {
+            Loc.Set(lang);
+            foreach (var (name, talk) in talks)
+                foreach (var line in talk)
+                {
+                    True(Loc.TableOf(lang).ContainsKey(line.Key), $"[{lang}] {name}: {line.Key} has its text");
+                    True(GameHud.Wrap(line.Text, 28, 99).Count <= 5, $"[{lang}] fits: {line.Text}");
+                    True(!line.Text.Contains('\\') && !line.Text.Contains("  "), $"[{lang}] clean: {line.Text}");
+                }
+        }
+        Loc.Set(Language.PortugueseBrazil);
     }
 
     /// <summary>Every style of bullet of the bosses has a sound whose peak, with the volume of the game, is within a few dB of the others' (no stage is quieter than the first).</summary>

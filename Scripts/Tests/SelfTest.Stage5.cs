@@ -217,8 +217,8 @@ public static partial class SelfTest
                 }
         }
         Loc.Choose(Language.PortugueseBrazil);
-        Eq(Dialogues.StageFiveIntro.Count, 5);
-        Eq(Dialogues.StageFiveMeeting.Count, 7);
+        Eq(Dialogues.StageFiveIntro.Count, 7);
+        Eq(Dialogues.StageFiveMeeting.Count, 9);
         True(Dialogues.StageFiveMeeting.Any(l => l.Speaker == DialogueSpeaker.LeftSerpent) && Dialogues.StageFiveMeeting.Any(l => l.Speaker == DialogueSpeaker.RightSerpent), "the serpents speak");
         True(Dialogues.StageFiveIntro.Any(l => l.Speaker == DialogueSpeaker.Ukhumo), "Ukhumo says goodbye");
         True(Dialogues.StageFiveEnding.All(l => l.Speaker != DialogueSpeaker.Ukhumo), "and is gone");

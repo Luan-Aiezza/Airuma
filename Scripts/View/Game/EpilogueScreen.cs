@@ -4,7 +4,7 @@ using System.Linq;
 using Godot;
 
 /// <summary>
-/// The end of the story, in one picture with its writing (<see cref="EndArt"/>): a sunrise all in gold and shadow, the boy and the priestess far off on the right bank, small, watching it, the shadow of his boat
+/// The end of the story, in one picture with its writing (<see cref="EndArt"/>): a sunrise all in gold and shadow, the boy far off on the right bank, small, watching it, the shadow of his boat
 /// moored at the left; and, written in the dark of the sky at the top, the whole story at once, no box; and at the foot, in the middle, FIM. It fades in from black, shows for <see cref="Seconds"/> seconds and fades out by itself; any key, click or touch closes it
 /// at once. Then <see cref="Finished"/> is raised.
 /// </summary>

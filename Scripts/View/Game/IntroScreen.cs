@@ -27,7 +27,7 @@ public partial class IntroScreen : Node2D
     private float _clock, _cover01 = 1, _coverTarget;
     private bool _leaving;
 
-    /// <summary>`bad`: the picture of the bad ending (the boy and the bear fishing in the night, <see cref="NightArt.MakeScene"/> with `fishing`), with a longer writing, in lines across the foot of the picture.</summary>
+    /// <summary>`bad`: the picture of the bad ending (the boy fishing alone in the night, <see cref="NightArt.MakeScene"/> with `fishing`), with a longer writing, in lines across the foot of the picture.</summary>
     public IntroScreen(IEnumerable<string> pageKeys, bool bad = false)
     {
         _pageKeys = pageKeys.ToArray();

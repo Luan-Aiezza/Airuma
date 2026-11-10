@@ -49,14 +49,14 @@ public static class Stages
 
     /// <summary>
     /// The river of stars, in the realm of the spirits, the domain of Mama Killa: the last stage, and the one with every kind of spirit (the red ones in up to three). It opens from the
-    /// dark after the light that ends stage 5; the priestess sleeps on the ground in the middle of the river until the goddess sends her away, and is brought back after the fight; and the
-    /// end of the story is told after it. Its art is still borrowed from the other stages.
+    /// dark after the light that ends stage 5, and the
+    /// end of the story is told after the fight. Its art is still borrowed from the other stages.
     /// </summary>
     public static readonly StageDefinition Six = new StageDefinition(
         nameof(UIText.Stage6Title), nameof(UIText.Stage6Music), MusicPlayer.Theme.CosmicStage, Stage6Waves.Waves, KillaBoss.Definition)
     {
         Scenery = Scenery.Cosmos, Hud = HudTheme.Cosmos, Spirits = SpiritStyle.Celestial,
-        OpensFromDark = true, Priestess = true,
+        OpensFromDark = true,
         Intro = () => Dialogues.StageSixIntro, BossArrival = () => Dialogues.StageSixArrival,
         BossEncounter = () => Dialogues.StageSixMeeting, Ending = () => Dialogues.StageSixEnding,
         Epilogue = () => Dialogues.StageSixEpilogue,

@@ -72,6 +72,48 @@ public sealed class Synth
     }
 
     /// <summary>
+    /// A violin (a section of two, a few cents apart): a bowed string, bright and full of harmonics that die slowly, the bow's noise at the start, a slow attack and a vibrato that comes in late and widens.
+    /// `vibrato` (0...2) is how much of it there is.
+    /// </summary>
+    public void Violin(double start, double dur, double midi, double amp, double pan = 0, double vibrato = 1.0)
+    {
+        double f = Hz(midi), p1 = 0, p2 = 0, lp = 0;
+        int nh = (int)Math.Min(16, Rate / 2.3 / f);
+        var weight = new double[nh + 1];
+        for (int h = 1; h <= nh; h++)
+        {
+            double hz = f * h;
+            weight[h] = Math.Pow(h, -1.05) * Math.Exp(-(h - 1) / 12.0) * (1 + 0.8 * Math.Exp(-Math.Pow((hz - 2800) / 1100, 2)));
+        }
+        Voice(start, dur, t =>
+        {
+            double depth = 0.0075 * vibrato * Math.Min(1, Math.Max(0, (t - 0.2) / 0.5));
+            double vib = 1 + depth * Math.Sin(2 * Math.PI * 5.6 * t);
+            p1 += 2 * Math.PI * f * 0.9988 * vib / Rate; p2 += 2 * Math.PI * f * 1.0012 * vib / Rate;
+            double s = 0;
+            for (int h = 1; h <= nh; h++) s += weight[h] * (Math.Sin(h * p1) + Math.Sin(h * p2));
+            lp += (White() - lp) * 0.35;
+            return s * 0.22 + lp * 0.025 * Math.Exp(-t * 8) ;
+        }, amp, pan, attack: 0.085, release: 0.16, sustain: 0.95, decay: 0.4);
+    }
+
+    /// <summary>A horn (or a trombone, by the pitch): a round, warm brass that swells in slowly and opens up as it is held; few harmonics at first, then more; a very slight vibrato.</summary>
+    public void Horn(double start, double dur, double midi, double amp, double pan = 0)
+    {
+        double f = Hz(midi), phase = 0;
+        int nh = (int)Math.Min(14, Rate / 2.3 / f);
+        Voice(start, dur, t =>
+        {
+            double vib = 1 + 0.003 * Math.Sin(2 * Math.PI * 5.0 * t) * Math.Min(1, Math.Max(0, (t - 0.3) / 0.4));
+            phase += 2 * Math.PI * f * vib / Rate;
+            double open = 2.2 + 3.5 * Math.Min(1, t / 0.5);
+            double s = 0;
+            for (int h = 1; h <= nh; h++) s += Math.Pow(h, -1.1) * Math.Exp(-(h - 1) / open) * Math.Sin(h * phase);
+            return s * 0.5 + White() * 0.006 * Math.Min(1, t / 0.1);
+        }, amp, pan, attack: 0.12, release: 0.2, sustain: 0.95, decay: 0.5);
+    }
+
+    /// <summary>
     /// A saxophone (alto or tenor, by the pitch): a reedy, singing tone, rich in harmonics with a bump in the spectrum round 1.5 kHz where a sax is loudest, a breath of noise, a late vibrato, and
     /// (with `growl`) the rough, buzzing edge of a hard-blown note.
     /// </summary>

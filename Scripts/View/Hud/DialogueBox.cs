@@ -14,6 +14,8 @@ using System.Linq;
 public partial class DialogueBox : Node2D
 {
     public event Action Finished;
+    /// <summary>A line has just appeared (the game times its effects by the lines: a tremor, a flash).</summary>
+    public event Action<DialogueLine> LineShown;
 
     private const float Art = HudArt.Scale;
     private const int LineWidth = 28;       // letters per line (the square of the face takes the left end of the box)
@@ -108,7 +110,7 @@ public partial class DialogueBox : Node2D
         DialogueSpeaker.Ukhumo => UIText.UkhumoName,
         DialogueSpeaker.LeftSerpent => UIText.SerpentLeftName,
         DialogueSpeaker.RightSerpent => UIText.SerpentRightName,
-        DialogueSpeaker.Illari => UIText.IllariName,
+        DialogueSpeaker.Narrator => "",
         _ => BossName,
     };
 
@@ -128,11 +130,13 @@ public partial class DialogueBox : Node2D
     private void Show(int index)
     {
         var line = _script[index];
+        LineShown?.Invoke(line);
         string name = NameOf(line.Speaker);
         _name.SetText(name);
         float plaqueW = 34 * Art;
         // Atli's name at the left, Airu's at the right, the boss's in the middle.
         float px = line.Speaker == DialogueSpeaker.Atli ? BoxX + 28 : (line.Speaker == DialogueSpeaker.Airu ? BoxX + BoxW - 28 - plaqueW : BoxX + (BoxW - plaqueW) / 2);
+        _plaque.Visible = line.Speaker != DialogueSpeaker.Narrator;           // a sound or a happening has no name
         _plaque.Position = new Vector2(px, BoxY - 24);
         _name.Position = new Vector2(px + plaqueW / 2, BoxY - 24 + 8);
 

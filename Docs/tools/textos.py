@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Textos do jogo <-> Docs/Textos.md
+Textos do jogo <-> Docs/Dialogos.md (falas entre personagens) e Docs/Textos.md (todo o resto), só em português
 
-  python3 Docs/tools/textos.py export   # lê as tabelas do jogo e escreve Docs/Textos.md
-  python3 Docs/tools/textos.py import   # lê Docs/Textos.md e grava de volta nas tabelas do jogo (só o que mudou)
+  python3 Docs/tools/textos.py export   # lê as tabelas do jogo e escreve os dois documentos (não sobrescreve edições ainda não importadas; use --force para forçar)
+  python3 Docs/tools/textos.py import   # lê os dois documentos e grava de volta na tabela em português do jogo (só o que mudou)
 
 As tabelas ficam em Scripts/Content/Text/Texts.PtBr.cs e Texts.En.cs. A chave (primeira coluna) nunca muda; só as colunas PT-BR e EN são lidas na importação.
 """
@@ -33,7 +33,7 @@ def encode(text):
 # ---------------------------------------------------------------- dialogue metadata (who says what, in which talk)
 
 SPEAKERS = {'Atli': 'Atli', 'Airu': 'Naru (espírito da lamparina)', 'Boss': 'o chefe da fase', 'Ukhumo': 'Ukhumo', 'LeftSerpent': 'Serpente esquerda',
-            'RightSerpent': 'Serpente direita', 'Illari': 'Illari (a sacerdotisa)'}
+            'RightSerpent': 'Serpente direita', 'Narrator': 'ninguém (som ou acontecimento)'}
 EMOTIONS = {'Neutral': 'neutra', 'Annoyed': 'irritada', 'Sheepish': 'sem graça', 'Surprised': 'surpresa', 'Happy': 'feliz', 'Worried': 'preocupada'}
 
 
@@ -98,17 +98,16 @@ INTERFACE = [
         ('SayFullPower', 'Fala quando o poder chega ao máximo.'), ('SayBombRefill', 'Fala quando uma bomba reserva é pega.'), ('SayLifeRefill', 'Fala quando uma vida reserva é pega.'),
         ('SayCard', 'Fala quando o jogador escolhe uma carta.'), ('SayWard', 'Fala quando o escudo de uma carta segura um golpe.')]),
     ('História contada fora das falas (abertura e fim)', [
-        ('IntroHint', 'Dica no canto de baixo à direita, na abertura do jogo e na cena do fim da história (cada uma fecha sozinha em 10 segundos, ou com qualquer tecla).'), ('IntroPage1', 'Abertura do jogo: parágrafo 1 da história, escrito na escuridão, embaixo à esquerda, sobre a cena da noite sem fim (os quatro aparecem juntos).'), ('IntroPage2', 'Abertura do jogo: parágrafo 2 da história, escrito na escuridão, embaixo à esquerda, sobre a cena da noite sem fim (os quatro aparecem juntos).'), ('IntroPage3', 'Abertura do jogo: parágrafo 3 da história, escrito na escuridão, embaixo à esquerda, sobre a cena da noite sem fim (os quatro aparecem juntos).'),
-        ('IntroPage4', 'Abertura do jogo: parágrafo 4 da história, escrito na escuridão, embaixo à esquerda, sobre a cena da noite sem fim (os quatro aparecem juntos).'), 
-        ('S6Epi01', 'Fim do jogo: parágrafo 1 da história final, escrito embaixo da cena do nascer do sol (os quatro aparecem juntos).'), ('S6Epi02', 'Fim do jogo: parágrafo 2 da história final, escrito embaixo da cena do nascer do sol (os quatro aparecem juntos).'), ('S6Epi03', 'Fim do jogo: parágrafo 3 da história final, escrito embaixo da cena do nascer do sol (os quatro aparecem juntos).'), ('S6Epi04', 'Fim do jogo: parágrafo 4 da história final, escrito embaixo da cena do nascer do sol (os quatro aparecem juntos).'),
-        ('TheEnd', 'Fim do jogo: escrito bem grande embaixo, no centro, na cena do nascer do sol que fecha a história.')]),
+        ('IntroHint', 'Dica no canto de baixo à direita, na abertura do jogo e na cena do fim da história (cada uma fecha sozinha em 10 segundos, ou com qualquer tecla).'), ('IntroPage1', 'Abertura do jogo: parágrafo 1 da história, escrito na escuridão, embaixo à esquerda, sobre a cena da noite sem fim (todos os parágrafos aparecem juntos).'), ('IntroPage2', 'Abertura do jogo: parágrafo 2 da história, escrito na escuridão, embaixo à esquerda, sobre a cena da noite sem fim (todos os parágrafos aparecem juntos).'), ('S6Epi01', 'Fim do jogo: parágrafo 1 da história final, escrito embaixo da cena do nascer do sol (todos os parágrafos aparecem juntos).'), ('S6Epi02', 'Fim do jogo: parágrafo 2 da história final, escrito embaixo da cena do nascer do sol (todos os parágrafos aparecem juntos).'), ('S6Epi03', 'Fim do jogo: parágrafo 3 da história final, escrito embaixo da cena do nascer do sol (todos os parágrafos aparecem juntos).'), ('TheEnd', 'Fim do jogo: escrito bem grande embaixo, no centro, na cena do nascer do sol que fecha a história.')]),
     ('Música', [
         ('StageMusic', 'Nome da música da fase 1, mostrado no título da fase.'), ('Stage2Music', 'Nome da música da fase 2, mostrado no título da fase: um quadro animado, com trompetes, saxofones e bateria.'), ('Stage3Music', 'Nome da música da fase 3, mostrado no título da fase: sombria, com trompetes e pianos.'), ('Boss3Music', 'Nome da música do chefe da fase 3 (Thaqai), em toda a luta: mais forte, com piano grave e trompetes.'), ('Stage4Music', 'Nome da música da fase 4, mostrado no título da fase: calma, com tambores lentos e trompetes.'), ('Boss4Music', 'Nome da música do chefe da fase 4 (Ukhumo), em toda a luta: violenta, animalesca, com tambores e trompetes.'), ('Stage5Music', 'Nome da música da fase 5, mostrado no título da fase: épica, com flautas, trompetes e saxofones (era a música do chefe).'), ('Boss5Music', 'Nome da música do chefe da fase 5 (Kuychu), em toda a luta: um hino divino, com trompetes e coros, que lembra a música católica.'), ('Stage6Music', 'Nome da música da fase 6, mostrado no título da fase: divina e cósmica, com órgão, piano, coros, canto gregoriano e trompetes.'), ('Boss2Music', 'Nome da música do chefe da fase 2 (Baylo), em toda a luta: intensa, com trompetes, saxofones e bateria.'), ('BossMusic', 'Nome da música do chefe da fase 1 (Iryssh), em toda a luta.')]),
 ]
 
+WHO = {'Atli': 'Atli', 'Airu': 'Naru', 'Ukhumo': 'Ukhumo', 'LeftSerpent': 'Kuychu (esquerda)', 'RightSerpent': 'Kuychu (direita)', 'Narrator': 'Ninguém'}
+BOSS_WHO = {1: 'Iryssh', 2: 'Baylo', 3: 'Thaqai', 4: 'Ukhumo', 5: 'Kuychu', 6: 'Killa'}
 STAGE_NAMES = {1: 'Iryssh, a mulher-serpente de fogo', 2: 'Baylo, o boto da festa', 3: 'Thaqai, a gata das estrelas', 4: 'Ukhumo, a ursa da caverna', 5: 'Kuychu, o guardião de duas cabeças', 6: 'Mama Killa, a Lua'}
 STAGE_TITLE = {1: 'StageTitle', 2: 'Stage2Title', 3: 'Stage3Title', 4: 'Stage4Title', 5: 'Stage5Title', 6: 'Stage6Title'}
-STAGE_PEOPLE = {1: ['IrysshName'], 2: ['BayloName'], 3: ['ThaqaiName'], 4: ['UkhumoName'], 5: ['KuychuName', 'SerpentLeftName', 'SerpentRightName'], 6: ['KillaName', 'IllariName']}
+STAGE_PEOPLE = {1: ['IrysshName'], 2: ['BayloName'], 3: ['ThaqaiName'], 4: ['UkhumoName'], 5: ['KuychuName', 'SerpentLeftName', 'SerpentRightName'], 6: ['KillaName']}
 STAGE_ATTACKS = {
     1: ['AttackRingOfEmbers', 'AttackPiercingTongue', 'AttackTwinWhirlwinds', 'AttackBlazingBloom', 'AttackFuryOfTheRiver', 'AttackTideOfEmbers'],
     2: ['AttackDoubleStep', 'AttackConfettiRain', 'AttackSambaWheel', 'AttackDolphinLeap', 'AttackPartyWave'],
@@ -126,6 +125,88 @@ def row(key, pt, en, ctx):
     for t in (pt, en):
         assert '|' not in t and '\n' not in t, (key, t)
     return f'| `{key}` | {pt} | {en} | {ctx} |'
+
+
+MD_DIALOGUES = os.path.join(os.path.dirname(MD), 'Dialogos.md')
+CELL3 = re.compile(r'^\| `([^`]+)` \| (.*?) \| (.*) \|\s*$')
+
+
+def read_cells(path):
+    cells = {}
+    if os.path.exists(path):
+        for line in open(path, encoding='utf-8'):
+            m = CELL3.match(line.rstrip('\n'))
+            if m:
+                cells[m.group(1)] = m.group(2).strip()
+    return cells
+
+
+def protect_edits(pt):
+    """Never overwrite edits made in the documents and not imported yet: abort (unless `--force`) and keep a dated copy of each document either way."""
+    import shutil, time
+    archive = os.path.join(os.path.dirname(MD), 'Archive')
+    pending = []
+    for path in (MD, MD_DIALOGUES):
+        if not os.path.exists(path):
+            continue
+        os.makedirs(archive, exist_ok=True)
+        base = os.path.splitext(os.path.basename(path))[0]
+        shutil.copy2(path, os.path.join(archive, base + '.' + time.strftime('%Y%m%d-%H%M%S') + '.md'))
+        pending += [k for k, v in read_cells(path).items() if k in pt and v != pt[k]]
+    if pending and '--force' not in sys.argv:
+        print(f'{len(pending)} textos dos documentos diferem do jogo (edições ainda não importadas?): {", ".join(pending[:8])}...')
+        print('Rode "import" para aplicá-las ao jogo, ou "export --force" para sobrescrever os documentos (uma cópia foi guardada em Docs/Archive).')
+        sys.exit(1)
+
+
+def split_documents(out, pt):
+    """From the full document (all the columns) to the two documents in Portuguese only: the talks between characters, and everything else."""
+    sections, h2, cur = [], None, None
+    for line in '\n'.join(out).split('\n'):
+        if line.startswith('## '):
+            h2 = line
+            cur = (h2, '', [])
+            sections.append(cur)
+        elif line.startswith('### '):
+            cur = (h2, line, [])
+            sections.append(cur)
+        elif cur is not None and not line.startswith('---') and not line.startswith('*Resumo'):
+            cur[2].append(line)
+
+    def render(selected, title, intro, last_column='Contexto'):
+        res = [title + '\n'] + intro + ['']
+        last = None
+        for h2_, h3, lines in selected:
+            if h2_ != last:
+                res += ['---\n', h2_ + '\n']
+                last = h2_
+            if h3:
+                res += [h3 + '\n']
+            for l in lines:
+                m = re.match(r'^\| `([^`]+)` \| (.*?) \| (.*?) \| (.*) \|\s*$', l)
+                if m:
+                    res.append(f'| `{m.group(1)}` | {m.group(2)} | {m.group(4)} |')
+                elif l.startswith('| Chave'):
+                    res.append(f'| Chave | Texto (PT-BR) | {last_column} |')
+                elif l.startswith('| ---'):
+                    res.append('| --- | --- | --- |')
+                else:
+                    res.append(l)
+        return '\n'.join(res).rstrip('\n') + '\n'
+
+    how = ['**Como editar:** mude apenas a coluna **Texto** (a coluna Contexto não é lida; pode escrever observações nela). Não mude a coluna **Chave**, não apague linhas e não use o caractere `|` dentro de um texto. '
+           'Depois é só me pedir para ler os documentos: eu aplico tudo de uma vez no jogo (`python3 Docs/tools/textos.py import`). Para gerar os documentos de novo a partir do jogo: `python3 Docs/tools/textos.py export`.',
+           '',
+           '- Os dois documentos são só em português. O inglês do jogo não é tocado; quando você terminar, me diga se quer que eu traduza o que mudou.',
+           '- Cada fala cabe em até 5 linhas curtas na caixa de diálogo (uns 28 letras por linha), então textos muito longos são cortados.',
+           '- A fonte do jogo não tem alguns sinais, como aspas e ponto e vírgula; prefira vírgula, ponto, dois pontos, traço, parênteses, `!`, `?`, `/`, `+`, `%` e `...`.']
+    dialogues = [x for x in sections if x[1].startswith('### Falas:')]
+    others = [x for x in sections if not x[1].startswith('### Falas:')]
+    open(MD_DIALOGUES, 'w', encoding='utf-8').write(render(dialogues, '# Airumã: diálogos entre os personagens',
+        [h.replace('(a coluna Contexto não é lida; pode escrever observações nela)', '(a coluna Quem fala só informa quem diz a frase; por enquanto ela não é lida)') for h in how] + ['- Nas falas, o personagem "o chefe da fase" mostra o nome do chefe da fase.', '- O espírito da lamparina se chama **Naru** nas falas.'], 'Quem fala'))
+    open(MD, 'w', encoding='utf-8').write(render(others, '# Airumã: todos os outros textos do jogo',
+        how + ['- Os diálogos entre os personagens estão em `Docs/Dialogos.md`.', '- Os nomes dos ataques dos chefes aparecem como o título de uma carta de feitiço ("Tema: Nome") quando o ataque começa.']))
+    return len(dialogues), len(others)
 
 
 def export():
@@ -183,13 +264,15 @@ def export():
                 title = 'Chegada ao chefe (antes de ele aparecer)'
             elif 'Meeting' in name or name == 'BeforeBossTwo':
                 title = 'Encontro com o chefe (antes da luta)'
+            elif 'Easy' in name:
+                title = 'Final da fase (depois da luta), caminho fácil'
             else:
-                title = 'Final da fase (depois da luta)'
+                title = 'Final da fase (depois da luta)' + (', caminho normal e difícil' if stage == 5 else '')
             out.append(f'### Falas: {title}\n')
             out.append(f'*Resumo, do código (em inglês): {summary}*\n')
             rows = []
             for i, (key, speaker, emotion, shout) in enumerate(lines, 1):
-                ctx = f'{i}ª fala; quem fala: {SPEAKERS[speaker]}; expressão {EMOTIONS[emotion]}' + ('; GRITADA (a caixa treme)' if shout else '') + '.'
+                ctx = WHO[speaker] if speaker != 'Boss' else BOSS_WHO[stage]
                 rows.append(take(key, ctx))
             table(rows)
 
@@ -212,34 +295,31 @@ def export():
     if missing:
         out.append('---\n\n## Outros\n')
         table([take(k, 'Texto sem contexto catalogado ainda.') for k in missing])
-    open(MD, 'w', encoding='utf-8').write('\n'.join(out) + '\n')
-    print(f'{len(used)} textos escritos em {MD}')
+    protect_edits(pt)
+    split_documents(out, pt)
+    print(f'{len(used)} textos escritos em {MD_DIALOGUES} e {MD}')
 
 
 def import_():
-    cells = {}
-    for line in open(MD, encoding='utf-8'):
-        m = re.match(r'^\| `([^`]+)` \| (.*?) \| (.*?) \| (.*) \|\s*$', line.rstrip('\n'))
-        if m:
-            cells[m.group(1)] = (m.group(2).strip(), m.group(3).strip())
+    cells = read_cells(MD)
+    cells.update(read_cells(MD_DIALOGUES))
+    path = FILES['pt']
+    current = load(path)
+    lines = open(path, encoding='utf-8').read().split('\n')
     changed = 0
-    for lang, idx in (('pt', 0), ('en', 1)):
-        path = FILES[lang]
-        current = load(path)
-        lines = open(path, encoding='utf-8').read().split('\n')
-        for i, line in enumerate(lines):
-            m = ENTRY.match(line)
-            if not m or m.group(2) not in cells:
-                continue
-            new = cells[m.group(2)][idx]
-            if not new:
-                print('texto vazio ignorado:', m.group(2))
-                continue
-            if new != current[m.group(2)]:
-                lines[i] = m.group(1) + m.group(2) + m.group(3) + encode(new) + m.group(5)
-                changed += 1
-        open(path, 'w', encoding='utf-8').write('\n'.join(lines))
-    print(f'{changed} textos mudaram')
+    for i, line in enumerate(lines):
+        m = ENTRY.match(line)
+        if not m or m.group(2) not in cells:
+            continue
+        new = cells[m.group(2)]
+        if not new:
+            print('texto vazio ignorado:', m.group(2))
+            continue
+        if new != current[m.group(2)]:
+            lines[i] = m.group(1) + m.group(2) + m.group(3) + encode(new) + m.group(5)
+            changed += 1
+    open(path, 'w', encoding='utf-8').write('\n'.join(lines))
+    print(f'{changed} textos mudaram (só o português)')
 
 
 if __name__ == '__main__':

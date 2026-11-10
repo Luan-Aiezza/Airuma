@@ -28,9 +28,6 @@ public sealed class StageDefinition
     public bool LightTransition;
     /// <summary>The stage opens from the dark: the screen is black and clears while the boat rises.</summary>
     public bool OpensFromDark;
-    /// <summary>The sleeping priestess lies in the middle of the field before the boss fight; the boss sends her away when she speaks, and brings her back, to wake, after the fight
-    /// (see <see cref="Dialogues.StageSixReturnLine"/>).</summary>
-    public bool Priestess;
     /// <summary>The keys of the paragraphs of the story that is told, over a picture, after the last fight; null if the stage has none.</summary>
     public System.Func<string[]> Epilogue;
 

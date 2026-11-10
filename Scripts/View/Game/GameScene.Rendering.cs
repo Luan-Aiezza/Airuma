@@ -230,7 +230,8 @@ public partial class GameScene : Node2D
         _slashes.Show(World.Slashes, _bombDelta);
         _moon.Show(World.Moon, World.Player.Transform.Position, _bombDelta);
         // The quake: the whole picture shakes, more and less.
-        Position = World.Shake > 0 ? new Vector2((_rng.Randf() - 0.5f) * 10 * World.Shake, (_rng.Randf() - 0.5f) * 10 * World.Shake) : Vector2.Zero;
+        float shake = Math.Max(World.Shake, Math.Min(1, _tremor));
+        Position = shake > 0 ? new Vector2((_rng.Randf() - 0.5f) * 10 * shake, (_rng.Randf() - 0.5f) * 10 * shake) : Vector2.Zero;
 
         var bomb = player.Bomb;
         // The bomb is the lantern's light, so it is centred on the lantern, not on the middle of the boat.

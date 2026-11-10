@@ -61,7 +61,6 @@ public static class UIText
     public static string CfgHint => Loc.Get(nameof(CfgHint));
     public static string Stage6Title => Loc.Get(nameof(Stage6Title));
     public static string KillaName => Loc.Get(nameof(KillaName));
-    public static string IllariName => Loc.Get(nameof(IllariName));
     public static string Stage2Music => Loc.Get(nameof(Stage2Music));
     public static string Boss2Music => Loc.Get(nameof(Boss2Music));
     public static string Stage3Music => Loc.Get(nameof(Stage3Music));
