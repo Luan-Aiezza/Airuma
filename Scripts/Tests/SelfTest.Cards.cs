@@ -153,7 +153,7 @@ public static partial class SelfTest
         int poor = Gifts(0), rich = Gifts(CardDeck.GoodStageScore);
         Greater(rich, poor);
         Greater(poor, 0);
-        True(rich >= 200, "a good stage nearly always brings the gift: " + rich);
+        True(rich >= 55 && rich <= 130, "a good stage brings the gift now and then, about three times in ten: " + rich);
         Eq(CardSystem.MakeDraft(DraftMoment.AfterBoss, new RunState(), 3, new SeededGenerator(1), null, CardDeck.GoodStageScore).Offers.Count(c => CardInfo.Rarity(c) == CardRarity.Special), 0);
         var owned = new RunState(); owned.Add(Card.PartyFever);
         False(CardDeck.Offers(owned, 3, new SeededGenerator(1), 1, Card.PartyFever, 1).Contains(Card.PartyFever), "a special card is taken once");

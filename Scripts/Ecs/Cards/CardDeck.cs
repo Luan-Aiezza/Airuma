@@ -18,8 +18,8 @@ public static class CardDeck
         return offers;
     }
 
-    /// <summary>The chance of a special card after a boss, for the points made in that stage: a little for any score, more for a good one, up to 80%.</summary>
-    public static float SpecialChance(int stageScore) => 0.1f + 0.7f * Math.Clamp(stageScore / (float)GoodStageScore, 0f, 1f);
+    /// <summary>The chance of a special card after a boss, for the points made in that stage: a little for any score (5%), more for a good one, up to 30%.</summary>
+    public static float SpecialChance(int stageScore) => 0.05f + 0.25f * Math.Clamp(stageScore / (float)GoodStageScore, 0f, 1f);
 
     /// <summary>What a good player makes in one stage.</summary>
     public const int GoodStageScore = 250_000;
