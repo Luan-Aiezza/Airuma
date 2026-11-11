@@ -21,6 +21,7 @@ public static class BulletArt
         BulletStyle.FireSerpent => (5, 9),
         BulletStyle.Ember => (4, 4),
         BulletStyle.LightBolt => (5, 10),
+        BulletStyle.FanBolt => (3, 8),
         BulletStyle.OrbGreen => (7, 7),
         BulletStyle.OrbRed => (7, 7),
         BulletStyle.RiceRed => (3, 7),
@@ -49,7 +50,7 @@ public static class BulletArt
     /// <summary>Styles that are elongated or directional are rotated to face where the bullet is going.</summary>
     public static bool Rotates(BulletStyle style) => style switch
     {
-        BulletStyle.FlameDart or BulletStyle.LotusPetal or BulletStyle.FireSerpent or BulletStyle.LightBolt or BulletStyle.RiceRed or BulletStyle.Shard or BulletStyle.Claw or BulletStyle.Stalactite or BulletStyle.BoltYellow or BulletStyle.BoltBlue or BulletStyle.BoltRed or BulletStyle.Bite or BulletStyle.GiantStalactite => true,
+        BulletStyle.FlameDart or BulletStyle.LotusPetal or BulletStyle.FireSerpent or BulletStyle.LightBolt or BulletStyle.FanBolt or BulletStyle.RiceRed or BulletStyle.Shard or BulletStyle.Claw or BulletStyle.Stalactite or BulletStyle.BoltYellow or BulletStyle.BoltBlue or BulletStyle.BoltRed or BulletStyle.Bite or BulletStyle.GiantStalactite => true,
         _ => Family(style) is Shape.Rice or Shape.Kunai,
     };
 
@@ -78,6 +79,7 @@ public static class BulletArt
             case BulletStyle.FireSerpent: DrawFireSerpent(c, frame); break;
             case BulletStyle.Ember: DrawEmber(c, frame); break;
             case BulletStyle.LightBolt: DrawLightBolt(c, frame); break;
+            case BulletStyle.FanBolt: DrawFanBolt(c, frame); break;
             case BulletStyle.OrbGreen: DrawOrb(c, frame, PixelColor.Hex(0x2FA84F), PixelColor.Hex(0x7BE08A)); break;
             case BulletStyle.OrbRed: DrawOrb(c, frame, PixelColor.Hex(0xC8283A), PixelColor.Hex(0xFF6A78)); break;
             case BulletStyle.RiceRed: DrawRice(c, frame); break;
@@ -332,6 +334,17 @@ public static class BulletArt
     }
 
     /// <summary>The player's shots: slim bolts of pale lantern light, cool-toned so they never read as enemy fire.</summary>
+    /// <summary>The bolt of a card's fan: a small golden dart, slimmer than the main stream's cyan bolt, so the two are told apart at a glance.</summary>
+    private static void DrawFanBolt(PixelCanvas c, int frame)
+    {
+        var core = PixelColor.Hex(0xFFF6D0); var mid = PixelColor.Hex(0xFFD060); var edge = PixelColor.Hex(0xE0902A); var tail = PixelColor.Hex(0xA85A18);
+        Put(c, 1, 0, core);
+        for (int y = 1; y <= 5; y++) { Put(c, 0, y, y < 3 ? mid : edge); Put(c, 1, y, core); Put(c, 2, y, y < 3 ? mid : edge); }
+        Put(c, 0, 6, edge); Put(c, 1, 6, mid); Put(c, 2, 6, edge);
+        Put(c, 1, 7, tail);
+        if (frame == 1) { Put(c, 0, 7, tail); Put(c, 2, 7, tail); }
+    }
+
     private static void DrawLightBolt(PixelCanvas c, int frame)
     {
         var core = PixelColor.Hex(0xE8FCFF); var mid = PixelColor.Hex(0x9BE3F6); var edge = PixelColor.Hex(0x4FC3E8); var tail = PixelColor.Hex(0x2A7FA8);

@@ -183,6 +183,15 @@ public static partial class SelfTest
             return pool.Count(b => b.IsActive && b.Velocity.X != 0);
         }
         Eq(Side(1, 1), 2); Eq(Side(2, 1), 2); Eq(Side(3, 1), 2);
+        // the fans' bolts are the cards' own: a golden bolt of their own, and the main stream's stay cyan, at every level
+        foreach (int level in new[] { 1, 2, 3 })
+        {
+            var pool3 = Pool(100); var r = new PlayerEntity(); r.Input.IsShooting = true; r.Weapon.PowerLevel = level; r.Weapon.TimeSinceLastFire = 1;
+            var two = new RunState(); two.Add(Card.TwinFan); two.Add(Card.TwinFan);
+            BulletSystem.UpdatePlayerWeapons(r, pool3, 0.1f, two.Effects);
+            Eq(pool3.Count(b => b.IsActive && b.Style == BulletStyle.FanBolt), 4, $"level {level}: two pairs of fan bolts");
+            Eq(pool3.Count(b => b.IsActive && b.Style == BulletStyle.LightBolt), level, $"level {level}: the main stream is what the level says");
+        }
         Eq(Side(1, 2), 4); Eq(Side(3, 2), 4);
         // and the fan's bolts are lighter than the main stream's
         var pool2 = Pool(100); var q = new PlayerEntity(); q.Input.IsShooting = true; q.Weapon.TimeSinceLastFire = 1;

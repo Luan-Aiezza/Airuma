@@ -9,7 +9,7 @@ public static class IrysshBoss
     public const string NameKey = "IrysshName";
 
     // Hitbox: a third of the width of the sprite (96 points).
-    private static readonly BossBuilder Builder = new BossBuilder(NameKey, 32, BossStyles.Iryssh);
+    private static readonly BossBuilder Builder = new BossBuilder(NameKey, 32, BossStyles.Iryssh, enragedBonus: 0.10f);
 
     public static readonly BossDefinition Definition = Builder.Build(
         Builder.Calm(Attacks.RingOfEmbers()),

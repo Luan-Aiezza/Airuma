@@ -15,11 +15,11 @@ public sealed class BossBuilder
     /// <summary>How much faster than written the bullets of all this boss's patterns fly: each boss is a little quicker than the one before.</summary>
     private readonly float _speed;
 
-    /// <summary>`hitbox` is a third of the width of the sprite; the enraged attacks have `enragedHealth` (500 by default, against 300).</summary>
-    public BossBuilder(string nameKey, float hitbox, BossStyle style, int health = 300, int enragedHealth = 500, MusicPlayer.Theme? theme = null, string themeTitleKey = null, float speed = 1)
+    /// <summary>`hitbox` is a third of the width of the sprite; the enraged attacks have `enragedBonus` more health than the calm ones (0.10: a tenth more; each boss has a little more than the one before).</summary>
+    public BossBuilder(string nameKey, float hitbox, BossStyle style, int health = 300, float enragedBonus = 0.10f, MusicPlayer.Theme? theme = null, string themeTitleKey = null, float speed = 1)
     {
         _speed = speed;
-        _nameKey = nameKey; _hitbox = hitbox; _style = style; _health = health; _enragedHealth = enragedHealth;
+        _nameKey = nameKey; _hitbox = hitbox; _style = style; _health = health; _enragedHealth = (int)Math.Round(health * (1 + enragedBonus));
         // a boss with a song of its own plays it through the whole fight (calm and enraged); the others have the calm song and the enraged one
         _calmTheme = theme ?? MusicPlayer.Theme.Boss; _enragedTheme = theme ?? MusicPlayer.Theme.Boss;
         _calmTitleKey = themeTitleKey ?? nameof(UIText.BossMusic); _enragedTitleKey = themeTitleKey ?? nameof(UIText.BossMusic);
@@ -28,11 +28,11 @@ public sealed class BossBuilder
     /// <summary>A calm attack.</summary>
     public BossPhase Calm(BossPhase attack) => Dress(attack, _calmTheme, _calmTitleKey, _health, false);
 
-    /// <summary>An enraged attack: other music and more health.</summary>
+    /// <summary>An enraged attack: other music and a little more health.</summary>
     public BossPhase Enraged(BossPhase attack) => Dress(attack, _enragedTheme, _enragedTitleKey, _enragedHealth, true);
 
-    /// <summary>TEMPORARY, to test the flow of the stages quickly: every boss attack has this share of its health. Put it back to 1 when the stages are done.</summary>
-    public const float TestHealthFactor = 0.1f;
+    /// <summary>Every boss attack has this share of its health (1: all of it; lowered only to test the flow of the stages quickly).</summary>
+    public const float TestHealthFactor = 1f;
 
     private BossPhase Dress(BossPhase attack, MusicPlayer.Theme theme, string musicTitleKey, int health, bool enraged)
     {

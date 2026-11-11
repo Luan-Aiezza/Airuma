@@ -9,6 +9,7 @@ public static partial class SelfTest
     private static void RegisterStageFlow(Action<string, Action> T)
     {
         T("TheSerpentHasMoreHealthThanTheWoman", TheSerpentHasMoreHealthThanTheWoman);
+        T("TheSecondFormOfEveryBossHasALittleMoreHealth", TheSecondFormOfEveryBossHasALittleMoreHealth);
         T("AStageIsOnlyDataTheWorldRuns", AStageIsOnlyDataTheWorldRuns);
         T("TheFirstStageIsMadeOfItsWavesAndItsBoss", TheFirstStageIsMadeOfItsWavesAndItsBoss);
         T("ARunStartsWithFairiesAndTheBossWaits", ARunStartsWithFairiesAndTheBossWaits);
@@ -198,11 +199,24 @@ public static partial class SelfTest
         Eq(new World(practicePhase: 3).StartingBossLives, 2);
     }
 
+    /// <summary>The second form of every boss has a little more health than the first: 10, 15, 20, 25, 30 and 35 per cent more, from the first boss to the last.</summary>
+    private static void TheSecondFormOfEveryBossHasALittleMoreHealth()
+    {
+        var calm = new[] { 300, 300, 350, 380, 400, 420 };
+        var bonus = new[] { 0.10f, 0.15f, 0.20f, 0.25f, 0.30f, 0.35f };
+        for (int i = 0; i < 6; i++)
+        {
+            var boss = Stages.All[i].Boss;
+            Eq(boss.Phases.First(p => !p.Enraged).MaxHealth, calm[i], $"boss {i + 1}: calm");
+            Eq(boss.Phases.First(p => p.Enraged).MaxHealth, (int)Math.Round(calm[i] * (1 + bonus[i])), $"boss {i + 1}: enraged");
+        }
+    }
+
     private static void TheSerpentHasMoreHealthThanTheWoman()
     {
         var def = IrysshBoss.Definition;
         for (int lives = 4; lives >= 3; lives--) Eq(def.PhaseFor(lives).MaxHealth, 300, "the woman");
-        for (int lives = 2; lives >= 1; lives--) Eq(def.PhaseFor(lives).MaxHealth, 500, "the serpent, her true form");
+        for (int lives = 2; lives >= 1; lives--) Eq(def.PhaseFor(lives).MaxHealth, 330, "the serpent, her true form: a tenth more");
         var world = new World(practicePhase: 1);
         world.CalmWindForTesting();
         Eq(world.Boss.Health.MaxHealth, 300);
@@ -210,7 +224,7 @@ public static partial class SelfTest
         world.Boss.Health.CurrentHealth = 0;
         world.Step(Dt, Idle());
         Eq(world.Boss.Health.Lives, 2);
-        Eq(world.Boss.Health.MaxHealth, 500, "the bar is refilled for the serpent");
-        Eq(world.Boss.Health.CurrentHealth, 500);
+        Eq(world.Boss.Health.MaxHealth, 330, "the bar is refilled for the serpent");
+        Eq(world.Boss.Health.CurrentHealth, 330);
     }
 }

@@ -327,7 +327,7 @@ public static partial class SelfTest
         }
         foreach (var style in Enum.GetValues<BulletStyle>())
         {
-            if (style == BulletStyle.LightBolt) continue;                      // the boat's own shot
+            if (style == BulletStyle.LightBolt || style == BulletStyle.FanBolt) continue;                      // the boat's own shot
             float peak = Peak(SfxBank.ForBullet(style));
             GreaterEq(peak, -20f, $"{style} is not too quiet ({peak:0.0} dB)");
             LessEq(peak, -4f, $"{style} is not too loud ({peak:0.0} dB)");

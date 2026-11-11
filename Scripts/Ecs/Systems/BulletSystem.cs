@@ -78,6 +78,8 @@ public static partial class BulletSystem
     public const float FanPower = 0.4f;
     /// <summary>The scale of the player's bolts (their hitbox grows with it): wide enough not to slip between the spirits of a formation.</summary>
     public const float BoltScale = 1.7f;
+    /// <summary>The scale of the golden bolts of the fans (a little smaller than the main stream's).</summary>
+    public const float FanBoltScale = 1.5f;
     /// <summary>Focusing: the bolts crowd together (this far apart, instead of 15), each hits harder, and the fans close up to a narrow angle.</summary>
     public const float FocusSpacing = 7, FocusPower = 1.4f, FocusFanAngle = 2.5f;
 
@@ -132,7 +134,7 @@ public static partial class BulletSystem
                   burstScale: 1f / offsets.Length);
         }
 
-        // The fans: a pair of lighter bolts for each, from the lantern itself, one volley after another, however strong the weapon.
+        // The fans (a card's, so they have a bolt of their own, golden): a pair of lighter bolts for each, from the lantern itself, one volley after another, whatever the weapon's level.
         for (int k = 1; k <= effects.FanPairs; k++)
         {
             foreach (float side in new[] { -1f, 1f })
@@ -141,8 +143,8 @@ public static partial class BulletSystem
                       player.Transform.Position,
                       new Vector2(0, -player.Weapon.BulletSpeed).Rotated(Mathx.Radians(side * k * (focus ? FocusFanAngle : FanAngle))),
                       Faction.Player,
-                      BulletStyle.LightBolt,
-                      scale: BoltScale,
+                      BulletStyle.FanBolt,
+                      scale: FanBoltScale,
                       power: FanPower * effects.DamageMultiplier * focusPower,
                       pierce: effects.Pierce,
                       burstRadius: effects.BurstRadius,

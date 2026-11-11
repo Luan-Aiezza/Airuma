@@ -23,6 +23,8 @@ public enum BulletStyle
     GiantStalactite,
     // music: little notes (7 x 11, that sway, they do not turn) in gold, pink and cyan, and a pair of beamed notes (9 x 11) in gold
     NoteGold, NotePink, NoteCyan, NoteBeamed,
+    // the player's: the small golden bolts of the cards' fans (3 x 8, that point where they go), unlike the cyan bolts of the main stream
+    FanBolt,
 }
 
 /// <summary>Dance: the bullet sways to one side and the other on a fixed beat (see BulletSystem.DanceBeat). Zigzag: it turns by its curve's degrees every fraction of a second, to one side and the other, like lightning. Constellation: it is a star that flies out, stops, hangs a while linked by thin lines to other stars, and then falls. Burst: a great stone that flies and, after a moment, breaks into a ring of small ones.</summary>

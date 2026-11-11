@@ -39,7 +39,7 @@ public static class SfxBank
     /// <summary>The sound of a bullet that has just been fired.</summary>
     public static Sound ForBullet(BulletStyle style) => style switch
     {
-        BulletStyle.LightBolt => Sound.PlayerShot,
+        BulletStyle.LightBolt or BulletStyle.FanBolt => Sound.PlayerShot,
         BulletStyle.Wisp => Sound.PlayerWisp,
         BulletStyle.OrbGreen => Sound.OrbGreen,
         BulletStyle.OrbRed => Sound.OrbRed,

@@ -6,7 +6,7 @@ public static class KillaBoss
 {
     public const string NameKey = "KillaName";
 
-    private static readonly BossBuilder Builder = new BossBuilder(NameKey, 32, BossStyles.Killa, health: 420, enragedHealth: 680, theme: MusicPlayer.Theme.CosmicBoss, themeTitleKey: nameof(UIText.Boss6Music));
+    private static readonly BossBuilder Builder = new BossBuilder(NameKey, 32, BossStyles.Killa, health: 420, enragedBonus: 0.35f, theme: MusicPlayer.Theme.CosmicBoss, themeTitleKey: nameof(UIText.Boss6Music));
 
     /// <summary>Where her position is when her skirt touches the horizon of the water: she stands exactly under its line.</summary>
     public static readonly float StandY = Layout.Horizon - BossStyles.Killa.Waterline;
