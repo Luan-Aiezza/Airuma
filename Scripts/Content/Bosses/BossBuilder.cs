@@ -31,13 +31,20 @@ public sealed class BossBuilder
     /// <summary>An enraged attack: other music and a little more health.</summary>
     public BossPhase Enraged(BossPhase attack) => Dress(attack, _enragedTheme, _enragedTitleKey, _enragedHealth, true);
 
-    /// <summary>Every boss attack has this share of its health (1: all of it; lowered only to test the flow of the stages quickly).</summary>
-    public const float TestHealthFactor = 1f;
+    /// <summary>Every boss attack has this share of the health written for it (both forms), to set the length of the fights.</summary>
+    public const float TestHealthFactor = 0.48f;
+
+    /// <summary>An attack in which the boss stays still (it is easier to hit) has this many times the health of one in which it moves.</summary>
+    public const int StillHealthMultiplier = 2;
+
+    /// <summary>The health of an attack, for the health written for the boss's form: doubled if the boss stands still, then scaled by <see cref="TestHealthFactor"/>.</summary>
+    public static int HealthOf(int written, BossMovementType movement) =>
+        Math.Max(10, (int)(written * (movement == BossMovementType.Stationary ? StillHealthMultiplier : 1) * TestHealthFactor));
 
     private BossPhase Dress(BossPhase attack, MusicPlayer.Theme theme, string musicTitleKey, int health, bool enraged)
     {
         attack.NameKey = _nameKey; attack.Theme = theme; attack.MusicTitleKey = musicTitleKey;
-        attack.SpeedFactor = _speed * attack.AttackSpeed; attack.HitboxRadius = _hitbox; attack.MaxHealth = Math.Max(10, (int)(health * TestHealthFactor)); attack.Enraged = enraged;
+        attack.SpeedFactor = _speed * attack.AttackSpeed; attack.HitboxRadius = _hitbox; attack.MaxHealth = HealthOf(health, attack.Movement); attack.Enraged = enraged;
         return attack;
     }
 

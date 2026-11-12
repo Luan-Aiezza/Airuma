@@ -8,7 +8,7 @@ public static class ThaqaiBoss
 {
     public const string NameKey = "ThaqaiName";
 
-    private static readonly BossBuilder Builder = new BossBuilder(NameKey, 32, BossStyles.Thaqai, health: 350, enragedBonus: 0.20f, theme: MusicPlayer.Theme.CatBoss, themeTitleKey: nameof(UIText.Boss3Music));
+    private static readonly BossBuilder Builder = new BossBuilder(NameKey, 32, BossStyles.Thaqai, health: 360, enragedBonus: 0.20f, theme: MusicPlayer.Theme.CatBoss, themeTitleKey: nameof(UIText.Boss3Music));
 
     public static readonly BossDefinition Definition = Builder.Build(
         Builder.Calm(Attacks.HailCurtain()),

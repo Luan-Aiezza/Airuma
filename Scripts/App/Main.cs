@@ -93,17 +93,35 @@ public partial class Main : Node2D
 
     private const string SettingsPath = "user://settings.cfg";
 
-    /// <summary>Whether the window is in full screen. The window itself has a fixed size (not resizable); in full screen the
+    /// <summary>Whether the window is in full screen. The window itself has a fixed size (not resizable, except while in full screen); in full screen the
     /// picture grows to the screen keeping its proportions, and what is left at the sides is filled by the pillars of <see cref="SideFrame"/> (stretch mode canvas_items / expand).</summary>
     public static bool IsFullscreen => DisplayServer.WindowGetMode() == DisplayServer.WindowMode.Fullscreen;
 
     /// <summary>The mode last chosen (the window itself may take a frame to show it).</summary>
     public static bool FullscreenChosen { get; private set; }
 
+    /// <summary>
+    /// The window is not resizable, and on macOS a window that cannot be resized goes to full screen without growing (the picture stays at the size of the window, in the middle of the screen). So the window
+    /// is made resizable while it is in full screen, and fixed again when it is back in a window.
+    /// </summary>
+    private static void ApplyScreenMode(bool fullscreen)
+    {
+        if (fullscreen)
+        {
+            DisplayServer.WindowSetFlag(DisplayServer.WindowFlags.ResizeDisabled, false);
+            DisplayServer.WindowSetMode(DisplayServer.WindowMode.Fullscreen);
+        }
+        else
+        {
+            DisplayServer.WindowSetMode(DisplayServer.WindowMode.Windowed);
+            DisplayServer.WindowSetFlag(DisplayServer.WindowFlags.ResizeDisabled, true);
+        }
+    }
+
     public static void SetFullscreen(bool on)
     {
         FullscreenChosen = on;
-        DisplayServer.WindowSetMode(on ? DisplayServer.WindowMode.Fullscreen : DisplayServer.WindowMode.Windowed);
+        ApplyScreenMode(on);
         var cfg = new ConfigFile();
         cfg.Load(SettingsPath);
         cfg.SetValue("display", "fullscreen", on);
@@ -134,9 +152,10 @@ public partial class Main : Node2D
     public override void _Ready()
     {
         Loc.Load();
+        GetWindow().Title = UIText.Title;                // the project's name is plain ASCII (the macOS export cannot open an app whose executable has an accent); the window shows the real one
         var settings = new ConfigFile();
         if (settings.Load(SettingsPath) == Error.Ok && (bool)settings.GetValue("display", "fullscreen", false))
-            DisplayServer.WindowSetMode(DisplayServer.WindowMode.Fullscreen);
+            ApplyScreenMode(true);
         FullscreenChosen = IsFullscreen;
 
         _options = LaunchOptions.FromCommandLine();

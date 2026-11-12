@@ -9,7 +9,7 @@ public static partial class SelfTest
     private static void RegisterStageFlow(Action<string, Action> T)
     {
         T("TheSerpentHasMoreHealthThanTheWoman", TheSerpentHasMoreHealthThanTheWoman);
-        T("TheSecondFormOfEveryBossHasALittleMoreHealth", TheSecondFormOfEveryBossHasALittleMoreHealth);
+        T("TheHealthOfTheBossesGrowsAndAStillBossHasTwiceAsMuch", TheHealthOfTheBossesGrowsAndAStillBossHasTwiceAsMuch);
         T("AStageIsOnlyDataTheWorldRuns", AStageIsOnlyDataTheWorldRuns);
         T("TheFirstStageIsMadeOfItsWavesAndItsBoss", TheFirstStageIsMadeOfItsWavesAndItsBoss);
         T("ARunStartsWithFairiesAndTheBossWaits", ARunStartsWithFairiesAndTheBossWaits);
@@ -30,7 +30,7 @@ public static partial class SelfTest
         Less(world.Boss.Transform.Position.Y, -200, "the boss is off-screen");
         StepN(world, 60 * 10);
         False(world.Bullets.Any(b => b.IsActive && b.Faction == Faction.Boss && b.Style == BulletStyle.Fireball), "no boss bullets");
-        Eq(world.Boss.Health.CurrentHealth, 300);
+        Eq(world.Boss.Health.CurrentHealth, IrysshBoss.Definition.PhaseFor(4).MaxHealth);
     }
 
     private static void BossPracticeSkipsTheFairies()
@@ -199,32 +199,43 @@ public static partial class SelfTest
         Eq(new World(practicePhase: 3).StartingBossLives, 2);
     }
 
-    /// <summary>The second form of every boss has a little more health than the first: 10, 15, 20, 25, 30 and 35 per cent more, from the first boss to the last.</summary>
-    private static void TheSecondFormOfEveryBossHasALittleMoreHealth()
+    /// <summary>
+    /// The health of the bosses grows from stage to stage (300, 330, 360, 390, 420, 450 written for the first form), the second form has a little more (10, 15, 20, 25, 30 and 35 per cent more),
+    /// and an attack in which the boss stands still has twice as much as one in which it moves.
+    /// </summary>
+    private static void TheHealthOfTheBossesGrowsAndAStillBossHasTwiceAsMuch()
     {
-        var calm = new[] { 300, 300, 350, 380, 400, 420 };
+        var calm = new[] { 300, 330, 360, 390, 420, 450 };
         var bonus = new[] { 0.10f, 0.15f, 0.20f, 0.25f, 0.30f, 0.35f };
         for (int i = 0; i < 6; i++)
         {
             var boss = Stages.All[i].Boss;
-            Eq(boss.Phases.First(p => !p.Enraged).MaxHealth, calm[i], $"boss {i + 1}: calm");
-            Eq(boss.Phases.First(p => p.Enraged).MaxHealth, (int)Math.Round(calm[i] * (1 + bonus[i])), $"boss {i + 1}: enraged");
+            int enraged = (int)Math.Round(calm[i] * (1 + bonus[i]));
+            foreach (var phase in boss.Phases)
+                Eq(phase.MaxHealth, BossBuilder.HealthOf(phase.Enraged ? enraged : calm[i], phase.Movement), $"boss {i + 1}, {phase.NameKey}: {(phase.Enraged ? "enraged" : "calm")}, {phase.Movement}");
+            var still = boss.Phases.FirstOrDefault(p => p.Movement == BossMovementType.Stationary && !p.Enraged);
+            var moving = boss.Phases.FirstOrDefault(p => p.Movement != BossMovementType.Stationary && !p.Enraged);
+            if (still != null && moving != null) Greater(still.MaxHealth, moving.MaxHealth * 3 / 2, $"boss {i + 1}: a still attack has twice the health");
         }
+        // the whole fight is longer from boss to boss
+        for (int i = 1; i < 6; i++)
+            Greater(Stages.All[i].Boss.Phases.Sum(p => p.MaxHealth), Stages.All[i - 1].Boss.Phases.Sum(p => p.MaxHealth), $"boss {i + 1} has more health in all than boss {i}");
     }
 
     private static void TheSerpentHasMoreHealthThanTheWoman()
     {
         var def = IrysshBoss.Definition;
-        for (int lives = 4; lives >= 3; lives--) Eq(def.PhaseFor(lives).MaxHealth, 300, "the woman");
-        for (int lives = 2; lives >= 1; lives--) Eq(def.PhaseFor(lives).MaxHealth, 330, "the serpent, her true form: a tenth more");
+        for (int lives = 4; lives >= 3; lives--) Eq(def.PhaseFor(lives).MaxHealth, BossBuilder.HealthOf(300, BossMovementType.Patrol), "the woman");
+        Eq(def.PhaseFor(2).MaxHealth, BossBuilder.HealthOf(330, BossMovementType.Stationary), "the serpent, her true form: a tenth more, and twice as much while she stands still");
+        Eq(def.PhaseFor(1).MaxHealth, BossBuilder.HealthOf(330, BossMovementType.Dash), "and when she moves");
         var world = new World(practicePhase: 1);
         world.CalmWindForTesting();
-        Eq(world.Boss.Health.MaxHealth, 300);
+        Eq(world.Boss.Health.MaxHealth, def.PhaseFor(4).MaxHealth);
         world.Boss.Health.Lives = 3;
         world.Boss.Health.CurrentHealth = 0;
         world.Step(Dt, Idle());
         Eq(world.Boss.Health.Lives, 2);
-        Eq(world.Boss.Health.MaxHealth, 330, "the bar is refilled for the serpent");
-        Eq(world.Boss.Health.CurrentHealth, 330);
+        Eq(world.Boss.Health.MaxHealth, def.PhaseFor(2).MaxHealth, "the bar is refilled for the serpent");
+        Eq(world.Boss.Health.CurrentHealth, def.PhaseFor(2).MaxHealth);
     }
 }

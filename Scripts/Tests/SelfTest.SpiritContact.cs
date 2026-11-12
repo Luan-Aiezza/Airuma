@@ -149,7 +149,8 @@ public static partial class SelfTest
         int bombs = 0, lives = 0;
         while (ScoreSystem.BombScore(bombs) <= goodRunScore) bombs++;
         while (ScoreSystem.LifeScore(lives) <= goodRunScore) lives++;
-        Eq(bombs, 2); Eq(lives, 1);
+        Eq(bombs, 2); Eq(lives, 0, "the first boat comes later than the lanterns: half as often as it used to");
+        Eq(ScoreSystem.LifeScore(0), 450_000); Eq(ScoreSystem.LifeScore(1), 1_050_000);
     }
 
     private static void TheWindBlowsHarderTheHigherTheDifficulty()

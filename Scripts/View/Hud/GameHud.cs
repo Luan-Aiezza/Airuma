@@ -568,4 +568,23 @@ public partial class GameHud : Node2D
     }
 
     public void HideEnd() => _endPanel.Visible = false;
+
+    /// <summary>The button of the end screen the keys are on (Restart or Menu), lit like the one of the pause menu.</summary>
+    public Control EndSelected { get; private set; } = Control.Restart;
+
+    public void SelectEnd(Control control)
+    {
+        EndSelected = control;
+        _restartPlaque.Modulate = control == Control.Restart ? new Color(1.35f, 1.2f, 1f) : new Color(0.62f, 0.62f, 0.62f);
+        _menuPlaque.Modulate = control == Control.Menu ? new Color(1.35f, 1.2f, 1f) : new Color(0.62f, 0.62f, 0.62f);
+    }
+
+    /// <summary>Moves the keys to the other button of the end screen.</summary>
+    public void MoveEnd(bool canRestart)
+    {
+        var next = EndSelected == Control.Restart ? Control.Menu : Control.Restart;
+        if (next == Control.Restart && !canRestart) return;
+        SelectEnd(next);
+        SfxPlayer.Instance?.Play(SfxBank.Sound.MenuMove);
+    }
 }

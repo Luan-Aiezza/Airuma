@@ -183,7 +183,7 @@ public partial class GameScene : Node2D
         _endSequence = EndSequence.None;
         ResetFinale();
         _afterBossOffered = false;
-        _dialoguePending = false;
+        _dialoguePending = false; _musicAfterIntro = false;
         // The boat waits below the screen.
         World.Player.Transform.Position = new Vector2(CombatSystem.PlayerSpawn.X, OffscreenY);
         _stageIntroPending = true;
@@ -262,12 +262,6 @@ public partial class GameScene : Node2D
             else if (result == GameResult.Victory && (Stage.Epilogue != null || EasyEnds) && !_epilogueDone) RunEpilogue(fdt);
             else Finish(result);
         }
-        if (World.Result != null && _hud.IsEndVisible)
-        {
-            if ((KeyDown(Key.Enter) || KeyDown(Key.KpEnter)) && CanRestart) Restart();
-            else if (KeyDown(Key.Escape)) { SfxPlayer.Instance?.Play(SfxBank.Sound.MenuBack); DoExit(); return; }
-        }
-
         _bombDelta = fdt;
         SyncNodes();
         _animationClock += fdt;

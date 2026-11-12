@@ -4,7 +4,7 @@ using System;
 /// <summary>
 /// The little menu that opens with Esc during a run: Continue or Give Up (back to the title menu). Same wooden box as the
 /// victory / defeat panel. Lives at the origin of the scene; ZIndex 200 puts it over the HUD and the card picker.
-/// Keys (Left/Right/A/D, Enter/Z/Space, Esc) and clicks are forwarded by GameScene through HandleKey and Click.
+/// Keys (the arrows or A/D/W/S, Enter/Z/Space, X to go back, Esc) and clicks are forwarded by GameScene through HandleKey and Click.
 /// </summary>
 public partial class PauseMenu : Node2D
 {
@@ -136,8 +136,9 @@ public partial class PauseMenu : Node2D
     {
         switch (key)
         {
-            case Key.Left: case Key.A: Move(-1); break;
-            case Key.Right: case Key.D: Move(1); break;
+            case Key.Left: case Key.A: case Key.Up: case Key.W: Move(-1); break;
+            case Key.Right: case Key.D: case Key.Down: case Key.S: Move(1); break;
+            case Key.X: SfxPlayer.Instance?.Play(SfxBank.Sound.MenuBack); Continue?.Invoke(); break;
             case Key.Enter: case Key.KpEnter: case Key.Z: case Key.Space: Activate(); break;
         }
     }

@@ -45,10 +45,11 @@ public partial class GameScene : Node2D
             _stageIntroPending = false;
             _rising = true;
             _riseClock = 0;
-            if (World.Part != StagePart.Boss)                                 // boss practice has no opening: the boss's own scene follows the rise
+            // boss practice has no opening: the boss's own scene follows the rise. The music of the stage (and its title) begins when the talk is over.
+            if (World.Part != StagePart.Boss)
             {
-                MusicPlayer.Instance?.Play(World.Definition.Theme);
-                _title.Show(World.Definition.Title, World.Definition.MusicTitle, fire: false, hold: 3.0f, difficulty: Difficulty);
+                if (World.UsesCards && Stage.Intro != null) _musicAfterIntro = true;
+                else StartStageMusic();
             }
         }
         if (_rising)
@@ -69,9 +70,10 @@ public partial class GameScene : Node2D
         if (_dialoguePending)
         {
             _dialogueDelay -= dt;
-            if (_dialogueDelay <= 0) { _dialoguePending = false; StartTalk(Stage.Intro); }
+            if (_dialogueDelay <= 0) { _dialoguePending = false; if (!StartTalk(Stage.Intro)) { _musicAfterIntro = false; StartStageMusic(); } }
             return true;
         }
+        if (_musicAfterIntro && !_dialogue.IsOnScreen) { _musicAfterIntro = false; StartStageMusic(); }
 
         switch (_bossSequence)
         {
@@ -116,6 +118,15 @@ public partial class GameScene : Node2D
                 return true;
         }
         return false;
+    }
+
+    /// <summary>The music of the stage and its title: they begin together, once the talk before the stage is over.</summary>
+    private bool _musicAfterIntro;
+
+    private void StartStageMusic()
+    {
+        MusicPlayer.Instance?.Play(World.Definition.Theme);
+        _title.Show(World.Definition.Title, World.Definition.MusicTitle, fire: false, hold: 3.0f, difficulty: Difficulty);
     }
 
     /// <summary>Starts a talk of the stage, if it has one; false when it has none.</summary>
@@ -165,7 +176,8 @@ public partial class GameScene : Node2D
         if (withTitle)
         {
             MusicPlayer.Instance?.Play(phase.Theme);
-            _title.Show(phase.Name, phase.MusicTitle, fire: true, hold: 3.0f, difficulty: Difficulty);
+            // the banner with the boss's name and its song is for the meeting only; the second form just bursts into rage
+            if (!phase.Enraged) _title.Show(phase.Name, phase.MusicTitle, fire: true, hold: 3.0f, difficulty: Difficulty);
             if (phase.Enraged)
             {
                 _boss.BurstRage();

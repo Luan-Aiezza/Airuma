@@ -107,6 +107,23 @@ public partial class GameScene : Node2D
                 GetViewport().SetInputAsHandled();
                 return;
             }
+            if (World.Result != null && _hud.IsEndVisible && !_exited)
+            {
+                // The end screen (victory or defeat): the arrows pick Restart or Menu, Z / Enter / Space take it, X and Esc go back to the menu.
+                switch (key.Keycode)
+                {
+                    case Key.Left: case Key.Right: case Key.Up: case Key.Down: case Key.A: case Key.D: case Key.W: case Key.S:
+                        _hud.MoveEnd(CanRestart); break;
+                    case Key.Z: case Key.Enter: case Key.KpEnter: case Key.Space:
+                        if (_hud.EndSelected == GameHud.Control.Restart) { if (CanRestart) Restart(); }
+                        else { SfxPlayer.Instance?.Play(SfxBank.Sound.MenuBack); DoExit(); }
+                        break;
+                    case Key.X: case Key.Escape:
+                        SfxPlayer.Instance?.Play(SfxBank.Sound.MenuBack); DoExit(); break;
+                }
+                GetViewport().SetInputAsHandled();
+                return;
+            }
         }
         if (_pause.IsShown)
         {

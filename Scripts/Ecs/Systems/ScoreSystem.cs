@@ -16,7 +16,7 @@ public static class ScoreSystem
     public const int PointsPerSpareBomb = 2000, PointsPerSpareLife = 10_000;
 
     public const int FirstBombScore = 100_000, SecondBombScore = 240_000, BombScoreStep = 200_000;
-    public const int FirstLifeScore = 225_000, LifeScoreStep = 300_000;
+    public const int FirstLifeScore = 450_000, LifeScoreStep = 600_000;   // half as often as they were
 
     /// <summary>The score at which the nth (from 0) spare lantern is given.</summary>
     public static int BombScore(int n) => n == 0 ? FirstBombScore : SecondBombScore + (n - 1) * BombScoreStep;

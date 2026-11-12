@@ -5,7 +5,7 @@ using System.Linq;
 /// <summary>
 /// The two themes of stage 3, the lake of the hail and the storm: trumpets and pianos (with the rumble of the toms as thunder, and nothing else).
 ///
-/// "A tempestade sob o rio agitado" (the stage, 76 BPM, F minor): dark and sombre. The water churns under a piano that rolls in triplets while the left hand tolls low octaves; a trumpet,
+/// "A tempestade sob o rio agitado" (the stage, 114 BPM, F minor): dark and sombre. The water churns under a piano that rolls in triplets while the left hand tolls low octaves; a trumpet,
 /// muted and lonely, sings a slow tune above; thunder rumbles in the toms, and now and then a lightning of high notes flashes. The chorus climbs, the trumpets in two voices.
 /// "A gata arisca brinca na tempestade" (the boss, 200 BPM, F minor): the same storm, and a cat playing in it. A much lower, heavier piano hammers a prowling pulse and chords on the offbeats,
 /// and the PIANO is the lead: its right hand sings the tune in octaves (in chords in the chorus) while the trumpets double and answer it, sharp and fierce; in the middle the cat plays (a staccato figure in the piano, answered by the trumpets).
@@ -52,7 +52,7 @@ public static partial class Songs
     /// <summary>"A tempestade sob o rio agitado": the theme of stage 3.</summary>
     public static (float[] left, float[] right) StormUnderTheRiver()
     {
-        const double bpm = 76;
+        const double bpm = 114;
         double spb = 60 / bpm, bar = 4 * spb;
         var chords = new List<Chord>();
         chords.AddRange(StormChordsIntro); chords.AddRange(StormChordsA); chords.AddRange(StormChordsB); chords.AddRange(StormChordsA); chords.AddRange(StormChordsBridge);

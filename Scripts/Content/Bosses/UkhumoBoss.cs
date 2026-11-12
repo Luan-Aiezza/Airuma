@@ -8,7 +8,7 @@ public static class UkhumoBoss
 {
     public const string NameKey = "UkhumoName";
 
-    private static readonly BossBuilder Builder = new BossBuilder(NameKey, 32, BossStyles.Ukhumo, health: 380, enragedBonus: 0.25f, theme: MusicPlayer.Theme.BeastBoss, themeTitleKey: nameof(UIText.Boss4Music));
+    private static readonly BossBuilder Builder = new BossBuilder(NameKey, 32, BossStyles.Ukhumo, health: 390, enragedBonus: 0.25f, theme: MusicPlayer.Theme.BeastBoss, themeTitleKey: nameof(UIText.Boss4Music));
 
     public static readonly BossDefinition Definition = Builder.Build(
         Builder.Calm(Attacks.ClawRake()),

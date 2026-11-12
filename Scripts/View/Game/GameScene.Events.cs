@@ -71,11 +71,11 @@ public partial class GameScene : Node2D
         _lastBossLives = boss.Health.Lives;
     }
 
-    /// <summary>A real game (not a practice, not the demonstration) has only three restarts in all.</summary>
+    /// <summary>A real game (not a practice, not the demonstration) has only three restarts in all, and only in the easy mode.</summary>
     private bool CountsRestarts => PracticePhase == null && !StagePractice && !Demo;
-    /// <summary>Hard mode has no restart at all: losing goes straight to Game Over.</summary>
-    private bool HardNoRestart => Difficulty == Difficulty.Hard && CountsRestarts;
-    private bool CanRestart => !CountsRestarts || (!HardNoRestart && RunRestarts.Left > 0);
+    /// <summary>The normal and the hard modes have no restart at all: losing goes straight to Game Over.</summary>
+    private bool NoRestart => Difficulty != Difficulty.Easy && CountsRestarts;
+    private bool CanRestart => !CountsRestarts || (!NoRestart && RunRestarts.Left > 0);
 
     private ColorRect _gameOver;
     private float _gameOverClock;
@@ -105,7 +105,7 @@ public partial class GameScene : Node2D
         bool newRecord = PracticePhase == null && !StagePractice && HighScore.Submit(World.Score, result == GameResult.Victory, Difficulty);
         _hud.HideAttackName();
         MusicPlayer.Instance?.Stop(2.0f);
-        if (result == GameResult.Defeat && CountsRestarts && (HardNoRestart || RunRestarts.Left == 0))
+        if (result == GameResult.Defeat && CountsRestarts && (NoRestart || RunRestarts.Left == 0))
         {
             // lost with no restart left: the screen goes black, Game Over, and then the menu
             _input.EndAll();
@@ -113,6 +113,7 @@ public partial class GameScene : Node2D
             return;
         }
         _hud.ShowEnd(result, World.Score, newRecord, CountsRestarts ? RunRestarts.Left : -1);
+        _hud.SelectEnd(CanRestart ? GameHud.Control.Restart : GameHud.Control.Menu);
         _hud.Say(result == GameResult.Victory ? UIText.SayVictory : UIText.SayDefeat);
         _input.EndAll();
     }
