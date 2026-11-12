@@ -35,7 +35,6 @@ public partial class DialogueBox : Node2D
     private int _faceFrame;
     private readonly PixelLabel _name = new(PixelLabel.Style.Gold, 3, PixelLabel.Align.Center);
     private readonly PixelLabel[] _lines = new PixelLabel[MaxLines];
-    private readonly PixelLabel _hint = new(PixelLabel.Style.Dim, 2, PixelLabel.Align.Right);
     private readonly Sprite2D _next = new() { Centered = false };
 
     private IReadOnlyList<DialogueLine> _script;
@@ -92,10 +91,6 @@ public partial class DialogueBox : Node2D
             _lines[i].Position = new Vector2(BoxX + FaceMargin + FaceSize + FaceMargin, BoxY + 26 + i * 30);
             AddChild(_lines[i]);
         }
-        _hint.Position = new Vector2(BoxX + BoxW - 20, BoxY + BoxH - 26);
-        _hint.ZIndex = 7;
-        _hint.SetText(UIText.DialogueHint);
-        AddChild(_hint);
     }
 
     /// <summary>The name shown when the boss speaks (the stage's boss).</summary>

@@ -212,7 +212,7 @@ public static partial class SelfTest
     {
         Eq(Loc.Get("a key nobody wrote"), "a key nobody wrote");
         var before = Loc.Current;
-        Loc.Set(Language.Spanish);   // no table yet: the language does not change
+        Loc.Set(Language.Japanese);   // no table yet: the language does not change
         Eq(Loc.Current, before);
         Eq(LanguageExt.FromCode(Language.PortugueseBrazil.Code()), (Language?)Language.PortugueseBrazil);
     }

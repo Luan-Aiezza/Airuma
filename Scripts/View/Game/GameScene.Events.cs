@@ -58,7 +58,7 @@ public partial class GameScene : Node2D
             _windEffect.Announce(); // the wind changed: show where it blows now
             _hud.PulseWind();
         }
-        if (boss.Health.Lives < _lastBossLives && boss.Health.Lives > 0)
+        if (boss.Health.Lives < _lastBossLives && boss.Health.Lives > 0 && World.Result == null)      // (not when a rehearsal of one attack has just ended: it would start the next one over the end screen)
         {
             // The first enraged attack is a bigger moment (other music, rings, a flash); any other is just a new attack.
             bool becomesEnraged = CurrentPhase.Enraged && !boss.Definition.PhaseFor(_lastBossLives).Enraged && World.Part == StagePart.Boss;
@@ -77,7 +77,16 @@ public partial class GameScene : Node2D
     private bool NoRestart => Difficulty != Difficulty.Easy && CountsRestarts;
     private bool CanRestart => !CountsRestarts || (!NoRestart && RunRestarts.Left > 0);
 
+    /// <summary>When the end screen appeared, and how long it ignores the keys and clicks: a player who is mashing Z or X when the boat goes down must not skip it, or burn a restart, by accident.</summary>
+    private double _endShownAt;
+    private const double EndInputLock = 0.7;
+    private bool EndInputReady => _clock - _endShownAt >= EndInputLock;
+
+    /// <summary>The score of a defeat that may still be followed by a restart: it is recorded only if the player leaves for the menu instead (see <see cref="DoExit"/>).</summary>
+    private int? _pendingScore;
+
     private ColorRect _gameOver;
+    private bool _gameOverKeyWasDown;
     private float _gameOverClock;
 
     private void BeginGameOver()
@@ -88,6 +97,7 @@ public partial class GameScene : Node2D
         _gameOver.AddChild(label);
         AddChild(_gameOver);
         _gameOverClock = 0;
+        _gameOverKeyWasDown = true;
         MusicPlayer.Instance?.Play(MusicPlayer.Theme.GameOver);
     }
 
@@ -95,14 +105,22 @@ public partial class GameScene : Node2D
     {
         _gameOverClock += dt;
         _gameOver.Color = new Color(0, 0, 0, System.Math.Min(1, _gameOverClock / 1.2f));
-        bool skip = _gameOverClock > 2.0f && (KeyDown(Key.Enter) || KeyDown(Key.KpEnter) || KeyDown(Key.Escape) || KeyDown(Key.Z) || KeyDown(Key.Space));
+        // (a fresh press: a key still held from the fight does not skip it)
+        bool down = KeyDown(Key.Enter) || KeyDown(Key.KpEnter) || KeyDown(Key.Escape) || KeyDown(Key.Z) || KeyDown(Key.Space);
+        bool skip = _gameOverClock > 2.0f && down && !_gameOverKeyWasDown;
+        _gameOverKeyWasDown = down;
         if (_gameOverClock >= 5.5f || skip) DoExit();
     }
 
     private void Finish(GameResult result)
     {
-        // Practice runs (of a boss or of a stage) are not recorded.
-        bool newRecord = PracticePhase == null && !StagePractice && HighScore.Submit(World.Score, result == GameResult.Victory, Difficulty);
+        // Practice runs (of a boss or of a stage) are not recorded. A run is recorded when it really ends: a victory, a defeat with no restart left, or a defeat from which the player goes to the menu
+        // (a defeat that is followed by a restart is not: the attempt is thrown away, so that the table does not fill with the attempts of one run).
+        bool recorded = PracticePhase == null && !StagePractice;
+        bool endOfRun = result == GameResult.Victory || !CanRestart;
+        bool newRecord = false;
+        if (recorded && endOfRun) { newRecord = HighScore.Submit(World.Score, result == GameResult.Victory, Difficulty); _pendingScore = null; }
+        else if (recorded) { _pendingScore = World.Score; newRecord = World.Score > HighScore.Current; }
         _hud.HideAttackName();
         MusicPlayer.Instance?.Stop(2.0f);
         if (result == GameResult.Defeat && CountsRestarts && (NoRestart || RunRestarts.Left == 0))
@@ -114,6 +132,7 @@ public partial class GameScene : Node2D
         }
         _hud.ShowEnd(result, World.Score, newRecord, CountsRestarts ? RunRestarts.Left : -1);
         _hud.SelectEnd(CanRestart ? GameHud.Control.Restart : GameHud.Control.Menu);
+        _endShownAt = _clock;
         _hud.Say(result == GameResult.Victory ? UIText.SayVictory : UIText.SayDefeat);
         _input.EndAll();
     }

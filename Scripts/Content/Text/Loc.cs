@@ -1,26 +1,27 @@
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 
 /// <summary>The languages the game can be played in.</summary>
-public enum Language { PortugueseBrazil, English, Spanish }
+public enum Language { PortugueseBrazil, English, Spanish, Japanese }
 
 public static class LanguageExt
 {
     /// <summary>The code stored in the settings file.</summary>
     public static string Code(this Language language) => language switch
     {
-        Language.English => "en", Language.Spanish => "es", _ => "pt-BR",
+        Language.English => "en", Language.Spanish => "es", Language.Japanese => "ja", _ => "pt-BR",
     };
 
     /// <summary>The name of the language in that language itself (what a language menu shows).</summary>
     public static string NativeName(this Language language) => language switch
     {
-        Language.English => "English", Language.Spanish => "Español", _ => "Português",
+        Language.English => "English", Language.Spanish => "Español", Language.Japanese => "日本語", _ => "Português",
     };
 
     public static Language? FromCode(string code) => code switch
     {
-        "pt-BR" or "pt" => Language.PortugueseBrazil, "en" => Language.English, "es" => Language.Spanish, _ => null,
+        "pt-BR" or "pt" => Language.PortugueseBrazil, "en" => Language.English, "es" => Language.Spanish, "ja" => Language.Japanese, _ => null,
     };
 }
 
@@ -39,6 +40,24 @@ public static class Loc
     {
         [Language.English] = TextsEn.Table,
         [Language.PortugueseBrazil] = TextsPtBr.Table,
+        [Language.Spanish] = TextsEs.Table,
+    };
+
+    /// <summary>The languages in the order the Options menu goes through them.</summary>
+    public static readonly Language[] Order = { Language.PortugueseBrazil, Language.English, Language.Spanish };
+
+    /// <summary>The next language (or the one before, with a negative step) among those that have a table, going round.</summary>
+    public static Language Step(Language from, int step)
+    {
+        var list = Order.Where(Tables.ContainsKey).ToList();
+        int i = list.IndexOf(from);
+        return list[((i < 0 ? 0 : i) + step % list.Count + list.Count) % list.Count];
+    }
+
+    /// <summary>The language that goes with the language of the computer (English for any other).</summary>
+    public static Language FromSystem(string localeLanguage) => localeLanguage switch
+    {
+        "pt" => Language.PortugueseBrazil, "es" => Language.Spanish, "ja" => Language.Japanese, _ => Language.English,
     };
 
     /// <summary>The language of the game. Portuguese (Brazil) until the player picks another.</summary>
@@ -61,6 +80,8 @@ public static class Loc
         var cfg = new ConfigFile();
         if (cfg.Load(SettingsPath) == Error.Ok && cfg.HasSectionKey(Section, Key) && LanguageExt.FromCode((string)cfg.GetValue(Section, Key)) is Language saved)
             Set(saved);
+        else
+            Set(Tables.ContainsKey(FromSystem(OS.GetLocaleLanguage())) ? FromSystem(OS.GetLocaleLanguage()) : Language.English);          // the first time: the language of the computer
     }
 
     /// <summary>Changes the language and remembers the choice.</summary>

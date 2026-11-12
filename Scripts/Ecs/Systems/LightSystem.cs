@@ -48,11 +48,12 @@ public static class LightSystem
     /// A prize for the score, a spare lantern (a bomb) or a spare boat (a life), enters from the top of the picture and sinks slowly.
     /// If it is missed it comes round again at the top, so it can still be gathered.
     /// </summary>
-    public static void SpawnReward(LightItem[] items, LightKind kind, float x, float y = RewardEntryY)
+    public static bool SpawnReward(LightItem[] items, LightKind kind, float x, float y = RewardEntryY)
     {
         int i = Array.FindIndex(items, it => !it.IsActive);
-        if (i < 0) return;
+        if (i < 0) return false;
         items[i] = new LightItem { Kind = kind, IsActive = true, Position = new Vector2(x, y), Velocity = new Vector2(0, RewardSpeed), Value = 1, Age = 0 };
+        return true;
     }
 
     public const float RewardEntryY = -20;

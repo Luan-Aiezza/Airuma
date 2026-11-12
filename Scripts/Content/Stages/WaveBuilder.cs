@@ -18,10 +18,14 @@ public static class WaveBuilder
 
     public static List<EnemySpec> Cat(params List<EnemySpec>[] parts) => parts.SelectMany(p => p).ToList();
 
-    /// <summary>Enemies one after another from the same spot, following the same sway.</summary>
+    /// <summary>How near the edge of the field the middle of a spirit may sway: farther than half of it, so that it is never cut by the edge (and can be hit all the way).</summary>
+    public const float EdgeMargin = 36, FieldWidth = 600;
+
+    /// <summary>Enemies one after another from the same spot, following the same sway (it is made narrower if it would take them out of the field).</summary>
     public static List<EnemySpec> Column(SpiritKind kind, int count, float x, float start, float interval,
                                           float speed = 150, float amplitude = 70, float frequency = 2.2f, float phase = 0, List<ScheduledPattern> shots = null)
     {
+        amplitude = MathF.Min(amplitude, MathF.Max(0, MathF.Min(x - EdgeMargin, FieldWidth - EdgeMargin - x)));
         return Enumerable.Range(0, count).Select(i => new EnemySpec
         {
             Time = start + i * interval, Kind = kind, Position = new Vector2(x, Top),

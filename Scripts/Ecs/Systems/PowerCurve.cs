@@ -26,6 +26,9 @@ public static class PowerCurve
     /// <summary>Level 3 needs this many times all the light that stage 1 can give, so that even gathering every light of stage 1 gets the boat only to level 2. The second stage tops it up.</summary>
     public const double Level3OfStageOne = 1.25;
 
+    /// <summary>The share of a power item's value that becomes energy: the items give 40% less than they are worth, so the weapon grows slowly (the cards that make the light worth more start from here).</summary>
+    public const float LightPower = 0.6f;
+
     /// <summary>The share of the energy for level 3 that is enough for level 2.</summary>
     public const double Level2Share = 0.35;
 

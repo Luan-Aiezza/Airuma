@@ -123,6 +123,7 @@ public partial class GameScene : Node2D
             case 3:
                 _epilogue.QueueFree(); _epilogue = null;
                 _epilogueDone = true;                   // the end screen takes over
+                if (!Demo && PracticePhase == null && !StagePractice) { if (EasyEnds) Achievements.BadEndingSeen(); else Achievements.TrueEndingSeen(); }
                 FadeVeil(new Color(0, 0, 0, 0), 0.8f);
                 break;
         }

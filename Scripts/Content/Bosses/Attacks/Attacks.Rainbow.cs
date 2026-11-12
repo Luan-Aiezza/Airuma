@@ -97,9 +97,11 @@ public static partial class Attacks
                     float x = w == 0 ? first : (first < c.MiddleX ? PatternContext.Rand(first + 220, c.Right - 60) : PatternContext.Rand(c.Left + 60, first - 220));
                     int drops = 6;
                     for (int k = 0; k < drops; k++)
-                        c.Fire(new Vector2(x + (k - (drops - 1) / 2f) * 38, -14), 90, new Shot(RainbowOrbs[(k + w * 3) % 7], 150).Sized(0.95f).Steady());
+                        c.Fire(new Vector2(x + (k - (drops - 1) / 2f) * 38, -14), 90, new Shot(RainbowOrbs[(k + w * 3) % 7], c.Difficulty.Pick(150f, 165f, 185f)).Sized(0.95f).Steady());
                 }
             }).After(0.6f),
+            // 3) (normal and hard) pinwheels of the seven colours from the body that is on the left, every few seconds, besides the walls: 8 bullets in normal, 12 in hard
+            Pat.Every(3.4f, c => PinwheelRing(c, c.Origin, c.Difficulty.Pick(8, 8, 12), c.Count * 8f, RainbowOrbs, 90, 0.8f, c.Count % 2 == 0 ? 60 : -60)).After(1.6f).OnlyOnHard(),
         })
         .Pressured(4.0f);
 
@@ -137,16 +139,15 @@ public static partial class Attacks
 
     /// <summary>
     /// The tremor between two worlds (enraged, fused): the one body stamps, the screen shakes almost without pause while the drops of the falls pour down; columns of bullets come in from the top (the sky) and from the
-    /// bottom (the water), stop in the middle and turn on the boat; layered fans of the seven colours, and a roar throws the boat back.
+    /// bottom (the water), stop in the middle and turn on the boat; layered fans of the seven colours. (No roar: it threw the boat about and made the attack too hard.)
     /// </summary>
     public static BossPhase TwoWorlds() => Attack("AttackTwoWorlds", BossMovementType.Stationary, Fusion, fused: true,
         quake: new QuakeSpec { IsActive = true, Interval = 1.0f, Duration = 4.2f, Intensity = 1.4f },
-        roar: new RoarSpec { IsActive = true, Interval = 4.6f, Push = 220, Seconds = 0.5f },
         patterns: new[]
         {
-            // 1) the drops, while the earth shakes   2) columns from the sky and from the water that stop in the middle and turn on the boat   3) fans of the seven colours
+            // 1) the drops, while the earth shakes   2) columns from the sky and from the water that stop in the middle and turn on the boat (not so often: the boat needs time to read them)   3) fans of the seven colours
             Pat.Every(0.24f, c => Pat.Rain(c, Edge.Top, 2, 5, RainDrop(300))).OnQuake(),
-            Pat.Every(2.2f, c =>
+            Pat.Every(3.8f, c =>
             {
                 bool sky = c.Count % 2 == 0;
                 for (int k = 0; k < 8; k++)
@@ -162,11 +163,10 @@ public static partial class Attacks
 
     /// <summary>
     /// The guardian (enraged, fused): everything of the border at once, from the one body that has two halves. Lasers turn out of each half, one way and the other; layered rings burst and turn into pinwheels and flowers;
-    /// fans of the seven colours go out from each half in turns; the galaxies turn; the tremor and the roar.
+    /// fans of the seven colours go out from each half in turns; the galaxies turn; the tremor. (The roar is Ukhumo's alone.)
     /// </summary>
     public static BossPhase Guardian() => Attack("AttackGuardian", BossMovementType.Stationary, Fusion, fused: true,
         quake: new QuakeSpec { IsActive = true, Interval = 5.0f, Duration = 2.2f, Intensity = 1.1f },
-        roar: new RoarSpec { IsActive = true, Interval = 6.5f, Push = 220, Seconds = 0.5f },
         patterns: new[]
         {
             // 1) lasers turning out of each half, one way and the other   2) the galaxies   3) pinwheels and flowers

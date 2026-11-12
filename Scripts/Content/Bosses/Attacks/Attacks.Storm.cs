@@ -92,30 +92,12 @@ public static partial class Attacks
         .Pressured(2.5f);
 
     /// <summary>
-    /// The sky falls: curtains of hail with two gaps, one the mirror of the other, while constellations hang about the field: little triangles of stars and, in the middle, tall triangles with a long edge that goes
-    /// straight down the middle of the field; and, from the sides, a few slow bolts of lightning.
+    /// The sky falls: curtains of hail with two gaps, one the mirror of the other, and, from the sides, many slow bolts of lightning (no constellations of stars in the middle any more).
     /// </summary>
     public static BossPhase SkyFalls() => Attack("AttackSkyFalls", BossMovementType.Stationary, Centre, patterns: new[]
     {
         Pat.Every(1.4f, c => Pat.Wall(c, Edge.Top, 24, 0.27f + 0.08f * Pat.Wave(c.Time, 7), 150, new Shot(BulletStyle.Hail, 105).Sized(1.9f), mirror: true)),
-        Pat.Every(4.8f, c =>
-        {
-            if (c.Count % 2 == 0)
-                Pat.Constellation(c, c.Origin, 3, c.Count * 31f, 1, new Shot(BulletStyle.Star, 170).Constellation(240).Blinking(1.2f));
-            else
-            {
-                float x = c.MiddleX + (c.Count % 4 == 1 ? -34 : 34);
-                var star = new Shot(BulletStyle.Star, 100).Blinking(1.2f);
-                var slots = new[]
-                {
-                    Pat.StarTo(c, c.Origin, new Vector2(x, 200), star),
-                    Pat.StarTo(c, c.Origin, new Vector2(x, 560), star),
-                    Pat.StarTo(c, c.Origin, new Vector2(x + (c.Count % 4 == 1 ? 90 : -90), 380), star),
-                };
-                BulletSystem.LinkStars(c.Pool, slots, 1);
-            }
-        }).After(1.5f),
-        Pat.Every(1.6f, c => Pat.Rain(c, c.Count % 2 == 0 ? Edge.Left : Edge.Right, 1, 30, new Shot(c.Count % 4 < 2 ? BulletStyle.BoltYellow : BulletStyle.BoltBlue, 75))),
+        Pat.Every(1.3f, c => Pat.Rain(c, c.Count % 2 == 0 ? Edge.Left : Edge.Right, 3, 34, new Shot(c.Count % 4 < 2 ? BulletStyle.BoltYellow : BulletStyle.BoltBlue, 75))),
     })
         .Pressured(1.0f);
 

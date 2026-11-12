@@ -106,7 +106,7 @@ public partial class GameScene : Node2D
     /// <summary>Asked for when the stage is won in a normal run and another follows: the carry for it (the scene is replaced by Main).</summary>
     public event Action<RunCarry> NextStage;
 
-    public GameScene(int? practicePhase = null, Difficulty difficulty = Difficulty.Normal, StageDefinition stage = null, RunCarry carry = null, bool stagePractice = false)
+    public GameScene(int? practicePhase = null, Difficulty difficulty = Difficulty.Normal, StageDefinition stage = null, RunCarry carry = null, bool stagePractice = false, WeaponStyle weapon = WeaponStyle.Stream)
     {
         StagePractice = stagePractice;
         Stage = stage ?? Stages.One;
@@ -115,7 +115,7 @@ public partial class GameScene : Node2D
         _burst = new BurstEffect(Stage.Spirits);
         PracticePhase = practicePhase;
         Difficulty = difficulty;
-        World = new World(practicePhase, difficulty: difficulty, stage: Stage, carry: carry, stagePractice: stagePractice);
+        World = new World(practicePhase, difficulty: difficulty, stage: Stage, carry: carry, stagePractice: stagePractice, weapon: weapon);
         _rng.Randomize();
     }
 
@@ -232,8 +232,11 @@ public partial class GameScene : Node2D
         if (_gameOver != null) UpdateGameOver(fdt);
         if (World.Result is GameResult result && !_hud.IsEndVisible && _gameOver == null)
         {
-            if (result == GameResult.Victory && !_progressSaved && PracticePhase == null && !StagePractice && !Demo) { _progressSaved = true; Progress.MarkCleared(Stages.IndexOf(Stage)); }
-            if (result == GameResult.Victory && PracticePhase == null && !StagePractice && _endSequence == EndSequence.Done && Stages.After(Stage) != null && !EasyEnds)
+            if (result == GameResult.Victory && !_progressSaved && PracticePhase == null && !StagePractice && !Demo) { _progressSaved = true; Progress.MarkCleared(Stages.IndexOf(Stage)); Achievements.BossDefeated(Stages.IndexOf(Stage), Difficulty); }
+            // Rehearsing one attack in the middle of the fight ends with that attack: no closing talk, no great light, no epilogue (the boss is not beaten).
+            bool oneAttackOnly = result == GameResult.Victory && PracticePhase > 1 && World.Boss.Health.Lives > 0;
+            if (oneAttackOnly) Finish(result);
+            else if (result == GameResult.Victory && PracticePhase == null && !StagePractice && _endSequence == EndSequence.Done && Stages.After(Stage) != null && !EasyEnds)
             {
                 // The stage is won; a stage that ends in a great light goes white and then dark first; the boss leaves a gift (one choice of cards), and then the river goes on.
                 if (Stage.LightTransition && !_lightDone) _lightDone = RunLightTransition(fdt);
@@ -299,6 +302,7 @@ public partial class GameScene : Node2D
     {
         if (_exited) return;
         _exited = true;
+        if (_pendingScore is int pending) { HighScore.Submit(pending, false, Difficulty); _pendingScore = null; }
         MusicPlayer.Instance?.Stop();
         _input.EndAll();
         Exit?.Invoke();
@@ -308,6 +312,7 @@ public partial class GameScene : Node2D
     {
         if (!CanRestart) return;
         if (CountsRestarts) RunRestarts.Used++;
+        _pendingScore = null;                    // (the attempt that is left behind is not recorded)
         SfxPlayer.Instance?.Play(SfxBank.Sound.MenuSelect);
         World.Reset();
         _picker.Hide();

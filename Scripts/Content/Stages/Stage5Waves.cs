@@ -67,7 +67,7 @@ public static class Stage5Waves
                      Sentries(Gunner, V(630, 60), new[] { V(500, 150) }, 4.3f, 0.8f, 8, SpiritFire.Rainbow),
                      SideColumn(Swarm, 7, true, 130, 11, 0.4f, amplitude: 50))),
         // 9. THE LAST PAIR, with a crowd of the little spirits and gunners round them.
-        new Wave(Cat(Pair(0, SpiritFire.LeftOfSecondPair, SpiritFire.RightOfSecondPair),
+        new Wave(Cat(Pair(0, SpiritFire.LeftOfLastPair, SpiritFire.RightOfLastPair),
                      DancingPairs(Swarm, 8, 300, 250, 3, 0.4f, amplitude: 130), Cross(Swarm, 8, 5, 0.38f), Cross(Swarm, 8, 14, 0.38f),
                      Wall(Swarm, 12, 30, 570, new[] { 3, 4 }, 9), Wall(Swarm, 12, 30, 570, new[] { 8, 9 }, 12.5f),
                      Ring(Swarm, 10, V(180, -90), 70, 7), Ring(Swarm, 10, V(420, -90), 70, 10), Vee(Swarm, 7, 300, 15, spacing: 40),

@@ -8,6 +8,8 @@ public static partial class SelfTest
 {
     private static void RegisterWaves(Action<string, Action> T)
     {
+        T("NoSwayingColumnLeavesTheFieldSoThatItIsCutByTheEdge", NoSwayingColumnLeavesTheFieldSoThatItIsCutByTheEdge);
+        T("TheRedSpiritsOfTheLateWavesAreWorseThanTheEarlierOnes", TheRedSpiritsOfTheLateWavesAreWorseThanTheEarlierOnes);
         T("TheThreeKindsBehaveAsDescribed", TheThreeKindsBehaveAsDescribed);
         T("TheFormationsDiffer", TheFormationsDiffer);
         T("EveryoneEntersFromOutsideThePlayArea", EveryoneEntersFromOutsideThePlayArea);
@@ -80,5 +82,29 @@ public static partial class SelfTest
             t += 1f / 60;
         }
         return t;
+    }
+
+    private static void NoSwayingColumnLeavesTheFieldSoThatItIsCutByTheEdge()
+    {
+        for (int n = 0; n < Stages.All.Count; n++)
+            foreach (var wave in Stages.All[n].Waves)
+                foreach (var spawn in wave.Spawns.Where(sp => sp.Path.Kind == EnemyPathKind.Sine))
+                {
+                    True(spawn.Position.X - spawn.Path.Amplitude >= WaveBuilder.EdgeMargin - 0.01f, $"stage {n + 1}: a column at x={spawn.Position.X} sways out at the left");
+                    True(spawn.Position.X + spawn.Path.Amplitude <= WaveBuilder.FieldWidth - WaveBuilder.EdgeMargin + 0.01f, $"stage {n + 1}: a column at x={spawn.Position.X} sways out at the right");
+                }
+    }
+
+    private static void TheRedSpiritsOfTheLateWavesAreWorseThanTheEarlierOnes()
+    {
+        // the series of shots of the first red spirit of a wave, as a fingerprint (the lengths of its patterns and rests)
+        string Print(StageDefinition stage, int wave) => string.Join(",", stage.Waves[wave].Spawns.First(sp => sp.Kind == SpiritKind.Heavy).Patterns.Select(p => p.Duration));
+        // stage 5: the first pair (wave 5), the second (7) and the last (9) are three different series
+        var five = new[] { Print(Stages.Five, 4), Print(Stages.Five, 6), Print(Stages.Five, 8) };
+        Eq(five.Distinct().Count(), 3, "stage 5: three pairs, three series");
+        // stage 6: the pairs (5 and 9), the trios (7 and 10) and the lone ones (3 and 8) do not repeat
+        True(Print(Stages.Six, 4) != Print(Stages.Six, 8), "stage 6: the second pair is not the first");
+        True(Print(Stages.Six, 6) != Print(Stages.Six, 9), "stage 6: the last trio is not the first");
+        True(Print(Stages.Six, 2) != Print(Stages.Six, 7), "stage 6: the lone spirit that comes late is not the first");
     }
 }

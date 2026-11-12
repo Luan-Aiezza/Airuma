@@ -56,6 +56,8 @@ public partial class World
     public readonly int? PracticePhase;
     /// <summary>How many bullets the enemies fire, and how hard the wind blows (see <see cref="global::Difficulty"/>).</summary>
     public readonly Difficulty Difficulty;
+    /// <summary>How the boat attacks (chosen after the difficulty).</summary>
+    public readonly WeaponStyle Weapon;
     /// <summary>Boss lives at the start of the run: all of them in a normal run, fewer when practising a later attack.</summary>
     public int StartingBossLives => Definition.Boss.Lives - (PracticePhase ?? 1) + 1;
     /// <summary>Normal runs offer cards; boss practice never does.</summary>
@@ -105,8 +107,9 @@ public partial class World
     /// <summary>What the run brings from the stage before (null in the first stage); applied again whenever the stage restarts.</summary>
     public readonly RunCarry Carry;
 
-    public World(int? practicePhase = null, bool withCards = true, ulong? seed = null, Difficulty difficulty = Difficulty.Easy, StageDefinition stage = null, RunCarry carry = null, bool stagePractice = false, bool? noLifeLoss = null)
+    public World(int? practicePhase = null, bool withCards = true, ulong? seed = null, Difficulty difficulty = Difficulty.Easy, StageDefinition stage = null, RunCarry carry = null, bool stagePractice = false, bool? noLifeLoss = null, WeaponStyle weapon = WeaponStyle.Stream)
     {
+        Weapon = weapon;
         NoLifeLoss = noLifeLoss ?? (practicePhase.HasValue || stagePractice);
         Carry = carry;
         Definition = stage ?? Stages.One;
@@ -189,8 +192,13 @@ public partial class World
         _score.BombPrizes = 0; _score.LifePrizes = 0;
         while (carry.Score >= ScoreSystem.BombScore(_score.BombPrizes)) _score.BombPrizes++;
         while (carry.Score >= ScoreSystem.LifeScore(_score.LifePrizes)) _score.LifePrizes++;
-        Player.Health.Lives = Math.Max(1, Math.Min(MaxLives, carry.Lives));
-        Player.Bomb.BombsLeft = Math.Max(0, Math.Min(3, carry.Bombs));
+        // the spare lanterns and boats that were still falling at the end of the stage are given now (what does not fit becomes points)
+        int lives = Math.Max(1, carry.Lives) + carry.PendingLives, bombs = Math.Max(0, carry.Bombs) + carry.PendingBombs;
+        if (lives > MaxLives) { _score.Points += (lives - MaxLives) * ScoreSystem.PointsPerSpareLife; lives = MaxLives; }
+        if (bombs > MaxBombs) { _score.Points += (bombs - MaxBombs) * ScoreSystem.PointsPerSpareBomb; bombs = MaxBombs; }
+        Player.Health.Lives = lives;
+        Player.Bomb.BombsLeft = bombs;
+        Player.Shield = Math.Max(0, carry.Shield);
         Player.Energy = carry.Energy;
         Player.Weapon.PowerLevel = PowerCurve.Level(Player.Energy);
     }
@@ -200,6 +208,22 @@ public partial class World
         var w = Wind;
         WindSystem.Randomize(ref w);
         Wind = w;
+    }
+
+    // The foe that the boat hit last (the amulets bend to it): where it was and how long ago.
+    private Vector2? _lastHit;
+    private float _lastHitAge = 99;
+    private readonly Dictionary<int, int> _healthSeen = new Dictionary<int, int>();
+
+    /// <summary>A spirit that lost health since the last step was hit: the amulets bend to it.</summary>
+    private void NoteTheFoeHit()
+    {
+        foreach (var e in Enemies)
+        {
+            if (_healthSeen.TryGetValue(e.Id, out int before) && e.Health < before) { _lastHit = e.Position; _lastHitAge = 0; }
+            _healthSeen[e.Id] = e.Health;
+        }
+        if (_healthSeen.Count > 400) _healthSeen.Clear();
     }
 
     private void AddScore(int points) => ScoreSystem.Add(ref _score, points, Effects.ScoreMultiplier, Lights);
@@ -268,7 +292,7 @@ public partial class World
 
         // 1. Input and spawners
         Player.Input = input;
-        BulletSystem.UpdatePlayerWeapons(Player, Bullets, delta, Effects);
+        BulletSystem.UpdatePlayerWeapons(Player, Bullets, delta, Effects, Weapon);
         if (bossActive) BulletSystem.UpdateBossWeapons(Boss, Player, Bullets, delta, Difficulty, Field, TwinBody, Slashes);
         foreach (var enemy in Enemies) EnemySystem.Fire(enemy, Player.Transform.Position, Bullets, PlayArea, delta, Difficulty);
 
@@ -309,7 +333,7 @@ public partial class World
         GatherLights(delta);
         CardSystem.MendWard(Player, Effects, delta);
         Enemies.RemoveAll(e => EnemySystem.IsOffScreen(e, PlayArea));
-        BulletSystem.MoveBullets(Bullets, PlayArea, delta, windVector, Player, BulletSystem.HomingTargets(Effects, Enemies, Boss, bossActive, TwinBody));
+        BulletSystem.MoveBullets(Bullets, PlayArea, delta, windVector, Player, BulletSystem.HomingTargets(Effects, Enemies, Boss, bossActive, TwinBody, Weapon == WeaponStyle.Homing), _lastHitAge < 1.0f ? _lastHit : (Vector2?)null);
 
         // 3. Bomb, after everything has moved
         bool bombWasLit = Player.Bomb.IsActive;
@@ -317,9 +341,11 @@ public partial class World
         if (!bombWasLit && Player.Bomb.IsActive) _events.Add(WorldEvent.BombFired());
 
         // 4. Collisions and health
+        _lastHitAge += delta;
         DefeatSpirits(delta, bossActive);
         int bossHits = CombatSystem.ProcessCollisions(Bullets, Player, Boss, bossActive, Enemies, TwinBody);
-        if (bossHits > 0) _events.Add(WorldEvent.BossHit());
+        if (bossHits > 0) { _events.Add(WorldEvent.BossHit()); _lastHit = Boss.Transform.Position; _lastHitAge = 0; }
+        NoteTheFoeHit();
         AddScore(bossHits * ScoreSystem.PointsPerHit);
         if (Player.ShieldBroke)
         {
@@ -342,8 +368,8 @@ public partial class World
     {
         float gathered = LightSystem.Update(Lights, Player.Transform.Position, Field, delta, out int bombs, out int lives, Effects.MagnetMultiplier, Collecting);
         if (gathered > 0) _events.Add(WorldEvent.LightGathered());
-        float spare = PowerSystem.AddEnergy(Player, gathered * Effects.LightValueMultiplier, _events);
-        if (spare > 0) AddScore((int)spare * ScoreSystem.PointsPerSpareLight);
+        float spare = PowerSystem.AddEnergy(Player, gathered * PowerCurve.LightPower * Effects.LightValueMultiplier, _events);
+        if (spare > 0) AddScore((int)MathF.Round(spare / PowerCurve.LightPower * ScoreSystem.PointsPerSpareLight));      // (the surplus is in energy: it is paid by the light it came from)
         for (int r = 0; r < bombs; r++)
         {
             if (Player.Bomb.BombsLeft < 3) Player.Bomb.BombsLeft++; else AddScore(ScoreSystem.PointsPerSpareBomb);
@@ -398,7 +424,7 @@ public partial class World
         }
         if (Player.Health.Lives < livesBefore)
         {
-            PowerSystem.LoseEnergy(Player, Lights, placeBefore);
+            PowerSystem.LoseEnergy(Player, Lights, placeBefore, PowerCurve.LightPower * Effects.LightValueMultiplier);
             // Like in Touhou: after losing a life the bag of bombs is full again.
             Player.Bomb.BombsLeft = Math.Max(Player.Bomb.BombsLeft, Settings.Bombs);
             _events.Add(WorldEvent.PlayerHit());

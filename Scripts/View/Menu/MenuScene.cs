@@ -15,7 +15,7 @@ public partial class MenuScene : Node2D
 	public enum ActionKind { Start, Practice, PracticeStages, PracticeBosses, Scores, MusicRoom, Config, Quit, Rehearse, RehearseStage, Back, Choose, Setting, OpenControls, RestoreSettings, KeyBind, RestoreKeys, Track }
 
 	/// <summary>The settings of the Config screen (the Phase of an entry of kind Setting).</summary>
-	public enum SettingId { Lives, Bombs, Music, Sfx, Mode }
+	public enum SettingId { Lives, Bombs, Music, Sfx, Mode, Language }
 
 	public struct Entry
 	{
@@ -34,8 +34,8 @@ public partial class MenuScene : Node2D
 
 	// MARK: Events
 
-	/// <summary>Raised to begin a full run on the chosen difficulty.</summary>
-	public event Action<Difficulty> StartGame;
+	/// <summary>Raised to begin a full run on the chosen difficulty and with the chosen attack of the boat.</summary>
+	public event Action<Difficulty, WeaponStyle> StartGame;
 	/// <summary>Raised when the player chooses to close the game.</summary>
 	public event Action Quit;
 	/// <summary>Raised to begin practising: the stage (0...) and the attack (1..6) of its boss, or 0 for the whole stage from the start.</summary>
@@ -61,6 +61,7 @@ public partial class MenuScene : Node2D
 	/// <summary>The key of an action is being chosen: the next key pressed is the one (Escape gives up).</summary>
 	private bool _capturing;
 	private readonly Sprite2D _marker = new();
+	private const float MarkerScale = 4.5f;
 	private PixelLabel _notice;
 	private float _clock;
 	private float _uiFade = 1;
@@ -101,8 +102,8 @@ public partial class MenuScene : Node2D
 		_hint.SetText(UIText.MenuHint);
 		_ui.AddChild(_hint);
 
-		_marker.Texture = HudArt.FlameIcon(true).ToTexture();
-		_marker.Scale = new Vector2(5, 5);
+		_marker.Texture = IconArt.MakeMarker().ToTexture();          // the star of the icon, pulsing, marks the chosen line
+		_marker.Scale = new Vector2(MarkerScale, MarkerScale);
 		_ui.AddChild(_marker);
 
 		_notice = new PixelLabel(PixelLabel.Style.MenuHeading, 4, PixelLabel.Align.Center) { Position = At(Layout.SceneSize.X - 330, 660), Modulate = new Color(1, 1, 1, 0) };
@@ -180,7 +181,7 @@ public partial class MenuScene : Node2D
 				{
 					new(UIText.CfgLives, ActionKind.Setting, (int)SettingId.Lives), new(UIText.CfgBombs, ActionKind.Setting, (int)SettingId.Bombs),
 					new(UIText.CfgMusic, ActionKind.Setting, (int)SettingId.Music), new(UIText.CfgSfx, ActionKind.Setting, (int)SettingId.Sfx),
-					new(UIText.CfgMode, ActionKind.Setting, (int)SettingId.Mode), new(UIText.CfgControls, ActionKind.OpenControls),
+					new(UIText.CfgMode, ActionKind.Setting, (int)SettingId.Mode), new(UIText.CfgLanguage, ActionKind.Setting, (int)SettingId.Language), new(UIText.CfgControls, ActionKind.OpenControls),
 					new(UIText.CfgDefaults, ActionKind.RestoreSettings), new(UIText.CfgExit, ActionKind.Back),
 				};
 				break;
@@ -203,7 +204,8 @@ public partial class MenuScene : Node2D
 				break;
 		}
 		_capturing = false;
-		_hint.SetText(newScreen is Screen.Config or Screen.Controls ? UIText.CfgHint : UIText.MenuHint);
+		_hint.SetText(UIText.MenuHint);
+		_hint.Visible = newScreen == Screen.Main;          // the keys are told on the main menu only: in the others the player knows them already
 		Rebuild();
 	}
 
@@ -447,6 +449,7 @@ public partial class MenuScene : Node2D
 			SettingId.Bombs => $"< {Settings.Bombs} >",
 			SettingId.Music => $"< {Settings.Music * 10}% >",
 			SettingId.Sfx => $"< {Settings.Sfx * 10}% >",
+			SettingId.Language => $"< {Loc.Current.NativeName()} >",
 			_ => Main.FullscreenChosen ? $"< {UIText.CfgFullscreen} >" : $"< {UIText.CfgWindowed} >",
 		};
 
@@ -471,9 +474,21 @@ public partial class MenuScene : Node2D
 			case SettingId.Music: Settings.SetMusic(Settings.Music + delta); break;
 			case SettingId.Sfx: Settings.SetSfx(Settings.Sfx + delta); SfxPlayer.Instance?.Play(SfxBank.Sound.MenuMove); break;
 			case SettingId.Mode: Main.SetFullscreen(!Main.FullscreenChosen); break;
+			case SettingId.Language: ChangeLanguage(delta); return;
 		}
 		if ((SettingId)Entries[Selection].Phase is SettingId.Lives or SettingId.Bombs or SettingId.Music) SfxPlayer.Instance?.Play(SfxBank.Sound.MenuMove);
 		RefreshValues();
+	}
+
+	/// <summary>Goes to the next (or the previous) language: every text of the screen is written again in it, and the line stays where it was.</summary>
+	private void ChangeLanguage(int delta)
+	{
+		Loc.Choose(Loc.Step(Loc.Current, delta));
+		int line = Selection;
+		Show(CurrentScreen);
+		Selection = line;
+		SfxPlayer.Instance?.Play(SfxBank.Sound.MenuMove);
+		Rebuild();
 	}
 
 	/// <summary>Choosing a setting with Z or a click steps it up, going round to the start after the last value.</summary>
@@ -531,7 +546,7 @@ public partial class MenuScene : Node2D
 		switch (entry.Action)
 		{
 			case ActionKind.Start: Show(Screen.Difficulty); break;
-			case ActionKind.Choose: StartGame?.Invoke(entry.Level); break;
+			case ActionKind.Choose: OpenWeaponPicker(entry.Level); break;
 			case ActionKind.Practice: Show(Screen.PracticeKind); break;
 			case ActionKind.PracticeStages: Show(Screen.PracticeStages); break;
 			case ActionKind.PracticeBosses: Show(Screen.Practice); break;
@@ -549,6 +564,31 @@ public partial class MenuScene : Node2D
 			case ActionKind.RehearseStage: StartPractice?.Invoke(entry.Stage, entry.Phase); break;
 			case ActionKind.Back: Back(); break;
 		}
+	}
+
+	private WeaponPicker _weaponPicker;
+
+	/// <summary>After the difficulty, the choice of how the boat attacks (two boxes with the picture of each attack); the menu waits under it.</summary>
+	private void OpenWeaponPicker(Difficulty level)
+	{
+		if (_weaponPicker != null) return;
+		var picker = _weaponPicker = new WeaponPicker(Settings.Weapon);
+		_ui.Visible = false;
+		picker.Chosen += weapon =>
+		{
+			Settings.SetWeapon(weapon);
+			CloseWeaponPicker();
+			StartGame?.Invoke(level, weapon);
+		};
+		picker.Cancelled += () => { CloseWeaponPicker(); };
+		AddChild(picker);
+	}
+
+	private void CloseWeaponPicker()
+	{
+		_weaponPicker?.QueueFree();
+		_weaponPicker = null;
+		_ui.Visible = true;
 	}
 
 	/// <summary>Goes back one level (to the main menu); on the main menu it does nothing.</summary>
@@ -601,7 +641,8 @@ public partial class MenuScene : Node2D
 		// The flame pulses: up to 1.12 over 0.25 s, down to 0.94 over 0.3 s.
 		float phase = _clock % 0.55f;
 		float pulse = phase < 0.25f ? 0.94f + (1.12f - 0.94f) * phase / 0.25f : 1.12f + (0.94f - 1.12f) * (phase - 0.25f) / 0.3f;
-		_marker.Scale = new Vector2(5 * pulse, 5 * pulse);
+		_marker.Scale = new Vector2(MarkerScale * pulse, MarkerScale * pulse);
+		_marker.Modulate = new Color(1, 1, 1, 0.82f + 0.18f * (pulse - 0.94f) / 0.18f);
 
 		if (NoticeVisible)
 		{
@@ -616,6 +657,11 @@ public partial class MenuScene : Node2D
 	/// <summary>Keyboard: arrows (or W/S) move, Z / Return / Space choose, X / Escape go back. Acts when a key goes down.</summary>
 	public override void _UnhandledInput(InputEvent @event)
 	{
+		if (_weaponPicker != null)
+		{
+			if (_weaponPicker.Handle(@event)) GetViewport().SetInputAsHandled();
+			return;
+		}
 		if (_capturing)
 		{
 			if (@event is InputEventKey { Pressed: true, Echo: false } chosen) { Capture(chosen.Keycode); GetViewport().SetInputAsHandled(); }

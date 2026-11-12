@@ -25,7 +25,12 @@ public enum BulletStyle
     NoteGold, NotePink, NoteCyan, NoteBeamed,
     // the player's: the small golden bolts of the cards' fans (3 x 8, that point where they go), unlike the cyan bolts of the main stream
     FanBolt,
+    // the round, homing lights of the second attack of the boat (5 x 5)
+    HomingOrb,
 }
+
+/// <summary>How the boat attacks: Stream, the bolts straight up one after another (a lot of damage, but it has to be aimed); Homing, round lights that chase the foes (they always hit, for half the damage).</summary>
+public enum WeaponStyle { Stream, Homing }
 
 /// <summary>Dance: the bullet sways to one side and the other on a fixed beat (see BulletSystem.DanceBeat). Zigzag: it turns by its curve's degrees every fraction of a second, to one side and the other, like lightning. Constellation: it is a star that flies out, stops, hangs a while linked by thin lines to other stars, and then falls. Burst: a great stone that flies and, after a moment, breaks into a ring of small ones.</summary>
 public enum BulletBehavior
@@ -41,6 +46,8 @@ public enum BulletBehavior
     Polar,
     /// <summary>Slows evenly to a stop in `TurnInterval` seconds and then turns (by an angle more, towards the boat, or to a set heading) and sets off again at `TurnSpeed`; again, `TurnTimes` times. (Of the bullets of Touhou: the ones that stop, then turn.)</summary>
     Turn,
+    /// <summary>The boat's homing light, after the amulets of Reimu in Touhou 6: it leaves along a diagonal and, for its first two thirds of a second, bends to the foe that was hit last (or the nearest); then it flies straight.</summary>
+    Amulet,
 }
 
 /// <summary>Where a slash of the boss's claws is aimed: through the boat, at random, alternating from one side to the other, or from ANY direction (through the boat, at any angle).</summary>

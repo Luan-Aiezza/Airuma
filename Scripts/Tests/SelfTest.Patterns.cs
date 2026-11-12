@@ -39,6 +39,9 @@ public static partial class SelfTest
         T("APentagramFliesAsOneAndBursts", APentagramFliesAsOneAndBursts);
         T("EveryNewStyleOfBulletHasADrawing", EveryNewStyleOfBulletHasADrawing);
         T("EveryTalkHasItsTextsAndFitsTheBoxInBothLanguages", EveryTalkHasItsTextsAndFitsTheBoxInBothLanguages);
+        T("SpanishHasEveryTextAndItsMarksAreClosed", SpanishHasEveryTextAndItsMarksAreClosed);
+        T("TheColumnsOfTheWaningMoonNeverComeInFasterThanTheBoatCanRead", TheColumnsOfTheWaningMoonNeverComeInFasterThanTheBoatCanRead);
+        T("TheTideGrowsWithTheDifficulty", TheTideGrowsWithTheDifficulty);
     }
 
     /// <summary>Patterns at once, per attack, at the least, for stages 2 to 6.</summary>
@@ -267,6 +270,24 @@ public static partial class SelfTest
     }
 
     /// <summary>The boxes of the pause and the defeat are 120 art pixels wide (480 on the screen); their plaques, 46 and 48 (184 and 192); the texts must fit, with a margin, in every language.</summary>
+    /// <summary>Spanish: every key of Portuguese is there, the texts that are drawn can be (the font has the accents, the ñ and the inverted marks), and an inverted mark is closed.</summary>
+    private static void SpanishHasEveryTextAndItsMarksAreClosed()
+    {
+        var pt = Loc.TableOf(Language.PortugueseBrazil); var es = Loc.TableOf(Language.Spanish);
+        Eq(es.Count, pt.Count, "the same texts");
+        foreach (var key in pt.Keys) True(es.ContainsKey(key), $"es: {key}");
+        foreach (var (key, text) in es.Where(e => e.Value.Any(char.IsLetter)))
+        {
+            Eq(text.Count(c => c == '\u00BF'), text.Count(c => c == '?'), $"es {key}: every ¿ has its ?  ({text})");
+            True(text.Count(c => c == '\u00A1') <= text.Count(c => c == '!'), $"es {key}: every ¡ has its !  ({text})");
+        }
+        // changing the language from the options goes round Portuguese, English and Spanish
+        Eq(Loc.Step(Language.PortugueseBrazil, 1), Language.English); Eq(Loc.Step(Language.English, 1), Language.Spanish); Eq(Loc.Step(Language.Spanish, 1), Language.PortugueseBrazil);
+        Eq(Loc.Step(Language.PortugueseBrazil, -1), Language.Spanish);
+        // the language of the computer
+        Eq(Loc.FromSystem("es"), Language.Spanish); Eq(Loc.FromSystem("pt"), Language.PortugueseBrazil); Eq(Loc.FromSystem("fr"), Language.English);
+    }
+
     private static void TheTextsOfThePauseAndDefeatBoxesFitInsideThem()
     {
         const float boxInner = 480 - 32, plaqueInner = 184 - 16;
@@ -298,11 +319,34 @@ public static partial class SelfTest
             Eq(PortraitArt.Square(speaker, 1, Emotion.Neutral, 0).Width, 34, $"{speaker}: the empty frame");
     }
 
+    private static void TheColumnsOfTheWaningMoonNeverComeInFasterThanTheBoatCanRead()
+    {
+        var phase = Attacks.KillaWaning();
+        foreach (var level in new[] { Difficulty.Easy, Difficulty.Normal, Difficulty.Hard })
+            for (int seed = 0; seed < 40; seed++)
+            {
+                var pool = BulletSystem.NewPool();
+                var c = Ctx(pool, null, level); c.Count = seed;
+                phase.Patterns[0].Fire(c);
+                var fired = pool.Where(b => b.IsActive).ToList();
+                True(fired.Count > 0, "the columns come");
+                True(fired.All(b => b.Velocity.Length() <= 440), $"{level}: the columns enter at 430 px/s at the most");
+            }
+    }
+
+    private static void TheTideGrowsWithTheDifficulty()
+    {
+        var phase = Attacks.Tide();
+        True(phase.Patterns.Count(p => p.Applies(Difficulty.Easy)) < phase.Patterns.Count(p => p.Applies(Difficulty.Normal)), "normal has more than easy");
+        float Speed(Difficulty d) { var pool = BulletSystem.NewPool(); var c = Ctx(pool, null, d); phase.Patterns[0].Fire(c); return pool.Where(b => b.IsActive).Max(b => b.Velocity.Length()); }
+        Less(Speed(Difficulty.Easy), Speed(Difficulty.Normal)); Less(Speed(Difficulty.Normal), Speed(Difficulty.Hard));
+    }
+
     private static void EveryTalkHasItsTextsAndFitsTheBoxInBothLanguages()
     {
         var talks = typeof(Dialogues).GetProperties().Where(p => typeof(IReadOnlyList<DialogueLine>).IsAssignableFrom(p.PropertyType)).Select(p => (p.Name, (IReadOnlyList<DialogueLine>)p.GetValue(null))).ToList();
         Eq(talks.Count, 21, "all the talks");
-        foreach (var lang in new[] { Language.English, Language.PortugueseBrazil })
+        foreach (var lang in Loc.Order)
         {
             Loc.Set(lang);
             foreach (var (name, talk) in talks)
@@ -327,7 +371,7 @@ public static partial class SelfTest
         }
         foreach (var style in Enum.GetValues<BulletStyle>())
         {
-            if (style == BulletStyle.LightBolt || style == BulletStyle.FanBolt) continue;                      // the boat's own shot
+            if (style == BulletStyle.LightBolt || style == BulletStyle.FanBolt || style == BulletStyle.HomingOrb) continue;                      // the boat's own shot
             float peak = Peak(SfxBank.ForBullet(style));
             GreaterEq(peak, -20f, $"{style} is not too quiet ({peak:0.0} dB)");
             LessEq(peak, -4f, $"{style} is not too loud ({peak:0.0} dB)");

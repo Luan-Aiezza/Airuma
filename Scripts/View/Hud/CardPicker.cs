@@ -16,7 +16,6 @@ public partial class CardPicker : Node2D
     private readonly ColorRect _shade = new ColorRect { Color = new Color(0.02f, 0.04f, 0.08f, 0.78f), MouseFilter = Godot.Control.MouseFilterEnum.Ignore };
     private readonly PixelLabel _heading = new(PixelLabel.Style.MenuHeading, 4, PixelLabel.Align.Center);
     private readonly PixelLabel _subheading = new(PixelLabel.Style.MenuDim, 3, PixelLabel.Align.Center);
-    private readonly PixelLabel _hint = new(PixelLabel.Style.MenuDim, 2, PixelLabel.Align.Center);
     private readonly PixelLabel _ownedTitle = new(PixelLabel.Style.MenuDim, 2, PixelLabel.Align.Left);
     private readonly List<Node2D> _cardNodes = new();
     private readonly List<Node2D> _ownedNodes = new();
@@ -52,10 +51,6 @@ public partial class CardPicker : Node2D
             label.ZIndex = Z(1);
             AddChild(label);
         }
-        _hint.Position = new Vector2(area.X / 2, area.Y - 28);
-        _hint.ZIndex = Z(1);
-        _hint.SetText(UIText.CardsHint);
-        AddChild(_hint);
         _ownedTitle.Position = new Vector2(28, area.Y - 92);
         _ownedTitle.ZIndex = Z(1);
         AddChild(_ownedTitle);
@@ -155,7 +150,7 @@ public partial class CardPicker : Node2D
     {
         float global = _closing ? 1 - _closeTime / CloseTime : Mathf.Clamp(_appear / AppearTime, 0, 1);
         _shade.Modulate = new Color(1, 1, 1, global);
-        foreach (var label in new CanvasItem[] { _heading, _subheading, _hint, _ownedTitle }) label.Modulate = new Color(1, 1, 1, global);
+        foreach (var label in new CanvasItem[] { _heading, _subheading, _ownedTitle }) label.Modulate = new Color(1, 1, 1, global);
         foreach (var chip in _ownedNodes) chip.Modulate = new Color(1, 1, 1, global);
         for (int i = 0; i < _cardNodes.Count; i++)
         {

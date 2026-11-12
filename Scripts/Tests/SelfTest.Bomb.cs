@@ -7,6 +7,8 @@ public static partial class SelfTest
 {
     private static void RegisterBomb(Action<string, Action> T)
     {
+        T("AHeldBombKeyLightsOnlyOneBomb", AHeldBombKeyLightsOnlyOneBomb);
+        T("TheWardAndThePrizesStillFallingCrossToTheNextStage", TheWardAndThePrizesStillFallingCrossToTheNextStage);
         T("TheLightHurtsSpiritsInReachButNotFarOnes", TheLightHurtsSpiritsInReachButNotFarOnes);
         T("TheBombFinishesWeakSpiritsQuicklyAndHeavyOnesInAFewSeconds", TheBombFinishesWeakSpiritsQuicklyAndHeavyOnesInAFewSeconds);
         T("SpiritsKilledByTheBombScoreAndLeaveLights", SpiritsKilledByTheBombScoreAndLeaveLights);
@@ -104,4 +106,32 @@ public static partial class SelfTest
     // Cards
 
     private static EnemyEntity Spirit(Vector2 p, int id = 500) => new EnemyEntity(id, SpiritKind.Heavy, p, EnemyPath.Straight(Vector2.Zero));
+
+    private static void AHeldBombKeyLightsOnlyOneBomb()
+    {
+        var world = new World(withCards: false);
+        world.CalmWindForTesting();
+        int before = world.Player.Bomb.BombsLeft;
+        var input = Idle(); input.IsBombing = true;
+        for (int i = 0; i < 60 * 8; i++) world.Step(Dt, input);          // the key is held through the whole burn (5 s) and after it
+        Eq(world.Player.Bomb.BombsLeft, before - 1, "one press, one bomb");
+        input.IsBombing = false; world.Step(Dt, input);
+        input.IsBombing = true; world.Step(Dt, input);
+        Eq(world.Player.Bomb.BombsLeft, before - 2, "a new press lights the next one");
+    }
+
+    private static void TheWardAndThePrizesStillFallingCrossToTheNextStage()
+    {
+        var first = new World(withCards: false);
+        first.Player.Shield = 1;
+        LightSystem.SpawnReward(first.Lights, LightKind.Bomb, 200, 100);
+        LightSystem.SpawnReward(first.Lights, LightKind.Life, 300, 100);
+        first.Player.Health.Lives = 2; first.Player.Bomb.BombsLeft = 1;
+        var carry = RunCarry.From(first);
+        Eq(carry.Shield, 1); Eq(carry.PendingBombs, 1); Eq(carry.PendingLives, 1);
+        var next = new World(withCards: false, stage: Stages.Two, carry: carry);
+        Eq(next.Player.Shield, 1, "the ward is kept");
+        Eq(next.Player.Bomb.BombsLeft, 2, "the lantern that was falling is given");
+        Eq(next.Player.Health.Lives, 3, "and so is the boat");
+    }
 }

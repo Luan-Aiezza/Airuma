@@ -106,6 +106,13 @@ public static class SpiritFire
         P(F(1.3f, c => Pat.PolarRing(c, c.Origin, 5, c.Count * 8f * turn, 10, 42, 24 * turn, S(BulletStyle.OrbRed, 0), Seven)), 3.4f), Rest(2.0f));
     public static List<ScheduledPattern> LeftOfSecondPair => SecondPairSeries(1, BulletStyle.OrbRed, BulletStyle.Star);
     public static List<ScheduledPattern> RightOfSecondPair => SecondPairSeries(-1, BulletStyle.OrbGreen, BulletStyle.Wisp);
+    /// <summary>The last pair of stage 5: the second pair's series, worse (more bolts in the zigzag, a fuller ring, a seven-armed rose of colours, shorter rests).</summary>
+    private static List<ScheduledPattern> LastPairSeries(float turn, BulletStyle ring, BulletStyle bolt) => L(
+        P(Zigzag(0.8f, 7, 50, bolt, 210), 3.0f), Rest(1.1f),
+        P(Ring(0.8f, 20, 13 * turn, 115, new[] { ring }, dance: true), 3.4f), Rest(1.1f),
+        P(F(1.2f, c => Pat.PolarRing(c, c.Origin, 7, c.Count * 8f * turn, 10, 44, 24 * turn, S(BulletStyle.OrbRed, 0), Seven)), 3.4f), Rest(1.4f));
+    public static List<ScheduledPattern> LeftOfLastPair => LastPairSeries(1, BulletStyle.OrbRed, BulletStyle.Star);
+    public static List<ScheduledPattern> RightOfLastPair => LastPairSeries(-1, BulletStyle.OrbGreen, BulletStyle.Wisp);
     public static List<ScheduledPattern> RainbowHeavy => L(
         P(F(0.34f, c => Pat.Ring(c, c.Origin, 3, c.Count * 18f, S(BulletStyle.OrbRed, 135), scale: false)), 3.0f), Rest(1.4f),
         P(F(1.3f, c => Pat.Shoot(c, c.Origin, Pat.Aim.FanAimed, 5, 2, 0, 17, 220, 160, S(BulletStyle.Star, 0).Popping(220, 0.25f))), 3.6f), Rest(1.4f),
@@ -127,8 +134,23 @@ public static class SpiritFire
         P(F(0.34f, c => Pat.Ring(c, c.Origin, 3, c.Count * 22f * turn, S(ring, 135), scale: false)), 3.0f), Rest(1.3f),
         P(Ring(0.9f, 16, 12 * turn, 105, new[] { BulletStyle.OrbWhite }, dance: true), 3.4f), Rest(1.3f),
         P(F(1.3f, c => Pat.PolarRing(c, c.Origin, 5, c.Count * 9f * turn, 10, 42, 24 * turn, S(arm, 0), scale: false)), 3.4f), Rest(1.8f));
+    /// <summary>The red spirits of the second pair, the lone one that comes late, and the last trio of stage 6 are each WORSE than the one before (more bullets, shorter rests): these are their series.</summary>
+    private static List<ScheduledPattern> MoonSeriesLast(float turn, BulletStyle ring, BulletStyle arm) => L(
+        P(F(0.30f, c => Pat.Ring(c, c.Origin, 4, c.Count * 22f * turn, S(ring, 140), scale: false)), 3.0f), Rest(1.1f),
+        P(Ring(0.8f, 20, 12 * turn, 110, new[] { BulletStyle.OrbWhite }, dance: true), 3.4f), Rest(1.1f),
+        P(F(1.2f, c => Pat.PolarRing(c, c.Origin, 7, c.Count * 9f * turn, 10, 44, 24 * turn, S(arm, 0), scale: false)), 3.4f), Rest(1.4f));
+    public static List<ScheduledPattern> LeftMoonLast => MoonSeriesLast(1, BulletStyle.OrbWhite, BulletStyle.BeadCyan);
+    public static List<ScheduledPattern> RightMoonLast => MoonSeriesLast(-1, BulletStyle.OrbViolet, BulletStyle.BeadViolet);
+    public static List<ScheduledPattern> LoneMoonHeavyLast => L(
+        P(F(0.30f, c => Pat.Ring(c, c.Origin, 4, c.Count * 18f, S(BulletStyle.OrbWhite, 140), scale: false)), 3.0f), Rest(1.1f),
+        P(F(1.1f, c => Pat.Shoot(c, c.Origin, Pat.Aim.FanAimed, 7, 2, 0, 17, 225, 165, S(BulletStyle.StarBlue, 0).Popping(220, 0.25f))), 3.6f), Rest(1.1f),
+        P(F(1.8f, c => { for (int k = -2; k <= 2; k++) Pat.Crescent(c, c.Origin, c.Aim + k * 26, 60, 6, S(BulletStyle.BeadWhite, 155, 0.85f)); }), 4.0f), Rest(1.4f));
     public static List<ScheduledPattern> LeftMoon => MoonSeries(1, BulletStyle.OrbWhite, BulletStyle.BeadCyan);
     public static List<ScheduledPattern> RightMoon => MoonSeries(-1, BulletStyle.OrbViolet, BulletStyle.BeadViolet);
+    public static List<ScheduledPattern> MiddleMoonLast => L(
+        P(F(1.2f, c => Pat.Shoot(c, c.Origin, Pat.Aim.FanAimed, 9, 1, 0, 15, 220, 220, S(BulletStyle.Fireball, 0).Popping(220, 0.25f))), 3.4f), Rest(1.1f),
+        P(F(1.0f, c => Pat.Rose(c, c.Origin, 8, 24, c.Count * 13f, 0.55f, S(BulletStyle.StarGold, 115).Dancing(80))), 3.4f), Rest(1.1f),
+        P(F(2.2f, c => Pat.Star(c, c.Origin, 5, 3, 76, c.Count * 17f, 3, S(BulletStyle.StarGold, 1).LaunchedOut(0.6f, 145))), 4.8f), Rest(1.4f));
     public static List<ScheduledPattern> MiddleMoon => L(
         P(F(1.4f, c => Pat.Shoot(c, c.Origin, Pat.Aim.FanAimed, 7, 1, 0, 15, 215, 215, S(BulletStyle.Fireball, 0).Popping(220, 0.25f))), 3.4f), Rest(1.3f),
         P(F(1.1f, c => Pat.Rose(c, c.Origin, 6, 24, c.Count * 13f, 0.55f, S(BulletStyle.StarGold, 110).Dancing(80))), 3.4f), Rest(1.3f),

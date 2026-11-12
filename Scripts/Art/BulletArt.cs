@@ -22,6 +22,7 @@ public static class BulletArt
         BulletStyle.Ember => (4, 4),
         BulletStyle.LightBolt => (5, 10),
         BulletStyle.FanBolt => (3, 8),
+        BulletStyle.HomingOrb => (5, 5),
         BulletStyle.OrbGreen => (7, 7),
         BulletStyle.OrbRed => (7, 7),
         BulletStyle.RiceRed => (3, 7),
@@ -80,6 +81,7 @@ public static class BulletArt
             case BulletStyle.Ember: DrawEmber(c, frame); break;
             case BulletStyle.LightBolt: DrawLightBolt(c, frame); break;
             case BulletStyle.FanBolt: DrawFanBolt(c, frame); break;
+            case BulletStyle.HomingOrb: DrawHomingOrb(c, frame); break;
             case BulletStyle.OrbGreen: DrawOrb(c, frame, PixelColor.Hex(0x2FA84F), PixelColor.Hex(0x7BE08A)); break;
             case BulletStyle.OrbRed: DrawOrb(c, frame, PixelColor.Hex(0xC8283A), PixelColor.Hex(0xFF6A78)); break;
             case BulletStyle.RiceRed: DrawRice(c, frame); break;
@@ -334,6 +336,25 @@ public static class BulletArt
     }
 
     /// <summary>The player's shots: slim bolts of pale lantern light, cool-toned so they never read as enemy fire.</summary>
+    /// <summary>The light of the second attack of the boat: a small round pearl, white in the middle, yellow at the edge, with a ring of dark gold; it twinkles between its two frames.</summary>
+    private static void DrawHomingOrb(PixelCanvas c, int frame)
+    {
+        var core = PixelColor.Hex(0xFFFFFF); var mid = PixelColor.Hex(0xFFF29A); var edge = PixelColor.Hex(0xFFC933); var ring = PixelColor.Hex(0xC27A10);
+        string[] shape = { ".rer.", "reMmr", "eMCMe", "rMMer", ".rer." };
+        for (int y = 0; y < 5; y++)
+            for (int x = 0; x < 5; x++)
+            {
+                switch (shape[y][x])
+                {
+                    case 'r': Put(c, x, y, ring); break;
+                    case 'e': Put(c, x, y, edge); break;
+                    case 'M': Put(c, x, y, mid); break;
+                    case 'C': Put(c, x, y, frame == 0 ? core : mid); break;
+                }
+            }
+        if (frame == 1) { Put(c, 1, 1, core); Put(c, 3, 3, mid); }
+    }
+
     /// <summary>The bolt of a card's fan: a small golden dart, slimmer than the main stream's cyan bolt, so the two are told apart at a glance.</summary>
     private static void DrawFanBolt(PixelCanvas c, int frame)
     {

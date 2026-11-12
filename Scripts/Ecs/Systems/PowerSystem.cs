@@ -23,15 +23,15 @@ public static class PowerSystem
 
     /// <summary>
     /// Dying costs part of the energy, which falls as lights from where the boat was lost: it can be gathered again
-    /// before it drifts out of the picture.
+    /// before it drifts out of the picture. `energyPerLight` is how much energy a unit of light gives now (see <see cref="PowerCurve.LightPower"/> and the cards).
     /// </summary>
-    public static void LoseEnergy(PlayerEntity player, LightItem[] lights, Vector2 place)
+    public static void LoseEnergy(PlayerEntity player, LightItem[] lights, Vector2 place, float energyPerLight = 1)
     {
         float lost = MathF.Round(player.Energy * PowerCurve.LossOnDeath, MidpointRounding.AwayFromZero);
         if (!(lost >= 1)) return;
         player.Energy -= lost;
         player.Weapon.PowerLevel = PowerCurve.Level(player.Energy);
         int pieces = Math.Max(3, Math.Min(18, (int)lost));
-        for (int k = 0; k < pieces; k++) LightSystem.Spawn(lights, place, lost / pieces, 1.5f);
+        for (int k = 0; k < pieces; k++) LightSystem.Spawn(lights, place, lost / pieces / energyPerLight, 1.5f);          // (worth what they were: gathering them gives back exactly the energy that was lost)
     }
 }

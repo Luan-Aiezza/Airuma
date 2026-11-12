@@ -357,8 +357,8 @@ public static partial class SelfTest
             w.SetLightsForTesting(items);
             w.Step(Dt, Idle());
         }
-        Eq(plain.Player.Energy, 2f);
-        Eq(rich.Player.Energy, 4f);
+        Near(plain.Player.Energy, 2f * PowerCurve.LightPower, 0.001f);
+        Near(rich.Player.Energy, 4f * PowerCurve.LightPower, 0.001f);
         Near(rich.Effects.ScoreMultiplier, 1.25f, 0.001f);
     }
 }

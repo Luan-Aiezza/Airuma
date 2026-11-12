@@ -15,12 +15,18 @@ public static class Stage6Waves
     private static List<ScheduledPattern> VioletBolts => SpiritFire.MoonBolts;
     private static List<ScheduledPattern> GreenSpiral => SpiritFire.MoonSpiral;
     private static List<ScheduledPattern> LoneHeavy => SpiritFire.LoneMoonHeavy;
+    private static List<ScheduledPattern> LoneHeavyLast => SpiritFire.LoneMoonHeavyLast;
     private static List<ScheduledPattern> Left => SpiritFire.LeftMoon;
     private static List<ScheduledPattern> Right => SpiritFire.RightMoon;
     private static List<ScheduledPattern> Middle => SpiritFire.MiddleMoon;
     private static List<EnemySpec> Pair(float start) => Cat(Heavy(V(170, -30), V(170, 180), start, HeavyHold, Left), Heavy(V(430, -30), V(430, 180), start, HeavyHold, Right));
     private static List<EnemySpec> Trio(float start) =>
         Cat(Heavy(V(110, -30), V(110, 190), start, HeavyHold, Left), Heavy(V(300, -30), V(300, 150), start + 0.6f, HeavyHold, Middle), Heavy(V(490, -30), V(490, 190), start, HeavyHold, Right));
+
+    /// <summary>The second pair and the last trio: the same places, but each spirit fires more, and rests less.</summary>
+    private static List<EnemySpec> PairLast(float start) => Cat(Heavy(V(170, -30), V(170, 180), start, HeavyHold, SpiritFire.LeftMoonLast), Heavy(V(430, -30), V(430, 180), start, HeavyHold, SpiritFire.RightMoonLast));
+    private static List<EnemySpec> TrioLast(float start) =>
+        Cat(Heavy(V(110, -30), V(110, 190), start, HeavyHold, SpiritFire.LeftMoonLast), Heavy(V(300, -30), V(300, 150), start + 0.6f, HeavyHold, SpiritFire.MiddleMoonLast), Heavy(V(490, -30), V(490, 190), start, HeavyHold, SpiritFire.RightMoonLast));
 
     public static readonly List<Wave> Waves = new List<Wave>
     {
@@ -61,24 +67,24 @@ public static class Stage6Waves
         new Wave(Cat(Trio(0),
                      Column(Gunner, 2, 300, 6, 1.5f, amplitude: 60, shots: StarRing), Row(Gunner, 3, 150, 450, 10, speed: 100, shots: SilverFan),
                      Stream(Gunner, 2, V(-30, 80), V(145, 85), 14, 1.1f, shots: VioletBolts), Stream(Gunner, 2, V(630, 80), V(-145, 85), 14, 1.1f, shots: SilverFan))),
-        // 8. A breath again, with a lone red spirit that arrives late.
+        // 8. A breath again, with a lone red spirit that arrives late (worse than the one of the third wave).
         new Wave(Cat(DancingPairs(Swarm, 8, 300, 240, 0, 0.42f, amplitude: 120), Cross(Swarm, 8, 1.5f, 0.38f),
                      Wall(Swarm, 12, 30, 570, new[] { 3, 4 }, 6), Wall(Swarm, 12, 30, 570, new[] { 8, 9 }, 8.5f),
                      Column(Gunner, 3, 300, 9, 1.3f, amplitude: 150, frequency: 1.6f, shots: SilverFan),
-                     Heavy(V(300, -30), V(300, 170), 12, HeavyHold, LoneHeavy),
+                     Heavy(V(300, -30), V(300, 170), 12, HeavyHold, LoneHeavyLast),
                      Diamond(Swarm, 3, 160, 12, spacing: 36), Diamond(Swarm, 3, 440, 12, spacing: 36),
                      Sentries(Gunner, V(-30, 60), new[] { V(100, 150) }, 4f, 0.8f, 8, SpiritFire.MoonCrescent),
                      Sentries(Gunner, V(630, 60), new[] { V(500, 150) }, 4.3f, 0.8f, 8, SpiritFire.MoonCrescent))),
-        // 9. THE SECOND PAIR, with a crowd of the little ones round them.
-        new Wave(Cat(Pair(0),
+        // 9. THE SECOND PAIR, worse than the first, with a crowd of the little ones round them.
+        new Wave(Cat(PairLast(0),
                      DancingPairs(Swarm, 8, 300, 250, 3, 0.4f, amplitude: 130), Cross(Swarm, 8, 5, 0.38f), Cross(Swarm, 8, 14, 0.38f),
                      Wall(Swarm, 12, 30, 570, new[] { 3, 4 }, 9), Wall(Swarm, 12, 30, 570, new[] { 8, 9 }, 12.5f),
                      Ring(Swarm, 10, V(180, -90), 70, 7), Ring(Swarm, 10, V(420, -90), 70, 10), Vee(Swarm, 7, 300, 15, spacing: 40),
                      Column(Gunner, 2, 110, 12, 1.4f, amplitude: 40, shots: GreenSpiral), Column(Gunner, 2, 490, 12.6f, 1.4f, amplitude: 40, shots: GreenSpiral),
                      SideColumn(Swarm, 7, true, 130, 4, 0.38f, amplitude: 50),
                      SideColumn(Swarm, 7, false, 160, 6, 0.38f, amplitude: 50, phase: Pi))),
-        // 10. THE LAST TRIO, and everything else: every kind of spirit of the game at once.
-        new Wave(Cat(Trio(0),
+        // 10. THE LAST TRIO, worse than the first, and everything else: every kind of spirit of the game at once.
+        new Wave(Cat(TrioLast(0),
                      DancingPairs(Swarm, 8, 300, 250, 3, 0.4f, amplitude: 130), Cross(Swarm, 8, 5, 0.38f), Cross(Swarm, 8, 14, 0.38f),
                      Wall(Swarm, 12, 30, 570, new[] { 3, 4 }, 9), Wall(Swarm, 12, 30, 570, new[] { 8, 9 }, 12.5f), Wall(Swarm, 12, 30, 570, new[] { 5, 6 }, 17),
                      Stream(Gunner, 3, V(-30, 80), V(145, 85), 7, 1.0f, shots: VioletBolts), Stream(Gunner, 3, V(630, 80), V(-145, 85), 7, 1.0f, shots: SilverFan),

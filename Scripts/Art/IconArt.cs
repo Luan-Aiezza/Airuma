@@ -3,63 +3,92 @@ using System;
 using P = PixelColor;
 
 /// <summary>
-/// The game's icon, as simple as can be: the inside of the lantern, very close, and its flame filling it. Four bars of the iron frame at the edges, the glass dark amber, the flame in the middle (orange, yellow and a white heart),
-/// and the warm light of the flame on the glass around it. 32 x 32 pixels (the exported PNG is 960 x 960).
+/// The game's icon: a bright blue star of four points in the night, with a white glow that comes out of its centre, in pixel art (after a photograph of a blue star with long rays). 32 x 32 pixels; the exported PNG is 960 x 960.
+/// `Make()` has the night behind it; `Make(false)` is the star alone, on a clear background (for the places where the icon is not set in a box of its own).
 /// </summary>
 public static class IconArt
 {
     public const int Size = 32;
 
-    private static readonly P Iron = P.Hex(0x101818), Slate = P.Hex(0x405058), Steel = P.Hex(0x7E9296);
-    private static readonly P[] Glass = { P.Hex(0x2C140A), P.Hex(0x4A2410), P.Hex(0x6E3814), P.Hex(0x92501C) };   // dark ... warm, nearer the flame
+    private static readonly P Deep = P.Hex(0x0F4FC8), Blue = P.Hex(0x2E86F0), Sky = P.Hex(0x66CCFF), Pale = P.Hex(0xBFEFFF), White = P.Hex(0xFFFFFF);
+    private static readonly P[] Night = { P.Hex(0x030A16), P.Hex(0x061424), P.Hex(0x0A2338), P.Hex(0x0F3550), P.Hex(0x174C70), P.Hex(0x1F6590) };
 
-    public static PixelCanvas Make()
+    /// <summary>
+    /// The star: four long rays (up, down, left, right) that thin out to a point, as thick as `thickness` pixels at the middle. Returns how bright the ray is at this pixel (0: outside it, 1: the centre
+    /// of its axis near the middle): the brightness falls off along the ray and towards its edges.
+    /// </summary>
+    private static float Ray(float along, float across, float length, float thickness)
+    {
+        along = MathF.Abs(along); across = MathF.Abs(across);
+        if (along > length) return 0;
+        float v = 1 - along / length;
+        float half = thickness * MathF.Pow(v, 1.7f);
+        if (across > half) return 0;
+        float u = half > 0.01f ? across / half : 0;
+        return Math.Clamp(0.5f * (1 - u) + 0.55f * MathF.Pow(v, 1.4f), 0.01f, 1f);
+    }
+
+    public static PixelCanvas Make(bool night = true)
     {
         var c = new PixelCanvas(Size, Size);
-        const float fx = 16f, fy = 18f;                                  // the middle of the flame
-
-        // The glass: dark amber, warmer in flat rings towards the flame.
+        const float mid = Size / 2f;
         for (int y = 0; y < Size; y++)
             for (int x = 0; x < Size; x++)
             {
-                float d = MathF.Sqrt((x + 0.5f - fx) * (x + 0.5f - fx) + (y + 0.5f - fy) * (y + 0.5f - fy) * 0.8f);
-                float warm = 1 - d / 22f;
-                int g = Math.Clamp((int)(warm * 3.4f), 0, 3);
-                c[x, y] = Glass[g];
+                float dx = x + 0.5f - mid, dy = y + 0.5f - mid, d = MathF.Sqrt(dx * dx + dy * dy);
+                float bayer = (Bayer.Threshold(x, y) - 0.5f) * 0.7f;
+                P colour = default;      // clear
+                if (night)
+                {
+                    // the night: darker at the top, and a haze of blue round the star that thins out (dithered)
+                    float t = y / (float)(Size - 1);
+                    float haze = Math.Clamp(1 - d / 18f, 0, 1);
+                    int level = Math.Clamp((int)MathF.Floor(t * 1.6f + haze * 3.8f + bayer), 0, Night.Length - 1);
+                    colour = Night[level];
+                }
+                else if (d < 15f)
+                {
+                    // alone: only a dithered halo, clear towards the edges
+                    float haze = 1 - d / 15f;
+                    if (haze * 3f + bayer > 0.9f) colour = new P(46, 134, 240, (byte)Math.Clamp((int)(haze * 160), 50, 150));
+                }
+
+                // the glow that comes out of the centre, round: white in the middle, then pale, then sky (dithered at its edge)
+                if (d < 1.7f) colour = White;
+                else if (d < 2.9f) colour = Pale;
+                else if (d < 4.6f && (1 - d / 4.6f) * 3.2f + bayer > 0.9f) colour = Sky;
+                // the four rays
+                float b = MathF.Max(Ray(dy, dx, 15.8f, 4.6f), Ray(dx, dy, 15.8f, 4.6f));
+                if (b > 0)
+                {
+                    P ray = b > 0.95f ? White : (b > 0.80f ? Pale : (b > 0.54f ? Sky : (b > 0.30f ? Blue : Deep)));
+                    if (colour.A == 0 || Brightness(ray) >= Brightness(colour) || d > 4.6f) colour = ray;
+                }
+                c[x, y] = colour;
             }
-
-        // The frame of the lantern: a bar down each side, a bar at the top and at the foot, with a dark line outside each and a pale one inside.
-        for (int y = 0; y < Size; y++)
-        {
-            c[0, y] = Iron; c[Size - 1, y] = Iron;
-            c[1, y] = Slate; c[Size - 2, y] = Slate; c[2, y] = Steel; c[Size - 3, y] = Slate;
-        }
-        for (int x = 0; x < Size; x++)
-        {
-            c[x, 0] = Iron; c[x, Size - 1] = Iron;
-            c[x, 1] = Slate; c[x, Size - 2] = Slate; c[x, 2] = x > 2 && x < Size - 3 ? Steel : c[x, 2];
-        }
-
-        // The flame: a drop, wide at the belly and pointed at the tip, in three layers.
-        Flame(c, fx, 4f, 28f, 10.5f, 0.25f, FirePalette.Ramp[2]);        // orange
-        Flame(c, fx, 9f, 27f, 7.4f, 0.15f, FirePalette.Ramp[1]);       // yellow
-        Flame(c, fx, 15f, 26f, 4.2f, 0.05f, FirePalette.Ramp[0]);        // the white-hot heart
         return c;
     }
 
-    /// <summary>One layer of the flame: from `top` to `bottom` in rows, as wide as `half` pixels from the middle at the fullest point; the tip leans `lean` pixels to one side.</summary>
-    private static void Flame(PixelCanvas c, float cx, float top, float bottom, float half, float lean, P colour)
+    /// <summary>The same star, small (11 x 11 pixels), clear round it: it marks the line chosen in the menus, and pulses there.</summary>
+    public static PixelCanvas MakeMarker()
     {
-        for (int y = (int)top; y <= (int)bottom; y++)
-        {
-            float t = (y + 0.5f - top) / (bottom - top);
-            if (t < 0 || t > 1) continue;
-            float w = half * MathF.Sin(MathF.PI * MathF.Pow(t, 1.5f));
-            float mid = cx + lean * (1 - t) * 6f;
-            for (int x = (int)MathF.Floor(mid - w); x <= (int)MathF.Ceiling(mid + w); x++)
-                if (c.Contains(x, y) && MathF.Abs(x + 0.5f - mid) <= w) c[x, y] = colour;
-        }
+        const int size = 11;
+        var c = new PixelCanvas(size, size);
+        const float mid = size / 2f;
+        for (int y = 0; y < size; y++)
+            for (int x = 0; x < size; x++)
+            {
+                float dx = x + 0.5f - mid, dy = y + 0.5f - mid, d = MathF.Sqrt(dx * dx + dy * dy);
+                float b = MathF.Max(Ray(dy, dx, 5.8f, 3.4f), Ray(dx, dy, 5.8f, 3.4f));
+                P colour = default;
+                if (b > 0) colour = b > 0.95f ? White : (b > 0.80f ? Pale : (b > 0.54f ? Sky : (b > 0.30f ? Blue : Deep)));
+                if (d < 1.1f) colour = White; else if (d < 1.9f && Brightness(colour) < Brightness(Pale)) colour = Pale;
+                c[x, y] = colour;
+            }
+        return c;
     }
+
+    private static int Brightness(P p) => p.R + p.G + p.B;
 
     /// <summary>The icon as a PNG at the given scale (nearest-neighbour, so the pixels stay sharp).</summary>
     public static Image MakeImage(int scale = 30)

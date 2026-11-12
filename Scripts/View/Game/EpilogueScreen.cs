@@ -61,7 +61,7 @@ public partial class EpilogueScreen : Node2D
         bool press = @event is InputEventKey { Pressed: true, Echo: false } || @event is InputEventMouseButton { Pressed: true } || @event is InputEventScreenTouch { Pressed: true }
                      || @event is InputEventJoypadButton { Pressed: true };
         if (!press) return;
-        if (@event is InputEventKey { Keycode: Key.F11 }) return;       // the window's own key
+        if (Main.IsFullscreenKey(@event)) return;                        // the window's own keys
         GetViewport().SetInputAsHandled();                               // (the game under it must not take the key, not even Escape)
         if (!_leaving && _clock >= InputLock) Close();
     }

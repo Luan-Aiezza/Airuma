@@ -32,14 +32,24 @@ public sealed class BossBuilder
     public BossPhase Enraged(BossPhase attack) => Dress(attack, _enragedTheme, _enragedTitleKey, _enragedHealth, true);
 
     /// <summary>Every boss attack has this share of the health written for it (both forms), to set the length of the fights.</summary>
-    public const float TestHealthFactor = 0.48f;
+    public const float HealthFactor = 0.48f;
 
     /// <summary>An attack in which the boss stays still (it is easier to hit) has this many times the health of one in which it moves.</summary>
     public const int StillHealthMultiplier = 2;
 
-    /// <summary>The health of an attack, for the health written for the boss's form: doubled if the boss stands still, then scaled by <see cref="TestHealthFactor"/>.</summary>
-    public static int HealthOf(int written, BossMovementType movement) =>
-        Math.Max(10, (int)(written * (movement == BossMovementType.Stationary ? StillHealthMultiplier : 1) * TestHealthFactor));
+    /// <summary>An attack in which the boss sweeps across the field, out of reach for most of it (it rests in the middle only a few seconds), has this share of the health of one in which it moves about.</summary>
+    public const float SweepHealthShare = 0.7f;
+
+    /// <summary>How much the health written for the boss is multiplied for an attack, by how the boss moves in it.</summary>
+    public static float HealthMultiplier(BossMovementType movement) => movement switch
+    {
+        BossMovementType.Stationary => StillHealthMultiplier,
+        BossMovementType.Sweep => SweepHealthShare,
+        _ => 1f,
+    };
+
+    /// <summary>The health of an attack, for the health written for the boss's form: multiplied by how the boss moves (see <see cref="HealthMultiplier"/>), then scaled by <see cref="HealthFactor"/>.</summary>
+    public static int HealthOf(int written, BossMovementType movement) => Math.Max(10, (int)(written * HealthMultiplier(movement) * HealthFactor));
 
     private BossPhase Dress(BossPhase attack, MusicPlayer.Theme theme, string musicTitleKey, int health, bool enraged)
     {

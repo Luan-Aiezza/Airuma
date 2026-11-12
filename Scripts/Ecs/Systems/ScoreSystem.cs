@@ -30,12 +30,12 @@ public static class ScoreSystem
         score.Points += (int)MathF.Round(points * multiplier, MidpointRounding.AwayFromZero);
         while (score.Points >= BombScore(score.BombPrizes))
         {
-            LightSystem.SpawnReward(lights, LightKind.Bomb, RandomX());
+            if (!LightSystem.SpawnReward(lights, LightKind.Bomb, RandomX())) break;      // (no room for it now: the prize is not counted as given; it comes with the next points)
             score.BombPrizes++;
         }
         while (score.Points >= LifeScore(score.LifePrizes))
         {
-            LightSystem.SpawnReward(lights, LightKind.Life, RandomX());
+            if (!LightSystem.SpawnReward(lights, LightKind.Life, RandomX())) break;
             score.LifePrizes++;
         }
     }

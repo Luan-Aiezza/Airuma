@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """
-Textos do jogo <-> Docs/Dialogos.md (falas entre personagens) e Docs/Textos.md (todo o resto), só em português
+Textos do jogo <-> Docs/Dialogos.md (falas entre personagens) e Docs/Textos.md (todo o resto), em português; para outro idioma, acrescente o código no fim
+(es, ja): Docs/Dialogos.es.md e Docs/Textos.es.md, com a coluna "Referência (PT)" ao lado do texto traduzido.
+
+  python3 Docs/tools/textos.py export es   # (e import es)
 
   python3 Docs/tools/textos.py export   # lê as tabelas do jogo e escreve os dois documentos (não sobrescreve edições ainda não importadas; use --force para forçar)
   python3 Docs/tools/textos.py import   # lê os dois documentos e grava de volta na tabela em português do jogo (só o que mudou)
@@ -11,9 +14,13 @@ import json, re, sys, os
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 TEXT_DIR = os.path.join(ROOT, 'Scripts', 'Content', 'Text')
-FILES = {'pt': os.path.join(TEXT_DIR, 'Texts.PtBr.cs'), 'en': os.path.join(TEXT_DIR, 'Texts.En.cs')}
+FILES = {'pt': os.path.join(TEXT_DIR, 'Texts.PtBr.cs'), 'en': os.path.join(TEXT_DIR, 'Texts.En.cs'),
+         'es': os.path.join(TEXT_DIR, 'Texts.Es.cs'), 'ja': os.path.join(TEXT_DIR, 'Texts.Ja.cs')}
+LANG = next((a for a in sys.argv[2:] if a in ('pt', 'es', 'ja')), 'pt')
+SUFFIX = '' if LANG == 'pt' else '.' + LANG
+LANG_NAMES = {'pt': 'PT-BR', 'es': 'ES', 'ja': 'JA'}
 DIALOGUE = os.path.join(TEXT_DIR, 'Dialogue.cs')
-MD = os.path.join(ROOT, 'Docs', 'Textos.md')
+MD = os.path.join(ROOT, 'Docs', 'Textos' + SUFFIX + '.md')
 ENTRY = re.compile(r'^(    \[")([^"]+)("\] = ")((?:[^"\\]|\\.)*)(",.*)$')
 
 
@@ -127,7 +134,8 @@ def row(key, pt, en, ctx):
     return f'| `{key}` | {pt} | {en} | {ctx} |'
 
 
-MD_DIALOGUES = os.path.join(os.path.dirname(MD), 'Dialogos.md')
+MD_DIALOGUES = os.path.join(os.path.dirname(MD), 'Dialogos' + SUFFIX + '.md')
+TARGET = load(FILES[LANG]) if LANG != 'pt' and os.path.exists(FILES[LANG]) else None      # the texts of the language of the documents (None: Portuguese, which the rows already hold)
 CELL3 = re.compile(r'^\| `([^`]+)` \| (.*?) \| (.*) \|\s*$')
 
 
@@ -152,7 +160,8 @@ def protect_edits(pt):
         os.makedirs(archive, exist_ok=True)
         base = os.path.splitext(os.path.basename(path))[0]
         shutil.copy2(path, os.path.join(archive, base + '.' + time.strftime('%Y%m%d-%H%M%S') + '.md'))
-        pending += [k for k, v in read_cells(path).items() if k in pt and v != pt[k]]
+        table = TARGET if TARGET is not None else pt
+        pending += [k for k, v in read_cells(path).items() if k in table and v != table[k]]
     if pending and '--force' not in sys.argv:
         print(f'{len(pending)} textos dos documentos diferem do jogo (edições ainda não importadas?): {", ".join(pending[:8])}...')
         print('Rode "import" para aplicá-las ao jogo, ou "export --force" para sobrescrever os documentos (uma cópia foi guardada em Docs/Archive).')
@@ -184,10 +193,16 @@ def split_documents(out, pt):
                 res += [h3 + '\n']
             for l in lines:
                 m = re.match(r'^\| `([^`]+)` \| (.*?) \| (.*?) \| (.*) \|\s*$', l)
-                if m:
+                if m and TARGET is not None:
+                    res.append(f'| `{m.group(1)}` | {TARGET.get(m.group(1), m.group(2))} | {m.group(2)} | {m.group(4)} |')
+                elif m:
                     res.append(f'| `{m.group(1)}` | {m.group(2)} | {m.group(4)} |')
+                elif l.startswith('| Chave') and TARGET is not None:
+                    res.append(f'| Chave | Texto ({LANG_NAMES[LANG]}) | Referência (PT) | {last_column} |')
                 elif l.startswith('| Chave'):
                     res.append(f'| Chave | Texto (PT-BR) | {last_column} |')
+                elif l.startswith('| ---') and TARGET is not None:
+                    res.append('| --- | --- | --- | --- |')
                 elif l.startswith('| ---'):
                     res.append('| --- | --- | --- |')
                 else:
@@ -197,7 +212,8 @@ def split_documents(out, pt):
     how = ['**Como editar:** mude apenas a coluna **Texto** (a coluna Contexto não é lida; pode escrever observações nela). Não mude a coluna **Chave**, não apague linhas e não use o caractere `|` dentro de um texto. '
            'Depois é só me pedir para ler os documentos: eu aplico tudo de uma vez no jogo (`python3 Docs/tools/textos.py import`). Para gerar os documentos de novo a partir do jogo: `python3 Docs/tools/textos.py export`.',
            '',
-           '- Os dois documentos são só em português. O inglês do jogo não é tocado; quando você terminar, me diga se quer que eu traduza o que mudou.',
+           ('- Os dois documentos são só em português. O inglês do jogo não é tocado; quando você terminar, me diga se quer que eu traduza o que mudou.' if TARGET is None else
+            f'- Estes documentos são a tradução para o idioma {LANG_NAMES[LANG]}: edite só a coluna Texto ({LANG_NAMES[LANG]}); a coluna Referência (PT) é só para consulta. Cada fala cabe em 28 letras por 5 linhas.'),
            '- Cada fala cabe em até 5 linhas curtas na caixa de diálogo (uns 28 letras por linha), então textos muito longos são cortados.',
            '- A fonte do jogo não tem alguns sinais, como aspas e ponto e vírgula; prefira vírgula, ponto, dois pontos, traço, parênteses, `!`, `?`, `/`, `+`, `%` e `...`.']
     dialogues = [x for x in sections if x[1].startswith('### Falas:')]
@@ -303,7 +319,7 @@ def export():
 def import_():
     cells = read_cells(MD)
     cells.update(read_cells(MD_DIALOGUES))
-    path = FILES['pt']
+    path = FILES[LANG]
     current = load(path)
     lines = open(path, encoding='utf-8').read().split('\n')
     changed = 0
@@ -319,7 +335,7 @@ def import_():
             lines[i] = m.group(1) + m.group(2) + m.group(3) + encode(new) + m.group(5)
             changed += 1
     open(path, 'w', encoding='utf-8').write('\n'.join(lines))
-    print(f'{changed} textos mudaram (só o português)')
+    print(f'{changed} textos mudaram ({LANG_NAMES[LANG]})')
 
 
 if __name__ == '__main__':

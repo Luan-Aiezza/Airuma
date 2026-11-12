@@ -10,7 +10,9 @@ public static class BombSystem
 
     public static void Process(PlayerEntity player, BulletData[] pool, float delta)
     {
-        if (player.Input.IsBombing && !player.Bomb.IsActive && player.Bomb.BombsLeft > 0)
+        bool pressed = player.Input.IsBombing && !player.Bomb.WasBombing;
+        player.Bomb.WasBombing = player.Input.IsBombing;
+        if (pressed && !player.Bomb.IsActive && player.Bomb.BombsLeft > 0)
         {
             player.Bomb.IsActive = true;
             player.Bomb.BombsLeft -= 1;

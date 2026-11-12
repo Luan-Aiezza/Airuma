@@ -206,7 +206,7 @@ public static partial class SelfTest
     private static void StageThreeTalksFitTheDialogueBox()
     {
         var lists = new[] { Dialogues.StageThreeIntro, Dialogues.StageThreeMeeting, Dialogues.StageThreeEnding };
-        foreach (var lang in new[] { Language.English, Language.PortugueseBrazil })
+        foreach (var lang in Loc.Order)
         {
             Loc.Choose(lang);
             foreach (var list in lists)

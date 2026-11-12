@@ -7,5 +7,7 @@ public struct PlayerWeaponComponent
     public float BulletSpeed;
     /// <summary>Counts up to the next volley of homing wisps (a card).</summary>
     public float TimeSinceLastWisp;
+    /// <summary>How many volleys the boat has fired (the homing lights go out every second one).</summary>
+    public int Volleys;
     public PlayerWeaponComponent() { PowerLevel = 1; FireRate = 0.1f; TimeSinceLastFire = 0; BulletSpeed = 800; TimeSinceLastWisp = 0; }
 }

@@ -2,6 +2,8 @@
 public struct BombComponent
 {
     public int BombsLeft;
+    /// <summary>The bomb key was down at the last step: a bomb is lit by a new press, not by a key that is held (or all the bombs would go in one press).</summary>
+    public bool WasBombing;
     public bool IsActive;
     public float Timer;
     public float Duration;

@@ -84,12 +84,13 @@ public partial class GameScene : Node2D
 
     public override void _Input(InputEvent @event)
     {
+        if (Main.IsFullscreenKey(@event)) return;               // the window's own keys: Main takes them
         if (Demo)
         {
             // any key, click, touch or move of the mouse brings the menu back (a moment of grace first, so what the scene change itself stirs up does not)
             bool wake = @event is InputEventKey { Pressed: true } || @event is InputEventMouseButton { Pressed: true } || @event is InputEventScreenTouch { Pressed: true }
                 || @event is InputEventJoypadButton { Pressed: true } || (_demoClock > 0.5 && @event is InputEventMouseMotion or InputEventScreenDrag);
-            if (wake && !(@event is InputEventKey fk && fk.Keycode is Key.F11)) { DoExit(); GetViewport().SetInputAsHandled(); }
+            if (wake) { DoExit(); GetViewport().SetInputAsHandled(); }
             return;
         }
         if (@event is InputEventKey key && key.Pressed && !key.Echo)
@@ -109,6 +110,7 @@ public partial class GameScene : Node2D
             }
             if (World.Result != null && _hud.IsEndVisible && !_exited)
             {
+                if (!EndInputReady) { GetViewport().SetInputAsHandled(); return; }
                 // The end screen (victory or defeat): the arrows pick Restart or Menu, Z / Enter / Space take it, X and Esc go back to the menu.
                 switch (key.Keycode)
                 {
@@ -163,6 +165,7 @@ public partial class GameScene : Node2D
         var control = _hud.ControlAt(p);
         if (_hud.IsEndVisible)
         {
+            if (!EndInputReady) return;
             if (control == GameHud.Control.Restart && CanRestart) Restart();
             else if (control == GameHud.Control.Menu) { SfxPlayer.Instance?.Play(SfxBank.Sound.MenuBack); DoExit(); }
             return;

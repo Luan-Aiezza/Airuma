@@ -23,6 +23,7 @@ public static partial class SelfTest
         T("TheLostLevelCanBeWonBackByGatheringTheFallenLight", TheLostLevelCanBeWonBackByGatheringTheFallenLight);
         T("LightLeftToFallAwayIsLostForGood", LightLeftToFallAwayIsLostForGood);
         T("DyingWithNoEnergyDropsNothing", DyingWithNoEnergyDropsNothing);
+        T("TheHungryLanternDoesNotTakeStageOneToLevelThree", TheHungryLanternDoesNotTakeStageOneToLevelThree);
         T("TheLastDeathEndsTheGameWithoutDroppingAnything", TheLastDeathEndsTheGameWithoutDroppingAnything);
     }
 
@@ -32,6 +33,15 @@ public static partial class SelfTest
         int total = PowerCurve.DropsInStage.Sum();
         Eq(PowerCurve.Level(total), 2);
         Less(total, PowerCurve.Level3, "stage 1 alone cannot reach level 3");
+    }
+
+    private static void TheHungryLanternDoesNotTakeStageOneToLevelThree()
+    {
+        // the power items give 40% less than they are worth, and one Hungry Lantern (the card of the first choice) makes them worth half as much again: all the light of stage 1 is still short of level 3
+        float all = PowerCurve.DropsInStage.Sum();
+        Near(PowerCurve.LightPower, 0.6f, 0.0001f);
+        Less(all * PowerCurve.LightPower * 1.5f, PowerCurve.Level3, "one Hungry Lantern, every light of stage 1");
+        GreaterEq(all * PowerCurve.LightPower, PowerCurve.Level2, "and without any card level 2 can still be reached in stage 1");
     }
 
     private static void CollectingMuchLessIsNotEnough()
@@ -202,7 +212,7 @@ public static partial class SelfTest
 
         var dropped = world.Lights.Where(l => l.IsActive).ToList();
         GreaterEq(dropped.Count, 3);
-        Near(dropped.Sum(l => l.Value), lost, 0.01f, "all of it falls");
+        Near(dropped.Sum(l => l.Value) * PowerCurve.LightPower, lost, 0.01f, "all of it falls, worth what it was: gathered again it gives back the energy that was lost");
         foreach (var light in dropped)
         {
             Near(light.Position.X, 220, 40);

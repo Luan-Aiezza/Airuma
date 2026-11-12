@@ -142,7 +142,7 @@ public partial class GameScene : Node2D
     {
         _boss.Flash();
         _twin?.Flash();
-        AnnounceBossPhase(1.6f);
+        AnnounceBossPhase(1.6f, banner: false);
     }
 
     /// <summary>The boss is coming (a normal run): the banks slide out, the horizon and the moon appear, and, after a moment, the talk.</summary>
@@ -169,15 +169,15 @@ public partial class GameScene : Node2D
     /// The boss's attack is about to begin: her name and her music (unless `withTitle` is false), then, after attackNameDelay seconds, the
     /// name of the attack.
     /// </summary>
-    private void AnnounceBossPhase(float attackNameDelay = 0, bool withTitle = true)
+    private void AnnounceBossPhase(float attackNameDelay = 0, bool withTitle = true, bool banner = true)
     {
         var phase = CurrentPhase;
         River.SetRage(phase.Enraged);               // the second form of the boss: the sky of the river of stars goes red
         if (withTitle)
         {
             MusicPlayer.Instance?.Play(phase.Theme);
-            // the banner with the boss's name and its song is for the meeting only; the second form just bursts into rage
-            if (!phase.Enraged) _title.Show(phase.Name, phase.MusicTitle, fire: true, hold: 3.0f, difficulty: Difficulty);
+            // the banner with the boss's name and its song is for the meeting only (also when the rehearsal begins at an enraged attack: that is its meeting); the second form, in the middle of the fight, just bursts into rage
+            if (banner) _title.Show(phase.Name, phase.MusicTitle, fire: true, hold: 3.0f, difficulty: Difficulty);
             if (phase.Enraged)
             {
                 _boss.BurstRage();

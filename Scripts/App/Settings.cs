@@ -67,6 +67,11 @@ public static class Settings
         Save();
     }
 
+    /// <summary>How the boat attacked in the last game (the choice after the difficulty starts there; the practice uses it).</summary>
+    public static WeaponStyle Weapon { get; private set; } = WeaponStyle.Stream;
+
+    public static void SetWeapon(WeaponStyle weapon) { Weapon = weapon; Save(); }
+
     // MARK: File
 
     public static void Load()
@@ -75,6 +80,7 @@ public static class Settings
         if (cfg.Load(Path) != Error.Ok) return;
         Lives = Math.Clamp((int)cfg.GetValue("game", "lives", DefaultLives), MinLives, MaxLivesChoice);
         Bombs = Math.Clamp((int)cfg.GetValue("game", "bombs", DefaultBombs), MinBombs, MaxBombsChoice);
+        Weapon = (int)cfg.GetValue("game", "weapon", 0) == 1 ? WeaponStyle.Homing : WeaponStyle.Stream;
         Music = Math.Clamp((int)cfg.GetValue("audio", "music", MaxVolume), 0, MaxVolume);
         Sfx = Math.Clamp((int)cfg.GetValue("audio", "sfx", MaxVolume), 0, MaxVolume);
         for (int i = 0; i < Keys.Length; i++)
@@ -92,6 +98,7 @@ public static class Settings
         cfg.Load(Path);      // the other things in the file (window, language) stay
         cfg.SetValue("game", "lives", Lives);
         cfg.SetValue("game", "bombs", Bombs);
+        cfg.SetValue("game", "weapon", (int)Weapon);
         cfg.SetValue("audio", "music", Music);
         cfg.SetValue("audio", "sfx", Sfx);
         for (int i = 0; i < Keys.Length; i++) cfg.SetValue("controls", ((ControlAction)i).ToString(), (int)Keys[i]);

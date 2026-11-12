@@ -240,7 +240,7 @@ public static partial class SelfTest
     private static void StageTwoTalksFitTheDialogueBox()
     {
         var lists = new[] { Dialogues.StageTwoIntro, Dialogues.StageTwoMeeting, Dialogues.StageTwoEnding };
-        foreach (var lang in new[] { Language.English, Language.PortugueseBrazil })
+        foreach (var lang in Loc.Order)
         {
             Loc.Choose(lang);
             foreach (var list in lists)

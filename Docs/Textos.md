@@ -382,6 +382,18 @@ Cada carta tem um nome (**Título**) e uma descrição curta do que ela faz (**D
 
 | Chave | Texto (PT-BR) | Contexto |
 | --- | --- | --- |
+| `AchUnlocked` | Conquista desbloqueada! | Texto sem contexto catalogado ainda. |
+| `AchBoss` | Chefe derrotado: {0} ({1}) | Texto sem contexto catalogado ainda. |
+| `AchJoke` | Modo fácil? Sério? | Texto sem contexto catalogado ainda. |
+| `AchEndingBad` | Final: Noite sem fim | Texto sem contexto catalogado ainda. |
+| `AchEndingTrue` | Final: Aurora | Texto sem contexto catalogado ainda. |
+| `WeaponTitle` | Escolha o ataque | Texto sem contexto catalogado ainda. |
+| `WeaponStreamName` | Chuva frontal ondulada | Texto sem contexto catalogado ainda. |
+| `WeaponStreamDesc` | Muito dano, porém difícil de controlar. | Texto sem contexto catalogado ainda. |
+| `WeaponHomingName` | Luz quebrada perseguidora | Texto sem contexto catalogado ainda. |
+| `WeaponHomingDesc` | Acerto garantido, dano reduzido. | Texto sem contexto catalogado ainda. |
+| `WeaponHint` | Esq Dir: Escolher   Z: Confirmar   X: Voltar | Texto sem contexto catalogado ainda. |
+| `CfgLanguage` | Idioma | Texto sem contexto catalogado ainda. |
 | `Boss6Music` | ♪ A lua prateada reflete sob o lago | Texto sem contexto catalogado ainda. |
 | `MenuMusic` | ♪ Águas quietas - entrada e menu | Texto sem contexto catalogado ainda. |
 | `SadEndingMusic` | ♪ Noite sem fim - final ruim | Texto sem contexto catalogado ainda. |

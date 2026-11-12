@@ -66,6 +66,11 @@ public static partial class BulletSystem
         return i;
     }
 
+    /// <summary>The second attack of the boat: its round lights hit for this share of what a bolt of the stream does, leave this fast to the sides, and are this big.</summary>
+    public const float HomingPower = 2f / 3f, HomingOrbScale = 1.4f;
+    /// <summary>The lights go out at this speed (px/s), at this many degrees from straight up (a little less when focused), and keep bending to the foe for this many seconds (the amulets of Reimu bend for two thirds of a second, and miss a foe that moves: here they follow it).</summary>
+    public const float AmuletSpeed = 560, HomingAngle = 30, HomingFocusAngle = 12, AmuletSteerSeconds = 3f;
+
     /// <summary>Seconds between volleys of homing wisps.</summary>
     public const float WispInterval = 0.4f;
     public const float WispSpeed = 420;
@@ -83,7 +88,7 @@ public static partial class BulletSystem
     /// <summary>Focusing: the bolts crowd together (this far apart, instead of 15), each hits harder, and the fans close up to a narrow angle.</summary>
     public const float FocusSpacing = 7, FocusPower = 1.4f, FocusFanAngle = 2.5f;
 
-    public static void UpdatePlayerWeapons(PlayerEntity player, BulletData[] pool, float delta, CardEffects? effectsOrNull = null)
+    public static void UpdatePlayerWeapons(PlayerEntity player, BulletData[] pool, float delta, CardEffects? effectsOrNull = null, WeaponStyle weapon = WeaponStyle.Stream)
     {
         CardEffects effects = effectsOrNull ?? new CardEffects();
         player.Weapon.TimeSinceLastFire += delta;
@@ -122,6 +127,7 @@ public static partial class BulletSystem
         // the bolts of a volley share one burst between them.
         foreach (Vector2 offset in offsets)
         {
+            if (weapon == WeaponStyle.Homing) continue;          // (the lights of the other attack are fired below, not in a stream)
             Spawn(pool,
                   player.Transform.Position + offset,
                   new Vector2(0, -player.Weapon.BulletSpeed),
@@ -132,6 +138,36 @@ public static partial class BulletSystem
                   pierce: effects.Pierce,
                   burstRadius: effects.BurstRadius,
                   burstScale: 1f / offsets.Length);
+        }
+
+        // The other attack, after the amulets of Reimu in Touhou 6: every second volley (half the cadence of the stream) a few round lights leave the boat along diagonals, and bend to the foe that is being hit.
+        if (weapon == WeaponStyle.Homing)
+        {
+            if (player.Weapon.Volleys++ % 2 == 0)
+            {
+                // level 1: one light, to a side and then to the other; level 2: one to each side; level 3: and one straight up between them
+                float spread = focus ? HomingFocusAngle : HomingAngle;
+                var angles = new List<float>();
+                int level = player.Weapon.PowerLevel;
+                if (level <= 1) angles.Add(player.Weapon.Volleys / 2 % 2 == 0 ? -90 - spread : -90 + spread);
+                else { angles.Add(-90 - spread); angles.Add(-90 + spread); if (level >= 3) angles.Add(-90); }
+                foreach (float degrees in angles)
+                {
+                    float rad = Mathx.Radians(degrees);
+                    float side = MathF.Sign(MathF.Cos(rad));
+                    Spawn(pool,
+                          player.Transform.Position + new Vector2(side * 14, 0),
+                          new Vector2(MathF.Cos(rad), MathF.Sin(rad)) * AmuletSpeed,
+                          Faction.Player,
+                          BulletStyle.HomingOrb,
+                          scale: HomingOrbScale,
+                          behavior: BulletBehavior.Amulet,
+                          power: HomingPower * effects.DamageMultiplier * focusPower,
+                          pierce: effects.Pierce,
+                          burstRadius: effects.BurstRadius,
+                          burstScale: 1f / angles.Count);
+                }
+            }
         }
 
         // The fans (a card's, so they have a bolt of their own, golden): a pair of lighter bolts for each, from the lantern itself, one volley after another, whatever the weapon's level.
@@ -309,7 +345,7 @@ public static partial class BulletSystem
         return Spawn(pool, origin, new Vector2(MathF.Cos(a), MathF.Sin(a)) * speed, Faction.Boss, style, scale: scale, acceleration: acceleration, curve: curve, behavior: behavior);
     }
 
-    public static void MoveBullets(BulletData[] pool, Rect2 screenBounds, float delta, Vector2 wind, PlayerEntity player, IList<Vector2> targets = null)
+    public static void MoveBullets(BulletData[] pool, Rect2 screenBounds, float delta, Vector2 wind, PlayerEntity player, IList<Vector2> targets = null, Vector2? lastHit = null)
     {
         // Slightly larger kill margin so curving bullets can leave the screen and come back.
         Rect2 safeBounds = screenBounds.Grown(100);
@@ -354,6 +390,35 @@ public static partial class BulletSystem
                 // And it speeds up to its cruising speed.
                 float speed = MathF.Min(WispSpeed, velocity.Length() + 600 * delta);
                 b.Velocity = Mathx.Norm(b.Velocity) * speed;
+            }
+
+            if (b.Behavior == BulletBehavior.Amulet)
+            {
+                // After the amulets of Reimu (Touhou 6): for the first two thirds of a second, each frame the velocity gets a push of a quarter of the speed towards the foe, and the speed is held to the cruising speed;
+                // the foe is the one that was hit last, if it is still there, and otherwise the nearest. Afterwards it only keeps its heading (and, if it was slowed, gets back its pace).
+                b.Timer += delta;
+                float speed = b.Velocity.Length();
+                if (b.Timer < AmuletSteerSeconds && targets != null && targets.Count > 0 && speed > 1)
+                {
+                    // the foe hit last, if there is a foe near where it was (it may have moved); otherwise the one nearest the light
+                    Vector2 target = targets[0]; float bestHit = float.MaxValue, bestNear = float.MaxValue; Vector2 nearest = targets[0];
+                    for (int t = 0; t < targets.Count; t++)
+                    {
+                        if (lastHit is Vector2 hit) { float dh = targets[t].DistanceTo(hit); if (dh < bestHit) { bestHit = dh; target = targets[t]; } }
+                        float dn = targets[t].DistanceTo(b.Position);
+                        if (dn < bestNear) { bestNear = dn; nearest = targets[t]; }
+                    }
+                    if (lastHit == null || bestHit >= 90) target = nearest;
+                    Vector2 to = target - b.Position;
+                    if (to.LengthSquared() > 4)
+                    {
+                        Vector2 v = b.Velocity + Mathx.Norm(to) * (speed / 4f) * (delta * 60f);
+                        float pace = MathF.Max(AmuletSpeed * 0.1f, MathF.Min(v.Length(), AmuletSpeed));
+                        b.Velocity = Mathx.Norm(v) * pace;
+                    }
+                }
+                else if (speed < AmuletSpeed && speed > 0.01f)
+                    b.Velocity = Mathx.Norm(b.Velocity) * MathF.Min(AmuletSpeed, speed + AmuletSpeed / 30f * delta * 60f);
             }
 
             if (b.Behavior == BulletBehavior.Burst)
@@ -543,12 +608,12 @@ public static partial class BulletSystem
         foreach (var pair in fired) events.Add(WorldEvent.BulletsFired(pair.Key, pair.Value));
     }
 
-    /// <summary>What the homing wisps may turn towards: the spirits, and the boss once she is on the screen. None if no card gives wisps.</summary>
-    public static List<Vector2> HomingTargets(CardEffects effects, IEnumerable<EnemyEntity> enemies, BossEntity boss, bool bossActive, BossEntity twin = null)
+    /// <summary>What the homing lights may turn towards: the spirits on the screen, and the boss once she is on it. None if no card gives wisps and the boat does not attack with homing lights.</summary>
+    public static List<Vector2> HomingTargets(CardEffects effects, IEnumerable<EnemyEntity> enemies, BossEntity boss, bool bossActive, BossEntity twin = null, bool homingWeapon = false)
     {
         var targets = new List<Vector2>();
-        if (effects.HomingWisps <= 0) return targets;
-        foreach (var e in enemies) if (e.Health > 0) targets.Add(e.Position);
+        if (effects.HomingWisps <= 0 && !homingWeapon) return targets;
+        foreach (var e in enemies) if (e.Health > 0 && e.Position.Y > 10) targets.Add(e.Position);        // (not those that are still above the picture)
         if (bossActive && boss.Health.CurrentHealth > 0 && boss.Transform.Position.Y > 0) targets.Add(boss.Transform.Position);
         if (bossActive && twin != null && boss.Health.CurrentHealth > 0 && twin.Transform.Position.Y > 0) targets.Add(twin.Transform.Position);
         return targets;
