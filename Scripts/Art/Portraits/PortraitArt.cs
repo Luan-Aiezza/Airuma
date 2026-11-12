@@ -1,3 +1,4 @@
+using System;
 using Godot;
 using P = PixelColor;
 
@@ -11,7 +12,8 @@ public static class PortraitArt
 
     /// <summary>The picture of the speaker showing `emotion` (the flame, 64 x 64; `frame` (0 or 1) is for it, which flickers). Null if there is none yet.</summary>
     public static PixelCanvas Face(DialogueSpeaker speaker, int stage, Emotion emotion, int frame = 0) =>
-        speaker == DialogueSpeaker.Airu ? FlamePortrait.Make(emotion, frame) : null;
+        speaker == DialogueSpeaker.Airu ? FlamePortrait.Make(emotion, frame)
+        : null;
 
     /// <summary>The whole square for the box: the face over its backdrop, in a frame (68 x 68 for the flame). Without a face, the empty frame (34 x 34).</summary>
     public static PixelCanvas Square(DialogueSpeaker speaker, int stage, Emotion emotion, int frame)

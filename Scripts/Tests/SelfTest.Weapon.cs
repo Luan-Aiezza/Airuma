@@ -24,10 +24,10 @@ public static partial class SelfTest
         {
             var pool = Pool(100); var p = new PlayerEntity(); p.Input.IsShooting = true; p.Weapon.PowerLevel = level; p.Weapon.TimeSinceLastFire = 1;
             BulletSystem.UpdatePlayerWeapons(p, pool, 0.1f, new CardEffects(), WeaponStyle.Homing);
-            Eq(LightsOf(pool, BulletStyle.HomingOrb), level, $"level {level}: as many lights as the stream has bolts");
+            Eq(LightsOf(pool, BulletStyle.HomingOrb), level == 1 ? 1 : level + 1, $"level {level}: one, three and four lights");
             Eq(LightsOf(pool, BulletStyle.LightBolt), 0, "and no bolts");
             True(pool.Where(b => b.IsActive).All(b => b.Behavior == BulletBehavior.Amulet && b.Faction == Faction.Player), "they bend to the foe, like the amulets of Reimu");
-            True(pool.Where(b => b.IsActive).All(b => MathF.Abs(b.Power - BulletSystem.HomingPower) < 0.001f), "each hits for two thirds of a bolt (at half the cadence: a third of the damage of the stream)");
+            True(Math.Abs(pool.Where(b => b.IsActive).Sum(b => b.Power) - BulletSystem.HomingPower * level) < 0.001f, "the lights of a volley hit together for the same as one, two and three lights of two thirds of a bolt (at half the cadence: a third of the damage of the stream)");
             if (level >= 2) True(pool.Where(b => b.IsActive).Any(b => b.Velocity.X < 0) && pool.Any(b => b.IsActive && b.Velocity.X > 0), "one along each diagonal");
         }
         Near(BulletSystem.HomingPower, 2f / 3f, 0.0001f);
@@ -48,7 +48,7 @@ public static partial class SelfTest
             return count;
         }
         int stream = Fired(WeaponStyle.Stream), homing = Fired(WeaponStyle.Homing);
-        Near(homing / (float)stream, 0.5f, 0.06f, $"half as many lights as bolts in the same time ({homing} against {stream})");
+        Near(homing / (float)stream, 0.75f, 0.06f, $"half as many volleys, of three lights against two bolts at level 2: three quarters as many shots in the same time ({homing} against {stream})");
     }
 
     private static void TheLightsBendToTheFoeThatWasHitLast()

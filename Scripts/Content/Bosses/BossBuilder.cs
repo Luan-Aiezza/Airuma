@@ -52,13 +52,13 @@ public sealed class BossBuilder
     public static int HealthOf(int written, BossMovementType movement) => Math.Max(10, (int)(written * HealthMultiplier(movement) * HealthFactor));
 
     /// <summary>The bases of the time bonus, one per boss (the later the boss the richer).</summary>
-    public static readonly int[] AttackBases = { 6_500, 7_000, 8_000, 9_500, 10_500, 12_000 };
+    public static readonly int[] AttackBases = { 7_000, 7_500, 9_000, 10_500, 11_500, 13_000 };
 
     /// <summary>Least and most seconds of an attack (stream weapon), and the share of the kill time of the ideal player it allows.</summary>
     public const float MinTimeLimit = 30, MaxTimeLimit = 65, TimeLimitSlack = 3;
 
     /// <summary>Seconds added to every limit.</summary>
-    public const float ExtraTimeSeconds = 10;
+    public const float ExtraTimeSeconds = 5;
 
     /// <summary>The time limit of an attack of this health (stream weapon): about three times what a good player needs, in steps of 5 s.</summary>
     public static float TimeLimitOf(int health, BossMovementType movement)

@@ -145,12 +145,15 @@ public static partial class BulletSystem
         {
             if (player.Weapon.Volleys++ % 2 == 0)
             {
-                // level 1: one light, to a side and then to the other; level 2: one to each side; level 3: and one straight up between them
+                // level 1: one light, to a side and then to the other; level 2: three, one along each diagonal and one straight up between them; level 3: four, spread evenly over the fan.
+                // The damage of a volley is the same as it was (one, two and three lights of HomingPower): it is shared among the lights.
                 float spread = focus ? HomingFocusAngle : HomingAngle;
                 var angles = new List<float>();
                 int level = player.Weapon.PowerLevel;
                 if (level <= 1) angles.Add(player.Weapon.Volleys / 2 % 2 == 0 ? -90 - spread : -90 + spread);
-                else { angles.Add(-90 - spread); angles.Add(-90 + spread); if (level >= 3) angles.Add(-90); }
+                else if (level == 2) { angles.Add(-90 - spread); angles.Add(-90); angles.Add(-90 + spread); }
+                else { angles.Add(-90 - spread); angles.Add(-90 - spread / 3); angles.Add(-90 + spread / 3); angles.Add(-90 + spread); }
+                float share = Math.Max(1, Math.Min(level, 3)) / (float)angles.Count;
                 foreach (float degrees in angles)
                 {
                     float rad = Mathx.Radians(degrees);
@@ -162,7 +165,7 @@ public static partial class BulletSystem
                           BulletStyle.HomingOrb,
                           scale: HomingOrbScale,
                           behavior: BulletBehavior.Amulet,
-                          power: HomingPower * effects.DamageMultiplier * focusPower,
+                          power: HomingPower * share * effects.DamageMultiplier * focusPower,
                           pierce: effects.Pierce,
                           burstRadius: effects.BurstRadius,
                           burstScale: 1f / angles.Count);
