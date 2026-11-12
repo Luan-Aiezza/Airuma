@@ -8,7 +8,8 @@ using System;
 public static class ScoreSystem
 {
     public const int PointsPerHit = 100;
-    public const int PointsPerPhase = 50_000;
+    /// <summary>The time bonus of a beaten attack: its base times (1 + seconds left / 10), the seconds counted as with the stream weapon (see <see cref="World.TimeFactor"/>).</summary>
+    public static int AttackBonus(int attackBase, float secondsLeft) => (int)(attackBase * (1 + Math.Clamp(secondsLeft, 0, 99) / 10f));
     public const int PointsPerSpiritHit = 10;
     /// <summary>Points for each unit of light gathered once the lantern is already full.</summary>
     public const int PointsPerSpareLight = 50;

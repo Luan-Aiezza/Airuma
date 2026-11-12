@@ -294,6 +294,7 @@ public partial class GameScene : Node2D
             WindStrength = wind.Strength,
             BossHealth = World.Part == StagePart.Boss && _bossSequence == BossSequence.None && boss.Health.Lives > 0
                 ? (float)Math.Max(0, boss.Health.CurrentHealth) / boss.Health.MaxHealth : (float?)null,
+            BossSeconds = _bossSequence == BossSequence.None ? World.BossSeconds : null,
             PhasesCleared = boss.Definition.Lives - Math.Max(0, boss.Health.Lives),
             PowerProgress = PowerCurve.Progress(player.Energy),
             Cards = World.Run.History,

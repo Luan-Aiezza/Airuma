@@ -266,6 +266,7 @@ public static class TextsEn
     ["SayDefeat"] = "Don't give up!",
     ["SayPowerUp"] = "I feel stronger!",
     ["SayFullPower"] = "Full power!",
+    ["AttackBonus"] = "Time bonus!",
     ["SayBombRefill"] = "A spare bomb!",
     ["SayLifeRefill"] = "A spare life!",
     ["ChooseCard"] = "Choose a card",

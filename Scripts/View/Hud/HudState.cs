@@ -12,6 +12,8 @@ public struct HudState
     public float WindStrength;
     /// <summary>Boss health 0...1, or null when there is no boss to show.</summary>
     public float? BossHealth;
+    /// <summary>Whole seconds left of the boss's attack, or null when there is no clock to show.</summary>
+    public int? BossSeconds;
     public int PhasesCleared;
     /// <summary>Progress (0...1) towards the next weapon level.</summary>
     public float PowerProgress;

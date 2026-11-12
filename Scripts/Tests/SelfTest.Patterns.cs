@@ -17,7 +17,7 @@ public static partial class SelfTest
         T("ASplittingBulletBreaksIntoARing", ASplittingBulletBreaksIntoARing);
         T("BouncingBulletsTurnBackAtTheSides", BouncingBulletsTurnBackAtTheSides);
         T("ABulletThatTurnsStopsAndThenFliesAtTheBoat", ABulletThatTurnsStopsAndThenFliesAtTheBoat);
-        T("TheSerpentStandsStillForFiveSecondsBeforeEveryLunge", TheSerpentStandsStillForFiveSecondsBeforeEveryLunge);
+        T("TheSerpentStandsStillBeforeEveryLunge", TheSerpentStandsStillBeforeEveryLunge);
         T("TheTextsOfThePauseAndDefeatBoxesFitInsideThem", TheTextsOfThePauseAndDefeatBoxesFitInsideThem);
         T("EverySpeakerHasAFaceForTheDialogueBox", EverySpeakerHasAFaceForTheDialogueBox);
         T("TheBulletsOfEveryStageSoundAtTheSameLevel", TheBulletsOfEveryStageSoundAtTheSameLevel);
@@ -251,7 +251,7 @@ public static partial class SelfTest
         Eq(ActiveCount(pool), 0, "no shots from the lower half");
     }
 
-    private static void TheSerpentStandsStillForFiveSecondsBeforeEveryLunge()
+    private static void TheSerpentStandsStillBeforeEveryLunge()
     {
         var bounds = World.PlayArea;
         var boss = BossEntity.Create(Stages.One.Boss);
@@ -266,7 +266,7 @@ public static partial class SelfTest
             if ((boss.Transform.Position - last).Length() < 0.01f) still += 1f / 60; else { if (still > 0.5f) longest = MathF.Max(longest, still); still = 0; }
             last = boss.Transform.Position;
         }
-        GreaterEq(longest, 5f, "it stands still at least five seconds before it lunges again");
+        GreaterEq(longest, 1.5f, "it stands still at least a second and a half before it lunges again (half the wait it had)");
     }
 
     /// <summary>The boxes of the pause and the defeat are 120 art pixels wide (480 on the screen); their plaques, 46 and 48 (184 and 192); the texts must fit, with a margin, in every language.</summary>

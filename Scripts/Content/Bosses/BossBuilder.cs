@@ -51,10 +51,29 @@ public sealed class BossBuilder
     /// <summary>The health of an attack, for the health written for the boss's form: multiplied by how the boss moves (see <see cref="HealthMultiplier"/>), then scaled by <see cref="HealthFactor"/>.</summary>
     public static int HealthOf(int written, BossMovementType movement) => Math.Max(10, (int)(written * HealthMultiplier(movement) * HealthFactor));
 
+    /// <summary>The bases of the time bonus, one per boss (the later the boss the richer).</summary>
+    public static readonly int[] AttackBases = { 6_500, 7_000, 8_000, 9_500, 10_500, 12_000 };
+
+    /// <summary>Least and most seconds of an attack (stream weapon), and the share of the kill time of the ideal player it allows.</summary>
+    public const float MinTimeLimit = 30, MaxTimeLimit = 65, TimeLimitSlack = 3;
+
+    /// <summary>Seconds added to every limit.</summary>
+    public const float ExtraTimeSeconds = 10;
+
+    /// <summary>The time limit of an attack of this health (stream weapon): about three times what a good player needs, in steps of 5 s.</summary>
+    public static float TimeLimitOf(int health, BossMovementType movement)
+    {
+        float kill = health / (movement == BossMovementType.Stationary ? 29f : 20f);
+        return Math.Clamp(5 * MathF.Ceiling(kill * TimeLimitSlack / 5), MinTimeLimit, MaxTimeLimit) + ExtraTimeSeconds;
+    }
+
+    private int AttackBase => AttackBases[Math.Clamp((int)Math.Round((_health - 300) / 30.0), 0, AttackBases.Length - 1)];
+
     private BossPhase Dress(BossPhase attack, MusicPlayer.Theme theme, string musicTitleKey, int health, bool enraged)
     {
         attack.NameKey = _nameKey; attack.Theme = theme; attack.MusicTitleKey = musicTitleKey;
         attack.SpeedFactor = _speed * attack.AttackSpeed; attack.HitboxRadius = _hitbox; attack.MaxHealth = HealthOf(health, attack.Movement); attack.Enraged = enraged;
+        attack.TimeLimit = TimeLimitOf(attack.MaxHealth, attack.Movement); attack.AttackBase = AttackBase;
         return attack;
     }
 

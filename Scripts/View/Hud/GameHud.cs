@@ -65,11 +65,14 @@ public partial class GameHud : Node2D
 
     private readonly Node2D _bossGroup = new();
     private readonly ColorRect[] _bossFillRows = { NewRect(Colors.Transparent), NewRect(Colors.Transparent), NewRect(Colors.Transparent) };
-    private const float BossBarInnerWidth = 392;
+    private const float BossBarInnerWidth = 360;
     private float _shownBossHealth = 1;
 
     private readonly Node2D _banner = new();
     private readonly PixelLabel _bannerLabel = new(PixelLabel.Style.Value, 3, PixelLabel.Align.Right);
+    private readonly PixelLabel _bossClock = new(PixelLabel.Style.Value, 4, PixelLabel.Align.Right);
+    private readonly PixelLabel _flash = new(PixelLabel.Style.Gold, 3, PixelLabel.Align.Center);
+    private float _flashTime = 99;
     private bool _bannerActive;
     private float _bannerTime;
 
@@ -297,16 +300,19 @@ public partial class GameHud : Node2D
     {
         _bossGroup.ZIndex = Z(2);
         AddChild(_bossGroup);
-        Label(_bossName, "", 24, 36, _bossGroup, Space.Field);
-        Label(_bossNameTop, "", 24, 28, _bossGroup, Space.Field);
-        Label(_bossNameBottom, "", 24, 46, _bossGroup, Space.Field);
-        MakeSprite(HudArt.BossBarFrame(106).ToTexture(), AtField(160, 28), 0, null, null, _bossGroup);
+        Label(_bossName, "", 16, 36, _bossGroup, Space.Field);
+        Label(_bossNameTop, "", 16, 28, _bossGroup, Space.Field);
+        Label(_bossNameBottom, "", 16, 46, _bossGroup, Space.Field);
+        Label(_bossClock, "", 584, 30, _bossGroup, Space.Field);
+        Label(_flash, "", 300, 120, this, Space.Field);
+        _flash.ZIndex = Z(6);
+        MakeSprite(HudArt.BossBarFrame(98).ToTexture(), AtField(136, 28), 0, null, null, _bossGroup);
 
         for (int i = 0; i < _bossFillRows.Length; i++)
         {
             var row = _bossFillRows[i];
             row.Color = FirePalette.Ramp[i + 1].ToColor();
-            row.Position = AtField(176, 36 + i * 4);
+            row.Position = AtField(152, 36 + i * 4);
             row.Size = new Vector2(BossBarInnerWidth, 4);
             row.ZIndex = Z(1);
             _bossGroup.AddChild(row);
@@ -367,6 +373,7 @@ public partial class GameHud : Node2D
         ShowCards(state.Cards);
         UpdateWind(state.WindDirection, state.WindStrength);
         UpdateBossBar(state.BossHealth, dt);
+        UpdateClock(state.BossSeconds, dt);
         UpdateDialogue(dt);
         UpdateAnimations(dt);
     }
@@ -453,6 +460,28 @@ public partial class GameHud : Node2D
         foreach (var (v, n) in names) if (v == direction) { dirName = n; break; }
         _windDirectionLabel.SetText(calm ? UIText.WindCalm : dirName);
         _windStrengthLabel.SetText(calm ? UIText.WindNone : UIText.WindStrengths[Math.Min(3, level) - 1]);
+    }
+
+    /// <summary>The clock of the attack: white, then yellow under 20 s, orange under 10 s, red under 5 s (like Touhou).</summary>
+    private void UpdateClock(int? seconds, float dt)
+    {
+        _bossClock.Visible = seconds != null;
+        if (seconds != null)
+        {
+            int s = Math.Min(99, seconds.Value);
+            _bossClock.SetText(s.ToString("D2", CultureInfo.InvariantCulture));
+            _bossClock.Modulate = s < 5 ? new Color(1f, 0.25f, 0.2f) : s < 10 ? new Color(1f, 0.6f, 0.15f) : s < 20 ? new Color(1f, 0.92f, 0.3f) : Colors.White;
+        }
+        _flashTime += dt;
+        _flash.Visible = _flashTime < 2.8f;
+        _flash.Modulate = new Color(1, 1, 1, Math.Clamp((2.8f - _flashTime) / 0.6f, 0, 1));
+    }
+
+    /// <summary>A message in the middle of the field that fades away (the time bonus of an attack, or "time up").</summary>
+    public void Flash(string text)
+    {
+        _flash.SetText(text);
+        _flashTime = 0;
     }
 
     private void UpdateBossBar(float? health, float dt)

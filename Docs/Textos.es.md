@@ -402,6 +402,7 @@ Cada carta tem um nome (**Título**) e uma descrição curta do que ela faz (**D
 | `RestartsLeft` | Reinicios restantes: | Reinícios restantes: | Texto sem contexto catalogado ainda. |
 | `GameOver` | Game Over | Game Over | Texto sem contexto catalogado ainda. |
 | `GameOverMusic` | ♪ Luz que se apaga - game over | ♪ Luz que se apaga - game over | Texto sem contexto catalogado ainda. |
+| `AttackBonus` | ¡Bonus de tiempo! | Bônus de tempo! | Texto sem contexto catalogado ainda. |
 | `DifficultyStages` | ({0} Fases) | ({0} Fases) | Texto sem contexto catalogado ainda. |
 | `AttackCatPlay` | Juego de la Gata: Ovillos que Rebotan | Brincadeira da Gata: Novelos que Quicam | Texto sem contexto catalogado ainda. |
 | `AttackKillaCrescent` | Luna Creciente: Los Cuernos de Plata | Lua Crescente: Os Chifres de Prata | Texto sem contexto catalogado ainda. |

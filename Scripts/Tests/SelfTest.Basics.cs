@@ -25,6 +25,11 @@ public static partial class SelfTest
         T("EveryBossPhaseHasAnAttackName", EveryBossPhaseHasAnAttackName);
         T("TheBossComesDownFromAboveAndOnlyThenAttacks", TheBossComesDownFromAboveAndOnlyThenAttacks);
         T("ScoreGrowsWithHitsAndPhases", ScoreGrowsWithHitsAndPhases);
+        T("TheTimeBonusIsTheBaseTimesOnePlusTenthsOfSecondsLeft", TheTimeBonusIsTheBaseTimesOnePlusTenthsOfSecondsLeft);
+        T("WhenTheTimeRunsOutTheAttackPassesWithNoBonus", WhenTheTimeRunsOutTheAttackPassesWithNoBonus);
+        T("TheLastAttackTimingOutIsVictory", TheLastAttackTimingOutIsVictory);
+        T("DyingOrBombingTakesTheBonusAway", DyingOrBombingTakesTheBonusAway);
+        T("TheClockTicksOnlyInTheLastNineSecondsAndTheHomingWeaponHasMore", TheClockTicksOnlyInTheLastNineSecondsAndTheHomingWeaponHasMore);
         T("HighScoreOnlyKeepsTheBest", HighScoreOnlyKeepsTheBest);
         T("ActorsReachTheMiddleOfTheTreesButNoFurther", ActorsReachTheMiddleOfTheTreesButNoFurther);
         T("BossHitboxIsTwoThirdsOfItsSprite", BossHitboxIsTwoThirdsOfItsSprite);
@@ -237,6 +242,90 @@ public static partial class SelfTest
         True(world.Bullets.Any(b => b.IsActive && b.Faction == Faction.Boss), "and then the attack begins");
     }
 
+    /// <summary>A world in practice of attack 1, with the boss in place and the breather over (the clock runs).</summary>
+    private static World ATimedFight(WeaponStyle weapon = WeaponStyle.Stream)
+    {
+        var world = new World(practicePhase: 1, weapon: weapon);
+        world.Boss.Transform.Position = new Vector2(300, Layout.BossY);
+        for (int i = 0; i < (int)(PhaseManagerSystem.EntranceSeconds * 60) + 400 && world.Boss.MovementType == BossMovementType.Transition; i++) world.Step(Dt, Idle());
+        world.TakeEvents();
+        return world;
+    }
+
+    private static void TheTimeBonusIsTheBaseTimesOnePlusTenthsOfSecondsLeft()
+    {
+        Eq(ScoreSystem.AttackBonus(10_000, 0), 10_000);
+        Eq(ScoreSystem.AttackBonus(10_000, 10), 20_000);
+        Eq(ScoreSystem.AttackBonus(12_000, 25), 42_000);
+        var world = ATimedFight();
+        for (int i = 0; i < 600; i++) { world.Player.Health.InvincibilityTimer = 99; world.Step(Dt, Idle()); }      // ten seconds go by (the boat is not hurt)
+        True(world.TimeLeft < world.TimeLimit - 9.5f && world.TimeLeft > world.TimeLimit - 10.5f, "the clock ran for ten seconds");
+        int before = world.Score;
+        float left = world.TimeLeft;
+        var ended = world.Boss.Definition.PhaseFor(world.Boss.Health.Lives);
+        world.Boss.Health.CurrentHealth = 0;
+        world.Step(Dt, Idle());
+        True(world.Score - before >= ScoreSystem.AttackBonus(ended.AttackBase, left - 0.1f), "the bonus counts the seconds left");
+        True(world.TakeEvents().Any(e => e.Kind == WorldEventKind.AttackBonus), "and the scene is told of it");
+    }
+
+    private static void WhenTheTimeRunsOutTheAttackPassesWithNoBonus()
+    {
+        var world = ATimedFight();
+        int lives = world.Boss.Health.Lives;
+        int before = world.Score;
+        var events = new System.Collections.Generic.List<WorldEvent>();
+        for (int i = 0; i < (int)(world.TimeLimit * 60) + 120 && world.Boss.Health.Lives == lives; i++) { world.Step(Dt, Idle()); events.AddRange(world.TakeEvents()); }
+        Eq(world.Boss.Health.Lives, lives - 1, "the attack passed on its own");
+        Eq(world.Score, before, "with no points");
+        True(events.Any(e => e.Kind == WorldEventKind.TimeUp), "the time up is told");
+        True(!events.Any(e => e.Kind == WorldEventKind.AttackBonus), "and there is no bonus");
+    }
+
+    private static void TheLastAttackTimingOutIsVictory()
+    {
+        var world = new World(practicePhase: 100);      // the last attack
+        world.Boss.Transform.Position = new Vector2(300, Layout.BossY);
+        Eq(world.Boss.Health.Lives, 1);
+        for (int i = 0; i < 400 && world.Boss.MovementType == BossMovementType.Transition; i++) world.Step(Dt, Idle());
+        for (int i = 0; i < (int)(world.TimeLimit * 60) + 120 && world.Boss.Health.Lives > 0; i++) world.Step(Dt, Idle());
+        Eq(world.Boss.Health.Lives, 0, "no life left for the boss: she is beaten");
+    }
+
+    private static void DyingOrBombingTakesTheBonusAway()
+    {
+        var bomb = ATimedFight();
+        var press = Idle(); press.IsBombing = true;
+        bomb.Step(Dt, press);
+        for (int i = 0; i < 30; i++) bomb.Step(Dt, Idle());
+        True(bomb.CaptureLost, "a bomb spends the bonus");
+        int before = bomb.Score;
+        bomb.Boss.Health.CurrentHealth = 0;
+        bomb.Step(Dt, Idle());
+        True(!bomb.TakeEvents().Any(e => e.Kind == WorldEventKind.AttackBonus), "no bonus after a bomb");
+
+        var hit = new World(practicePhase: 1, noLifeLoss: false);
+        hit.Boss.Transform.Position = new Vector2(300, Layout.BossY);
+        for (int i = 0; i < 400 && hit.Boss.MovementType == BossMovementType.Transition; i++) hit.Step(Dt, Idle());
+        hit.Player.Health.CurrentHealth = 0;
+        hit.Step(Dt, Idle());
+        True(hit.CaptureLost, "a hit spends the bonus");
+    }
+
+    private static void TheClockTicksOnlyInTheLastNineSecondsAndTheHomingWeaponHasMore()
+    {
+        var stream = ATimedFight(); var homing = ATimedFight(WeaponStyle.Homing);
+        Near(homing.TimeLimit, stream.TimeLimit * 1.5f, 0.01f);
+        var ticks = new System.Collections.Generic.List<int>();
+        int startLives = stream.Boss.Health.Lives;
+        for (int i = 0; i < (int)(stream.TimeLimit * 60) + 30 && stream.Boss.Health.Lives == startLives; i++)
+        {
+            stream.Step(Dt, Idle());
+            foreach (var e in stream.TakeEvents()) if (e.Kind == WorldEventKind.TimerTick) ticks.Add(e.Int);
+        }
+        True(ticks.Count == 9 && ticks.All(t => t >= 1 && t <= 9), "nine ticks, one for each of the last seconds");
+    }
+
     private static void ScoreGrowsWithHitsAndPhases()
     {
         var world = new World(practicePhase: 1);
@@ -246,9 +335,11 @@ public static partial class SelfTest
         world.Step(Dt, Idle());
         Eq(world.Score, ScoreSystem.PointsPerHit);
 
+        var beaten = world.Boss.Definition.PhaseFor(world.Boss.Health.Lives);      // the attack about to be beaten (its clock had not started: full time)
+        int bonus = ScoreSystem.AttackBonus(beaten.AttackBase, beaten.TimeLimit);
         world.Boss.Health.CurrentHealth = 0;
         world.Step(Dt, Idle());
-        Eq(world.Score, ScoreSystem.PointsPerHit + ScoreSystem.PointsPerPhase);
+        Eq(world.Score, ScoreSystem.PointsPerHit + bonus);
 
         world.Reset();
         Eq(world.Score, 0);

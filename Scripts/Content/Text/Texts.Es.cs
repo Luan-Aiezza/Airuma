@@ -254,6 +254,7 @@ public static class TextsEs
     ["SayDefeat"] = "¡No te rindas!",
     ["SayPowerUp"] = "¡Me siento fuerte!",
     ["SayFullPower"] = "¡Poder total!",
+    ["AttackBonus"] = "¡Bonus de tiempo!",
     ["SayBombRefill"] = "¡Bomba extra!",
     ["SayLifeRefill"] = "¡Vida extra!",
     ["ChooseCard"] = "Elige una carta",

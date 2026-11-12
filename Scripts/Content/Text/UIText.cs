@@ -133,6 +133,7 @@ public static class UIText
     public static string SayDefeat => Loc.Get(nameof(SayDefeat));
     public static string SayPowerUp => Loc.Get(nameof(SayPowerUp));
     public static string SayFullPower => Loc.Get(nameof(SayFullPower));
+    public static string AttackBonus => Loc.Get(nameof(AttackBonus));
     public static string SayBombRefill => Loc.Get(nameof(SayBombRefill));
     public static string SayLifeRefill => Loc.Get(nameof(SayLifeRefill));
 

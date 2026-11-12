@@ -38,7 +38,7 @@ public static partial class Attacks
         var attack = Attack("AttackTideOfEmbers", BossMovementType.Dash, new Vector2(300, -50), startsAtTarget: true,
             main: new BulletEmitterComponent
             {
-                IsActive = true, FireRate = 0.26f, BulletsPerVolley = 8,
+                IsActive = true, FireRate = 0.52f, BulletsPerVolley = 8,
                 SpreadAngle = 360, BulletSpeed = 100, SpinRate = 15, BulletScale = 0.5f, BulletStyle = BulletStyle.Ember,
             }, embersOneStepDown: true, patterns: new[]
             {

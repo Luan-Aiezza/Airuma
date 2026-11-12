@@ -41,6 +41,9 @@ public partial class GameScene : Node2D
                     break;
                 case WorldEventKind.BombFired: SfxPlayer.Instance?.Play(SfxBank.Sound.Bomb); break;
                 case WorldEventKind.LightGathered: SfxPlayer.Instance?.Play(SfxBank.Sound.Pickup); break;
+                case WorldEventKind.TimerTick: SfxPlayer.Instance?.Play(SfxBank.Sound.Tick); break;
+                case WorldEventKind.AttackBonus: _hud.Flash(UIText.AttackBonus + " +" + e.Int.ToString(System.Globalization.CultureInfo.InvariantCulture)); break;
+                case WorldEventKind.TimeUp: break;
                 case WorldEventKind.WaveStarted: break;
             }
         }

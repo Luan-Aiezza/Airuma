@@ -266,6 +266,7 @@ public static class TextsPtBr
     ["SayDefeat"] = "Não desista!",
     ["SayPowerUp"] = "Me sinto mais forte!",
     ["SayFullPower"] = "Poder total!",
+    ["AttackBonus"] = "Bônus de tempo!",
     ["SayBombRefill"] = "Uma bomba reserva!",
     ["SayLifeRefill"] = "Uma vida reserva!",
     ["ChooseCard"] = "Escolha uma carta",

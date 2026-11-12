@@ -20,6 +20,10 @@ public sealed class BossPhase
     public string MusicTitle => Loc.Get(MusicTitleKey);
     /// <summary>The health of the boss for this attack: each attack begins with the bar full. The second form of a boss is the stronger one.</summary>
     public int MaxHealth;
+    /// <summary>How many seconds (with the stream weapon) the player has to beat this attack; when they run out the attack passes, with no bonus. Set by the builder.</summary>
+    public float TimeLimit = 40;
+    /// <summary>The base of the time bonus of this attack: the bonus is this times (1 + seconds left / 10). Set by the builder.</summary>
+    public int AttackBase = 10_000;
     /// <summary>The radius of the hitbox: about a third of the width of the sprite, as the hitbox is about two thirds of it.</summary>
     public float HitboxRadius;
 

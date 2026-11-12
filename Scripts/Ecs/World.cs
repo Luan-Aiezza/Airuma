@@ -231,9 +231,47 @@ public partial class World
     /// <summary>The boss's attack for the lives it has left begins (for a boss that is two, both bodies go to their places).</summary>
     private void StartBossPhase()
     {
+        _timedOut = false; CaptureLost = false;
+        if (Boss.Health.Lives > 0)
+        {
+            TimeLimit = Boss.Definition.PhaseFor(Boss.Health.Lives).TimeLimit * TimeFactor;
+            TimeLeft = TimeLimit; _lastTick = 99;
+        }
         _dance.Reset();
         PhaseManagerSystem.ChangePhase(Boss, Boss.Health.Lives, Difficulty);
         if (Twin != null) PhaseManagerSystem.ChangeTwinPhase(Twin, Boss);
+    }
+
+    /// <summary>The homing weapon is slower to kill with, so it has more time (the bonus counts the seconds as with the stream weapon).</summary>
+    public float TimeFactor => Weapon == WeaponStyle.Homing ? 1.5f : 1f;
+
+    /// <summary>The time of the attack: its limit and what is left (it runs only while the boss fights, not in the breather between attacks).</summary>
+    public float TimeLimit { get; private set; }
+    public float TimeLeft { get; private set; }
+    /// <summary>The player was hit or used a bomb during this attack: no time bonus for it.</summary>
+    public bool CaptureLost { get; private set; }
+    private bool _timedOut;
+    private int _lastTick = 99;
+
+    /// <summary>The whole seconds of the attack left to show (null: no clock now).</summary>
+    public int? BossSeconds => Part == StagePart.Boss && Boss.Health.Lives > 0 && Boss.MovementType != BossMovementType.Transition ? (int)MathF.Ceiling(TimeLeft) : (int?)null;
+
+    private void RunTimer(float delta, bool bossActive)
+    {
+        if (!bossActive || Boss.Health.Lives <= 0 || Boss.MovementType == BossMovementType.Transition || TimeLeft <= 0) return;
+        TimeLeft = MathF.Max(0, TimeLeft - delta);
+        int shown = (int)MathF.Ceiling(TimeLeft);
+        if (shown < _lastTick)
+        {
+            _lastTick = shown;
+            if (shown >= 1 && shown <= 9) _events.Add(WorldEvent.TimerTick(shown));
+        }
+        if (TimeLeft <= 0)
+        {
+            _timedOut = true;
+            Boss.Health.CurrentHealth = 0;       // the attack counts as beaten, with no bonus
+            _events.Add(WorldEvent.TimeUp());
+        }
     }
 
     private void BeginBossEntrance()
@@ -338,7 +376,7 @@ public partial class World
         // 3. Bomb, after everything has moved
         bool bombWasLit = Player.Bomb.IsActive;
         BombSystem.Process(Player, Bullets, delta);
-        if (!bombWasLit && Player.Bomb.IsActive) _events.Add(WorldEvent.BombFired());
+        if (!bombWasLit && Player.Bomb.IsActive) { _events.Add(WorldEvent.BombFired()); CaptureLost = true; }
 
         // 4. Collisions and health
         _lastHitAge += delta;
@@ -413,10 +451,20 @@ public partial class World
             Player.Transform.Position = CombatSystem.PlayerSpawn;
             Player.Bomb.BombsLeft = Math.Max(Player.Bomb.BombsLeft, Settings.Bombs);
             _events.Add(WorldEvent.PlayerHit());
+            CaptureLost = true;
         }
+        if (Player.Health.CurrentHealth <= 0 && Player.Health.Lives > 0) CaptureLost = true;
+        RunTimer(delta, bossActive);
+        float secondsLeft = TimeLeft / TimeFactor;
+        int endedBase = Boss.Health.Lives > 0 ? Boss.Definition.PhaseFor(Boss.Health.Lives).AttackBase : 0;
         if (CombatSystem.ProcessHealth(Player, Boss, delta, bossActive))
         {
-            AddScore(ScoreSystem.PointsPerPhase);
+            if (!CaptureLost && !_timedOut)
+            {
+                int bonus = ScoreSystem.AttackBonus(endedBase, secondsLeft);
+                AddScore(bonus);
+                _events.Add(WorldEvent.AttackBonus(bonus));
+            }
             _events.Add(WorldEvent.BossBroken());
             BulletSystem.ClearBossBullets(Bullets);
             StartBossPhase();
