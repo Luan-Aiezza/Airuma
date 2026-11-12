@@ -23,7 +23,7 @@ config/icon="res://Assets/icon.png"
 
 window/size/viewport_width=1110
 window/size/viewport_height=775
-window/size/resizable=false
+window/size/resizable=true
 window/size/window_width_override=2067
 window/size/window_height_override=1162
 window/stretch/mode="canvas_items"

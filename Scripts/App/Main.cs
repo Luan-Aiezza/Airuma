@@ -94,53 +94,39 @@ public partial class Main : Node2D
 
     private const string SettingsPath = "user://settings.cfg";
 
-    /// <summary>Whether the window is in full screen. The window itself has a fixed size (not resizable, except while in full screen); in full screen the
+    /// <summary>Whether the window is in full screen. The window can be resized, and in full screen the
     /// picture grows to the screen keeping its proportions, and what is left at the sides is filled by the pillars of <see cref="SideFrame"/> (stretch mode canvas_items / expand).</summary>
     public static bool IsFullscreen => DisplayServer.WindowGetMode() == DisplayServer.WindowMode.Fullscreen;
 
     /// <summary>The mode last chosen (the window itself may take a frame to show it).</summary>
     public static bool FullscreenChosen { get; private set; }
 
-    /// <summary>Seconds since the last change of mode was asked for (the window takes a while to get there on macOS: an animation), and how long it has been in a window with the resize still free.</summary>
-    private static float _sinceRequest = 99, _windowedFor;
-    private static bool _lockPending;
+    /// <summary>Seconds since the last change of mode was asked for (the window takes a while to get there on macOS: an animation).</summary>
+    private static float _sinceRequest = 99;
+
+    /// <summary>The smallest the window can be made: half the size of the picture.</summary>
+    private static readonly Vector2I MinWindowSize = new(555, 388);
 
     /// <summary>
-    /// The window is not resizable, and on macOS a window that cannot be resized goes to full screen without growing (the picture stays at the size of the window, in the middle of the screen). So the window
-    /// is made resizable while it is in full screen, and fixed again some moments after it is back in a window (not at once: the way out of full screen is an animation, and the flag must not change in the middle of it).
+    /// The window is always resizable (the project says so, and nothing locks it): on macOS a window that cannot be resized does not grow its picture when it is made bigger (full screen, the green
+    /// button, "Fill", the corner dragged), it only gets bigger around it. Resizable, the picture follows every size (stretch mode canvas_items / expand), and what is left at the sides is filled by the pillars.
     /// </summary>
     private static void ApplyScreenMode(bool fullscreen)
     {
-        _sinceRequest = 0; _windowedFor = 0;
-        if (fullscreen)
-        {
-            _lockPending = false;
-            DisplayServer.WindowSetFlag(DisplayServer.WindowFlags.ResizeDisabled, false);
-            DisplayServer.WindowSetMode(DisplayServer.WindowMode.Fullscreen);
-        }
-        else
-        {
-            DisplayServer.WindowSetMode(DisplayServer.WindowMode.Windowed);
-            _lockPending = true;
-        }
+        _sinceRequest = 0;
+        DisplayServer.WindowSetFlag(DisplayServer.WindowFlags.ResizeDisabled, false);
+        DisplayServer.WindowSetMode(fullscreen ? DisplayServer.WindowMode.Fullscreen : DisplayServer.WindowMode.Windowed);
     }
 
     /// <summary>
-    /// Every frame: fixes the window's size again once it has been in a window for a while, and keeps <see cref="FullscreenChosen"/> true to the window itself when it was changed from outside
-    /// (the green button, or Esc, of macOS), long after the last request, saving the new mode.
+    /// Every frame: keeps <see cref="FullscreenChosen"/> true to the window itself when it was changed from outside (the green button, or Esc, of macOS), long after the last request, saving the new mode.
     /// </summary>
     private static void WatchScreenMode(float delta)
     {
         _sinceRequest += delta;
-        if (_lockPending)
-        {
-            _windowedFor = IsFullscreen ? 0 : _windowedFor + delta;
-            if (_windowedFor >= 0.8f) { DisplayServer.WindowSetFlag(DisplayServer.WindowFlags.ResizeDisabled, true); _lockPending = false; }
-        }
         if (_sinceRequest > 2.0f && FullscreenChosen != IsFullscreen)
         {
             FullscreenChosen = IsFullscreen;
-            if (!IsFullscreen) _lockPending = true; else DisplayServer.WindowSetFlag(DisplayServer.WindowFlags.ResizeDisabled, false);
             SaveFullscreen(FullscreenChosen);
         }
     }
@@ -193,6 +179,8 @@ public partial class Main : Node2D
             ApplyScreenMode(true);
             FullscreenChosen = true;
         }
+        DisplayServer.WindowSetFlag(DisplayServer.WindowFlags.ResizeDisabled, false);
+        DisplayServer.WindowSetMinSize(MinWindowSize);
 
         _options = LaunchOptions.FromCommandLine();
         if (DevTools.Run(_options)) { GetTree().Quit(); return; }

@@ -11,7 +11,8 @@ public static class IconArt
     public const int Size = 32;
 
     private static readonly P Deep = P.Hex(0x0F4FC8), Blue = P.Hex(0x2E86F0), Sky = P.Hex(0x66CCFF), Pale = P.Hex(0xBFEFFF), White = P.Hex(0xFFFFFF);
-    private static readonly P[] Night = { P.Hex(0x030A16), P.Hex(0x061424), P.Hex(0x0A2338), P.Hex(0x0F3550), P.Hex(0x174C70), P.Hex(0x1F6590) };
+    /// <summary>The background of the icon with the night behind it: a single colour, no gradient and no haze.</summary>
+    private static readonly P NightFlat = P.Hex(0x0A1B33);
 
     /// <summary>
     /// The star: four long rays (up, down, left, right) that thin out to a point, as thick as `thickness` pixels at the middle. Returns how bright the ray is at this pixel (0: outside it, 1: the centre
@@ -40,11 +41,7 @@ public static class IconArt
                 P colour = default;      // clear
                 if (night)
                 {
-                    // the night: darker at the top, and a haze of blue round the star that thins out (dithered)
-                    float t = y / (float)(Size - 1);
-                    float haze = Math.Clamp(1 - d / 18f, 0, 1);
-                    int level = Math.Clamp((int)MathF.Floor(t * 1.6f + haze * 3.8f + bayer), 0, Night.Length - 1);
-                    colour = Night[level];
+                    colour = NightFlat;      // the night behind the star: one flat colour
                 }
                 else if (d < 15f)
                 {
