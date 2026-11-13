@@ -1,6 +1,6 @@
 using Godot;
 
-public enum WorldEventKind { WaveStarted, EnemyDefeated, BossEntered, PowerUp, WardBroke, CardTaken, BombRefilled, LifeRefilled, BulletsFired, PlayerHit, BossBroken, BombFired, LightGathered, EnemyHit, BossHit, SlashStruck, Roared, QuakeStarted, GravityPulled, TimerTick, AttackBonus, TimeUp }
+public enum WorldEventKind { WaveStarted, EnemyDefeated, BossEntered, PowerUp, WardBroke, CardTaken, BombRefilled, LifeRefilled, BulletsFired, PlayerHit, BossBroken, BombFired, LightGathered, EnemyHit, BossHit, SlashStruck, Roared, QuakeStarted, GravityPulled, TimerTick, AttackBonus, TimeUp, LaserWarning, LaserFired }
 
 /// <summary>Something that happened in the world that the scene may want to show or tell.</summary>
 public class WorldEvent
@@ -35,6 +35,10 @@ public class WorldEvent
     public static WorldEvent AttackBonus(int points) => new WorldEvent { Kind = WorldEventKind.AttackBonus, Int = points };
     /// <summary>The time of the attack ran out.</summary>
     public static WorldEvent TimeUp() => new WorldEvent { Kind = WorldEventKind.TimeUp };
+    /// <summary>A laser has appeared as its warning line, or one that was transparent is about to turn solid again (the sound that comes before the beam).</summary>
+    public static WorldEvent LaserWarning() => new WorldEvent { Kind = WorldEventKind.LaserWarning };
+    /// <summary>A laser strikes.</summary>
+    public static WorldEvent LaserFired() => new WorldEvent { Kind = WorldEventKind.LaserFired };
     public static WorldEvent BombFired() => new WorldEvent { Kind = WorldEventKind.BombFired };
     public static WorldEvent LightGathered() => new WorldEvent { Kind = WorldEventKind.LightGathered };
     public static WorldEvent PlayerHit() => new WorldEvent { Kind = WorldEventKind.PlayerHit };

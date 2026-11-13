@@ -16,7 +16,7 @@ public static class SfxBank
         DefeatSwarm, DefeatGunner, DefeatHeavy, BossBroken,
         OrbGreen, OrbRed, RiceRed, Fireball, FlameDart, Spark, VenomOrb, LotusPetal, MagmaOrb, FireSerpent, Ember,
         Bomb, Pickup, LevelUp, MenuMove, MenuSelect, MenuBack, DialogueNext,
-        HitGunner, HitHeavy, HitBoss, Twirl, Splash, Jet, Rage, RagePulse, Thunder, Slash, Roar, Quake, Rock, Gravity, Tick,
+        HitGunner, HitHeavy, HitBoss, Twirl, Splash, Jet, Rage, RagePulse, Thunder, Slash, Roar, Quake, Rock, Gravity, Tick, LaserWarn, LaserFire,
     }
 
     /// <summary>Volume in dB, and the least time in seconds between two plays (so volleys do not pile up into noise).</summary>
@@ -31,7 +31,7 @@ public static class SfxBank
         Sound.Bomb => (-5f, 0.5f), Sound.Pickup => (-19f, 0.035f), Sound.LevelUp => (-8f, 0.3f),
         Sound.MenuMove => (-15f, 0.03f), Sound.MenuSelect => (-11f, 0.1f), Sound.MenuBack => (-13f, 0.1f), Sound.DialogueNext => (-16f, 0.05f),
         Sound.HitGunner => (-18f, 0.05f), Sound.HitHeavy => (-16f, 0.05f), Sound.HitBoss => (-14f, 0.06f), Sound.Twirl => (-12f, 0.3f), Sound.Splash => (-9f, 0.15f), Sound.Jet => (-8f, 0.5f), Sound.Rage => (-3f, 1.0f), Sound.Thunder => (-6f, 1.0f), Sound.RagePulse => (-17f, 0.5f), Sound.Slash => (-9f, 0.2f), Sound.Roar => (-3f, 1.0f), Sound.Quake => (-4f, 1.0f), Sound.Rock => (-17f, 0.07f),
-        Sound.Gravity => (-11f, 1.0f), Sound.Tick => (-9f, 0.5f),
+        Sound.Gravity => (-11f, 1.0f), Sound.Tick => (-9f, 0.5f), Sound.LaserWarn => (-5f, 0.35f), Sound.LaserFire => (-6f, 0.35f),
         _ => (-12f, 0.05f),
     };
 
@@ -308,6 +308,23 @@ public static class SfxBank
             {
                 var tone = Sweep(t => 1250 - 700 * t);
                 return Render(0.05, t => tone(t) * Env(t, 0.001, 55));
+            }
+            case Sound.LaserWarn: // the charge of a laser: two quick rising notes, clear and unmistakable ("pi-pii")
+            {
+                double p = 0;
+                return Render(0.34, t =>
+                {
+                    double local = t < 0.15 ? t : t - 0.15;
+                    double f = t < 0.15 ? 880 + 500 * (local / 0.15) : 1320 + 900 * (local / 0.19);
+                    p += 2 * Math.PI * f / Rate;
+                    return (Math.Sin(p) + 0.35 * Math.Sin(2 * p)) * Env(local, 0.004, 9) * 0.75;
+                });
+            }
+            case Sound.LaserFire: // the shot: a sharp electric zap that falls
+            {
+                var zap = Sweep(t => 2400 * Math.Exp(-t * 14) + 180, ph => Math.Tanh(Math.Sin(ph) * 5));
+                var hiss = HighNoise(73, 0.8);
+                return Render(0.32, t => zap(t) * Env(t, 0.001, 8) * 0.5 + hiss(t) * Math.Exp(-t * 12) * 0.5);
             }
             case Sound.Tick: // the clock of the attack: a dry, clear "tic"
             {

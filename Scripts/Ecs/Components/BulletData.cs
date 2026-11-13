@@ -4,6 +4,8 @@ using Godot;
 public struct BulletData
 {
     public bool IsActive;
+    /// <summary>A boss bullet that cannot hurt the boat yet (it is shown faded): it becomes dangerous at its first turn (see <see cref="Shot.Inert"/>).</summary>
+    public bool Inert;
     /// <summary>Set when the bullet is fired, so the world can tell the scene about it (for the sound) exactly once.</summary>
     public bool Fresh;
     public Vector2 Position;

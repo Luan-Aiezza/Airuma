@@ -25,6 +25,9 @@ public static partial class SelfTest
         T("EveryBossPhaseHasAnAttackName", EveryBossPhaseHasAnAttackName);
         T("TheBossComesDownFromAboveAndOnlyThenAttacks", TheBossComesDownFromAboveAndOnlyThenAttacks);
         T("ScoreGrowsWithHitsAndPhases", ScoreGrowsWithHitsAndPhases);
+        T("ABossAboveTheFieldCannotBeHit", ABossAboveTheFieldCannotBeHit);
+        T("AnInertBulletCannotHurtUntilItTurns", AnInertBulletCannotHurtUntilItTurns);
+        T("LasersSoundBeforeTheyShootAndAgainBeforeTheyTurnSolid", LasersSoundBeforeTheyShootAndAgainBeforeTheyTurnSolid);
         T("TheTimeBonusIsTheBaseTimesOnePlusTenthsOfSecondsLeft", TheTimeBonusIsTheBaseTimesOnePlusTenthsOfSecondsLeft);
         T("WhenTheTimeRunsOutTheAttackPassesWithNoBonus", WhenTheTimeRunsOutTheAttackPassesWithNoBonus);
         T("TheLastAttackTimingOutIsVictory", TheLastAttackTimingOutIsVictory);
@@ -250,6 +253,53 @@ public static partial class SelfTest
         for (int i = 0; i < (int)(PhaseManagerSystem.EntranceSeconds * 60) + 400 && world.Boss.MovementType == BossMovementType.Transition; i++) world.Step(Dt, Idle());
         world.TakeEvents();
         return world;
+    }
+
+    private static void ABossAboveTheFieldCannotBeHit()
+    {
+        var world = new World(practicePhase: 1);
+        world.Boss.Transform.Position = new Vector2(300, -50);
+        int health = world.Boss.Health.CurrentHealth;
+        world.Bullets[0] = new BulletData { IsActive = true, Position = world.Boss.Transform.Position, Faction = Faction.Player, HitboxRadius = 5, Damage = 5, Power = 1, Style = BulletStyle.LightBolt };
+        CombatSystem.ProcessCollisions(world.Bullets, world.Player, world.Boss, true);
+        Eq(world.Boss.Health.CurrentHealth, health, "no damage while she is above the screen");
+        world.Boss.Transform.Position = new Vector2(300, 150);
+        world.Bullets[0].Position = world.Boss.Transform.Position; world.Bullets[0].IsActive = true;
+        CombatSystem.ProcessCollisions(world.Bullets, world.Player, world.Boss, true);
+        True(world.Boss.Health.CurrentHealth < health, "and damage once she is in the field");
+    }
+
+    private static void AnInertBulletCannotHurtUntilItTurns()
+    {
+        var pool = Pool(10); var p = new PlayerEntity(); p.Transform.Position = V(300, 500);
+        BulletSystem.Fire(pool, V(300, 500), -90, new Shot(BulletStyle.OrbRed, 0).Inert());
+        Eq(pool.Count(b => b.IsActive && b.Inert), 1);
+        var world = new World(practicePhase: 1);
+        world.Player.Transform.Position = V(300, 500); world.Player.Health.InvincibilityTimer = 0;
+        var bullets = BulletSystem.NewPool(10);
+        BulletSystem.Fire(bullets, V(300, 500), -90, new Shot(BulletStyle.OrbRed, 0).Inert());
+        int lives = world.Player.Health.CurrentHealth;
+        CombatSystem.ProcessCollisions(bullets, world.Player, world.Boss, false);
+        Eq(world.Player.Health.CurrentHealth, lives, "it passes through the boat while it is inert");
+        bullets[0].Inert = false;
+        CombatSystem.ProcessCollisions(bullets, world.Player, world.Boss, false);
+        True(world.Player.Health.CurrentHealth < lives, "and hurts once it is not");
+        var turner = BulletSystem.NewPool(10);
+        BulletSystem.Fire(turner, V(300, 100), 90, new Shot(BulletStyle.OrbRed, 100).Inert().Turning(2, 0.2f, 1, 0, 100));
+        for (int i = 0; i < 40; i++) BulletSystem.MoveBullets(turner, World.PlayArea, Dt, V(0, 0), p);
+        True(turner.Any(b => b.IsActive && !b.Inert), "it becomes dangerous at its first turn");
+    }
+
+    private static void LasersSoundBeforeTheyShootAndAgainBeforeTheyTurnSolid()
+    {
+        var events = new List<WorldEvent>();
+        var boss = BossEntity.Create(Stages.Five.Boss);
+        var slashes = new List<SlashData> { new SlashData { Top = V(300, 0), Angle = 0, Telegraph = 1.0f, Strike = 6f, Width = 30, Leader = true, Len = 2300, Beam = true, Blink = 2 } };
+        var rng = new SeededGenerator(1);
+        for (int i = 0; i < 60 * 5; i++) SpecialsSystem.Update(boss, new PlayerEntity(), slashes, Dt, events, rng, null);
+        True(events.Any(e => e.Kind == WorldEventKind.LaserWarning), "a sound when the warning line appears");
+        True(events.Any(e => e.Kind == WorldEventKind.LaserFired), "a sound when it strikes");
+        True(events.Count(e => e.Kind == WorldEventKind.LaserWarning) >= 2, "and again, shortly before a transparent laser turns solid");
     }
 
     private static void TheTimeBonusIsTheBaseTimesOnePlusTenthsOfSecondsLeft()

@@ -15,7 +15,7 @@ public static partial class Attacks
         Pat.Every(Pat.Beat * 2, c => Pat.Ring(c, c.Origin, 10, c.Count * 14f * (c.Count % 2 == 0 ? 1 : -1), new Shot(BulletStyle.VenomOrb, 130).Sized(0.9f).Dancing(100), alternate: true)),
         Pat.Every(Pat.Beat * 5, c => Pat.Shoot(c, c.Origin, Pat.Aim.FanAimed, 4, 2, 0, 17, 220, 160, new Shot(Notes[c.Count % 3], 0).Popping())).After(Pat.Beat * 2),
     })
-        .Pressured(1.00f);
+        .Pressured(1.00f).Tougher(1.7f);
 
     /// <summary>Confetti and music: pieces of line (streamers) thrown out of the dancer wherever he goes, in a fan, turned a little each time; and notes that fall from the top, swaying, at random places.</summary>
     public static BossPhase ConfettiRain() => Attack("AttackConfettiRain", BossMovementType.Roam, Centre, patterns: new[]
@@ -32,7 +32,7 @@ public static partial class Attacks
         }),
         Pat.Every(0.5f, c => Pat.Rain(c, Edge.Top, 1, 16, new Shot(Notes[c.Count % 3], 115).Sized(1.0f).Dancing(50))),
     })
-        .Pressured(1.24f);
+        .Pressured(1.24f).Tougher(1.7f);
 
     /// <summary>A turning wheel of swaying petals, one galaxy a beat, and rings of notes that burst out, stop and then fly at the boat.</summary>
     public static BossPhase SambaWheel() => Attack("AttackSambaWheel", BossMovementType.Roam, Centre, patterns: new[]
@@ -40,7 +40,7 @@ public static partial class Attacks
         Pat.Every(Pat.Beat * 2, c => Pat.PolarRing(c, c.Origin, 7, c.Count * 12f, 12, 42, c.Count % 8 < 4 ? 24 : -24, new Shot(BulletStyle.LotusPetal, 0).Sized(1.0f), PartyPetals)),
         Pat.Every(3.4f, c => StopAndAimRing(c, c.Origin, 10, c.Count * 17f, Notes, 150, 0.9f, 170)).After(1.2f),
     })
-        .Pressured(1.00f);
+        .Pressured(1.00f).Tougher(1.7f);
 
     private static readonly BulletStyle[] PartyPetals = { BulletStyle.LotusPetal };
 
@@ -53,7 +53,7 @@ public static partial class Attacks
         Pat.Every(Pat.Beat * 2, c => Pat.Ring(c, c.Origin, 9, c.Count * 13f, new Shot(BulletStyle.VenomOrb, 120).Sized(1.0f).Dancing(90), alternate: true)),
         Pat.Every(2.4f, c => Pat.Shoot(c, c.Origin, Pat.Aim.FanAimed, 3, 2, 0, 18, 230, 160, new Shot(BulletStyle.NoteCyan, 0).Popping())).After(1.0f).OnlyOnHard(),
     })
-        .Pressured(2.51f);
+        .Pressured(2.51f).Tougher(1.6f);
 
     /// <summary>
     /// A great, wide jet of water. The boss goes to the left edge and charges, then sweeps the jet to the right, stopping short of the right edge so that the boat has a place to stand; crosses to the right edge,

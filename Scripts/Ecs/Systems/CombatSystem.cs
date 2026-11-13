@@ -48,7 +48,7 @@ public static class CombatSystem
             ref BulletData b = ref pool[i];
             if (b.Faction == Faction.Boss && player.Health.InvincibilityTimer <= 0 && !player.Bomb.IsActive)
             {
-                if (b.Position.DistanceTo(player.Transform.Position) < b.HitboxRadius + player.Hitbox.Radius)
+                if (!b.Inert && b.Position.DistanceTo(player.Transform.Position) < b.HitboxRadius + player.Hitbox.Radius)
                 {
                     Hurt(player, b.Damage, 0);
                     b.IsActive = false;
@@ -56,8 +56,8 @@ public static class CombatSystem
             }
             else if (bossActive && !boss.Dive.Submerged && b.Faction == Faction.Player && boss.Health.CurrentHealth > 0 && b.LastHit != boss.Id)
             {
-                bool onBoss = b.Position.DistanceTo(boss.Transform.Position) < b.HitboxRadius + boss.Hitbox.Radius;
-                bool onTwin = twin != null && b.Position.DistanceTo(twin.Transform.Position) < b.HitboxRadius + twin.Hitbox.Radius;
+                bool onBoss = boss.Transform.Position.Y > 0 && b.Position.DistanceTo(boss.Transform.Position) < b.HitboxRadius + boss.Hitbox.Radius;      // not before it has come into the field
+                bool onTwin = twin != null && twin.Transform.Position.Y > 0 && b.Position.DistanceTo(twin.Transform.Position) < b.HitboxRadius + twin.Hitbox.Radius;
                 if (onBoss || onTwin)
                 {
                     boss.DamageCarry += b.Damage * b.Power;

@@ -28,6 +28,7 @@ public struct Shot
     /// <summary>For a Launch whose heading is "away from this point" (a figure that flies as one and then bursts outward from its centre).</summary>
     public Vector2 Anchor;
     public float Blink;
+    public bool IsInert;
     public float Cruise;
     public int TurnMode, TurnTimes;
     public float TurnInterval, TurnRotation, TurnSpeed;
@@ -43,6 +44,8 @@ public struct Shot
     }
 
     /// <summary>The wind does not move it: the figures that make a way (walls with a gap, lattices, combs, crescents, polygons, stars, constellations) must stay where they were drawn.</summary>
+    /// <summary>The bullet cannot hurt the boat (and is drawn faded) until its first turn: bullets that rise and stop before they fall on the boat.</summary>
+    public Shot Inert() { var s = this; s.IsInert = true; return s; }
     public Shot Steady() { var s = this; s.WindFactor = 0; return s; }
     public Shot Sized(float scale) { var s = this; s.Scale = scale; return s; }
     public Shot Speeded(float speed) { var s = this; s.Speed = speed; return s; }
@@ -96,6 +99,7 @@ public static partial class BulletSystem
         b.Bounces = shot.Bounces;
         b.Anchor = shot.Anchor;
         b.Blink = shot.Blink;
+        b.Inert = shot.IsInert;
         b.Cruise = shot.Cruise;
         b.TurnMode = shot.TurnMode; b.TurnTimes = shot.TurnTimes; b.TurnInterval = shot.TurnInterval; b.TurnRotation = shot.TurnRotation; b.TurnSpeed = shot.TurnSpeed;
         b.TurnBase = shot.Speed; b.TurnHeading = Mathx.Radians(angle);

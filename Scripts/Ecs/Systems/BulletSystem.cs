@@ -537,6 +537,7 @@ public static partial class BulletSystem
                     };
                     b.TurnHeading = heading; b.TurnBase = b.TurnSpeed;
                     b.TurnCount++;
+                    b.Inert = false;
                     if (b.TurnCount >= b.TurnTimes) b.Behavior = BulletBehavior.Normal;
                     b.Velocity = new Vector2(MathF.Cos(heading), MathF.Sin(heading)) * b.TurnSpeed;
                 }

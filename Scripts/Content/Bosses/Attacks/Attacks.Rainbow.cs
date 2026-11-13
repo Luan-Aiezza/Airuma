@@ -73,7 +73,7 @@ public static partial class Attacks
         patterns: new[]
         {
             // 1) the drops of the falls, while the earth shakes   2) fans of five lasers at the boat, in turns
-            Pat.Every(0.09f, c => Pat.Rain(c, Edge.Top, 3, 5, RainDrop(300))).OnQuake(),
+            Pat.Every(0.2f, c => Pat.Rain(c, Edge.Top, 2, 5, RainDrop(280))).OnQuake(),
             Pat.Every(4.6f, c => { for (int k = -2; k <= 2; k++) Pat.Laser(c, c.Origin, c.Aim + k * 24, 32, 1.1f, 0.55f, LaserHues[(k + 2) * 5 / 4 % 7]); }).After(0.8f),
             Pat.Every(4.6f, c => { for (int k = -2; k <= 2; k++) Pat.Laser(c, c.Origin, c.Aim + k * 24 + 12, 32, 1.1f, 0.55f, LaserHues[(k + 5) % 7]); }).Twin().After(3.1f),
         })
@@ -146,15 +146,15 @@ public static partial class Attacks
         patterns: new[]
         {
             // 1) the drops, while the earth shakes   2) columns from the sky and from the water that stop in the middle and turn on the boat (not so often: the boat needs time to read them)   3) fans of the seven colours
-            Pat.Every(0.24f, c => Pat.Rain(c, Edge.Top, 2, 5, RainDrop(300))).OnQuake(),
-            Pat.Every(3.8f, c =>
+            Pat.Every(0.45f, c => Pat.Rain(c, Edge.Top, 2, 5, RainDrop(280))).OnQuake(),
+            Pat.Every(4.4f, c =>
             {
                 bool sky = c.Count % 2 == 0;
                 for (int k = 0; k < 8; k++)
                 {
                     float x = c.Left + c.Width * (k + 0.5f) / 8 + PatternContext.Rand(-14, 14);
                     if (sky) c.Fire(new Vector2(x, -14), 90, new Shot(RainbowOrbs[k % 7], 2 * 230 / 1.1f) { Anchor = new Vector2(c.MiddleX, -14) }.Sized(0.95f).Steady().Turning(3, 1.1f, 1, 0, 210));
-                    else c.Fire(new Vector2(x, c.Bottom + 14), -90, new Shot(RainbowOrbs[(k + 3) % 7], 2 * 330 / 1.3f) { Anchor = new Vector2(c.MiddleX, c.Bottom + 14) }.Sized(0.95f).Steady().Turning(3, 1.3f, 1, 0, 190));
+                    else c.Fire(new Vector2(x, c.Bottom + 14), -90, new Shot(RainbowOrbs[(k + 3) % 7], 2 * 330 / 1.3f) { Anchor = new Vector2(c.MiddleX, c.Bottom + 14) }.Sized(0.95f).Steady().Inert().Turning(3, 1.3f, 1, 0, 190));      // (the ones that rise cannot hurt until they turn and fall on the boat)
                 }
             }).After(0.5f),
             Pat.Every(2.6f, c => Pat.Shoot(c, c.Origin, Pat.Aim.FanAimed, 5, 2, 0, 16, 240, 170, new Shot(BulletStyle.OrbRed, 0).Sized(0.95f).Popping())).After(1.2f),

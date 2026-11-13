@@ -262,6 +262,7 @@ public partial class GameScene : Node2D
                 node.Scale = bullet.Zoom == 1 ? _bulletScale[bullet.Style] : _bulletScale[bullet.Style] * bullet.Zoom;
                 if (!_bulletRotates[(int)bullet.Style]) node.Rotation = 0;
             }
+            node.Modulate = bullet.Inert ? new Color(1, 1, 1, 0.3f) : Colors.White;      // a bullet that cannot hurt yet is faded
             // Keep the last heading while a bullet is (almost) stopped, e.g. braking lotus petals.
             if (_bulletRotates[(int)bullet.Style] && bullet.Velocity.LengthSquared() > 1) node.Rotation = BulletArt.GodotRotation(bullet.Velocity);
         }

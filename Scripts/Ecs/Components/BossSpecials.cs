@@ -81,6 +81,10 @@ public struct SlashData
     /// <summary>A laser that goes transparent (and harmless) for the last `GhostFor` seconds of every `Blink` seconds, so that the boat may cross it. 0: never.</summary>
     public float Blink;
     public const float GhostFor = 0.8f;
+    /// <summary>How long before a transparent laser turns solid again the warning sounds and the beam flashes.</summary>
+    public const float SolidWarning = 0.45f;
+    /// <summary>Seconds until a transparent laser is solid again (0 if it is not transparent).</summary>
+    public float SecondsToSolid => Ghost ? Blink - (Age - Telegraph) % Blink : 0;
     public bool Follow;
     public Vector2 Offset;
 

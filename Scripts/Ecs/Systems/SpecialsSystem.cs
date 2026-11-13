@@ -59,7 +59,19 @@ public static class SpecialsSystem
             slash.Age += delta;
             if (slash.Spin != 0) slash.Angle += slash.Spin * delta;                           // a laser that turns
             if (slash.Follow) slash.Top = boss.Transform.Position + slash.Offset;            // one that goes with the boss
-            if (slash.Leader && before < slash.Telegraph && slash.Age >= slash.Telegraph) events.Add(WorldEvent.SlashStruck());
+            if (slash.Beam)
+            {
+                // Lasers sound before they shoot, as in Touhou: a charging note when the warning line appears, the shot when the beam strikes, and (for a laser that blinks) a warning again shortly before it turns solid.
+                if (before <= 0 && slash.Age > 0) events.Add(WorldEvent.LaserWarning());
+                if (slash.Leader && before < slash.Telegraph && slash.Age >= slash.Telegraph) events.Add(WorldEvent.LaserFired());
+                if (slash.Blink > 0 && before >= slash.Telegraph && before < slash.Telegraph + slash.Strike)
+                {
+                    float cycleBefore = (before - slash.Telegraph) % slash.Blink, cycleNow = (slash.Age - slash.Telegraph) % slash.Blink;
+                    float mark = slash.Blink - SlashData.SolidWarning;
+                    if (cycleBefore < mark && cycleNow >= mark) events.Add(WorldEvent.LaserWarning());
+                }
+            }
+            else if (slash.Leader && before < slash.Telegraph && slash.Age >= slash.Telegraph) events.Add(WorldEvent.SlashStruck());
             // after the cut, the line lets go of a trail of bullets that spread out
             if (slash.Trail && !slash.Trailed && pool != null && slash.Age >= slash.Telegraph + slash.Strike) { slash.Trailed = true; LeaveTrail(slash, pool, rng); }
             if (slash.Gone) slashes.RemoveAt(i); else slashes[i] = slash;

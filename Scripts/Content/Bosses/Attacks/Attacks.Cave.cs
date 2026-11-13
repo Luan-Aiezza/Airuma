@@ -75,15 +75,15 @@ public static partial class Attacks
 
     /// <summary>Fury, the cave comes down: the screen shakes almost without a pause, stalactites fall in a crowd and great stones fall that break in a ring when they have fallen a while; now and then a roar throws the boat back.</summary>
     public static BossPhase CaveIn() => Attack("AttackCaveIn", BossMovementType.Stationary, Centre,
-        quake: new QuakeSpec { IsActive = true, Interval = 1.0f, Duration = 4.4f, Intensity = 1.4f },
+        quake: new QuakeSpec { IsActive = true, Interval = 1.8f, Duration = 3.4f, Intensity = 1.2f },
         roar: new RoarSpec { IsActive = true, Interval = 5.0f, Push = 210, Seconds = 0.5f },
         patterns: new[]
         {
-            Pat.Every(0.16f, c => Pat.Rain(c, Edge.Top, 1, 4, new Shot(BulletStyle.Stalactite, 300).Sized(1.3f), scale: false)).OnQuake(),
+            Pat.Every(0.34f, c => Pat.Rain(c, Edge.Top, 1, 4, new Shot(BulletStyle.Stalactite, 280).Sized(1.3f), scale: false)).OnQuake(),
             // great stones that break, when they have fallen a while, into a ring of pebbles (more pebbles in the harder modes)
-            Pat.Every(0.9f, c => Pat.Rain(c, Edge.Top, 1, 0, new Shot(BulletStyle.Rock, 180).Zoomed(2.0f).Hitting(16).Splitting(0.9f, c.N(9, 6), BulletStyle.Rock, 115, childScale: 0.9f), scale: false)).OnQuake(),
+            Pat.Every(1.5f, c => Pat.Rain(c, Edge.Top, 1, 0, new Shot(BulletStyle.Rock, 170).Zoomed(2.0f).Hitting(16).Splitting(0.9f, c.N(9, 6), BulletStyle.Rock, 115, childScale: 0.9f), scale: false)).OnQuake(),
             // and a rain of pebbles
-            Pat.Every(0.28f, c => Pat.Rain(c, Edge.Top, 2, 10, new Shot(BulletStyle.Rock, 220).Sized(1.0f))).OnQuake(),
+            Pat.Every(0.55f, c => Pat.Rain(c, Edge.Top, 2, 10, new Shot(BulletStyle.Rock, 210).Sized(1.0f))).OnQuake(),
         })
         .Pressured(3.0f);
 

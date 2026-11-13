@@ -212,7 +212,7 @@ public static partial class SelfTest
             var boss = Stages.All[i].Boss;
             int enraged = (int)Math.Round(calm[i] * (1 + bonus[i]));
             foreach (var phase in boss.Phases)
-                Eq(phase.MaxHealth, BossBuilder.HealthOf(phase.Enraged ? enraged : calm[i], phase.Movement), $"boss {i + 1}, {phase.NameKey}: {(phase.Enraged ? "enraged" : "calm")}, {phase.Movement}");
+                Eq(phase.MaxHealth, (int)(BossBuilder.HealthOf(phase.Enraged ? enraged : calm[i], phase.Movement) * phase.HealthScale), $"boss {i + 1}, {phase.NameKey}: {(phase.Enraged ? "enraged" : "calm")}, {phase.Movement}");
             var still = boss.Phases.FirstOrDefault(p => p.Movement == BossMovementType.Stationary && !p.Enraged);
             var moving = boss.Phases.FirstOrDefault(p => p.Movement != BossMovementType.Stationary && !p.Enraged);
             if (still != null && moving != null) Greater(still.MaxHealth, moving.MaxHealth * 3 / 2, $"boss {i + 1}: a still attack has twice the health");

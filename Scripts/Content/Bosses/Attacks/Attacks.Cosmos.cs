@@ -92,8 +92,8 @@ public static partial class Attacks
             for (int k = 0; k < rows; k++)
             {
                 var from = new Vector2(left ? c.Left - 14 : c.Right + 14, 230 + k * 70);
-                // they brake evenly to a stop at `stopAt`: the farther it is, the longer they take, so that they never come in faster than the boat can read (about 430 px/s at the start)
-                float interval = System.Math.Max(1.2f, 2 * System.Math.Abs(stopAt - from.X) / 430f);
+                // they brake evenly to a stop at `stopAt`: the farther it is, the longer they take, so that they never come in faster than the boat can read (about 250 px/s at the start)
+                float interval = System.Math.Max(1.8f, 2 * System.Math.Abs(stopAt - from.X) / 250f);
                 float speed = 2 * System.Math.Abs(stopAt - from.X) / interval;
                 c.Fire(from, left ? 0 : 180, new Shot(MoonOrbs[k % 4], speed).Sized(0.95f).Steady().Turning(2, interval, 1, 90, 150));
             }

@@ -27,6 +27,8 @@ public static partial class Attacks
     private static BossPhase Plus(this BossPhase phase, params PatternSpec[] more) { phase.Patterns.AddRange(more); return phase; }
 
     /// <summary>Makes the bullets of the attack fly `factor` times as fast as its boss's others.</summary>
+    /// <summary>Gives the attack `factor` times the health the builder would give it.</summary>
+    private static BossPhase Tougher(this BossPhase phase, float factor) { phase.HealthScale = factor; return phase; }
     private static BossPhase Faster(this BossPhase phase, float factor) { phase.AttackSpeed = factor; return phase; }
 
     /// <summary>Sets how heavy the attack is made (see <see cref="PatternContext.Pressure"/>): tuned so that the bullets on the screen rise from boss to boss.</summary>

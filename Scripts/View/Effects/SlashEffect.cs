@@ -83,13 +83,28 @@ public partial class SlashEffect : Node2D
             float u = s.Age / s.Telegraph;
             float blink = 0.4f + 0.4f * MathF.Sin(_clock * (10 + 24 * u));
             var warn = new Color(tint.R, tint.G, tint.B, Math.Clamp(blink * (0.5f + u), 0, 1));
-            for (float d = 0; d < s.TotalLength; d += 28) DrawLine(top + dir * d, top + dir * (d + 16), warn, 2 + 2 * u);
-            DrawCircle(top, 8 + 8 * u, new Color(tint.R, tint.G, tint.B, 0.45f));
+            // the band where the beam will be: it fills in as the strike comes, and the last moment flashes white
+            float preview = Math.Clamp(0.06f + 0.22f * u * u, 0, 0.3f);
+            DrawLine(top, bottom, new Color(tint.R, tint.G, tint.B, preview), s.Width * (0.35f + 0.3f * u));
+            for (float d = 0; d < s.TotalLength; d += 28) DrawLine(top + dir * d, top + dir * (d + 16), warn, 2 + 3 * u);
+            DrawCircle(top, 8 + 12 * u, new Color(tint.R, tint.G, tint.B, 0.45f));
+            if (u > 0.78f && (int)(_clock * 24) % 2 == 0) DrawLine(top, bottom, new Color(1, 1, 1, 0.55f), s.Width * 0.5f);
             return;
         }
         float t = s.Age - s.Telegraph;
         float fade = t < s.Strike ? 1 : Math.Clamp(1 - (t - s.Strike) / SlashData.Fade, 0, 1);
-        if (s.Ghost) fade *= 0.16f;        // transparent: the boat may cross it
+        if (s.Ghost)
+        {
+            // transparent: the boat may cross it; it flickers brighter, and the dashed outline shows where it is, shortly before it turns solid again
+            fade *= 0.16f;
+            float left = s.SecondsToSolid;
+            if (left < SlashData.SolidWarning)
+            {
+                bool flash = (int)(_clock * 22) % 2 == 0;
+                fade = flash ? 0.55f : 0.2f;
+                for (float d = 0; d < s.TotalLength; d += 28) DrawLine(top + dir * d, top + dir * (d + 16), new Color(1, 1, 1, flash ? 0.9f : 0.45f), 3);
+            }
+        }
         float grow = Math.Clamp(t / 0.08f, 0, 1);
         float half = s.Width / 2 * (0.3f + 0.7f * grow) * (t < s.Strike ? 1 : 0.25f + 0.75f * fade);
         float flick = 0.9f + 0.1f * MathF.Sin(_clock * 60);
