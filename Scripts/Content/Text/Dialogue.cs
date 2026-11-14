@@ -45,7 +45,7 @@ public static class Dialogues
     public static IReadOnlyList<DialogueLine> BeforeBossOne => new[]
     {
         new DialogueLine(DialogueSpeaker.Airu, Emotion.Happy, "BossA1"),
-        new DialogueLine(DialogueSpeaker.Atli, Emotion.Surprised, "BossA2"),
+        new DialogueLine(DialogueSpeaker.Atli, Emotion.Neutral, "BossA2"),
         new DialogueLine(DialogueSpeaker.Airu, Emotion.Annoyed, "BossA3"),
         new DialogueLine(DialogueSpeaker.Atli, Emotion.Neutral, "BossA4"),
         new DialogueLine(DialogueSpeaker.Narrator, Emotion.Neutral, "BossA5"),

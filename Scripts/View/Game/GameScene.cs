@@ -47,6 +47,7 @@ public partial class GameScene : Node2D
     /// <summary>What the water shows of each spirit: a flipped, tinted copy under it.</summary>
     private readonly List<Sprite2D> _enemyMirrors = new();
     private readonly Dictionary<SpiritKind, Texture2D[]> _spiritFrames = new();
+    private readonly Dictionary<SpiritLook, Texture2D[]> _lookFrames = new();
     private float _animationClock;
     /// <summary>Seconds since the last frame, for the effects that are drawn from SyncNodes.</summary>
     private float _bombDelta;

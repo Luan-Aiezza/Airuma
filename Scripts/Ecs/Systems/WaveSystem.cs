@@ -39,7 +39,9 @@ public static class WaveSystem
         {
             EnemySpec next = progress.Pending[0];
             progress.Pending.RemoveAt(0);
-            enemies.Add(new EnemyEntity(progress.NextEnemyId, next.Kind, next.Position, next.Path, next.Phase, next.Patterns, next.FirstShotDelay));
+            var enemy = new EnemyEntity(progress.NextEnemyId, next.Kind, next.Position, next.Path, next.Phase, next.Patterns, next.FirstShotDelay) { Look = next.Look, Tint = next.Tint, Size = next.Size <= 0 ? 1 : next.Size };
+            if (next.Health > 0) enemy.Health = next.Health;
+            enemies.Add(enemy);
             progress.NextEnemyId += 1;
         }
 

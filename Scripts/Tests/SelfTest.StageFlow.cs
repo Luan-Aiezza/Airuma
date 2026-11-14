@@ -188,7 +188,7 @@ public static partial class SelfTest
     private static void TheFirstStageIsMadeOfItsWavesAndItsBoss()
     {
         var stage = Stages.One;
-        Eq(stage.Waves.Count, 5);
+        Eq(stage.Waves.Count, 6);
         Eq(stage.Boss.Lives, 4, "four attacks");
         True(!stage.Boss.PhaseFor(4).Enraged && !stage.Boss.PhaseFor(3).Enraged, "the first two attacks are calm");
         True(stage.Boss.PhaseFor(2).Enraged && stage.Boss.PhaseFor(1).Enraged, "the last two are enraged");

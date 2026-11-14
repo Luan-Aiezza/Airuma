@@ -170,6 +170,56 @@ public static class WaveBuilder
         }).ToList();
     }
 
+    // MARK: Variants of the spirits that do not shoot (the "blue" ones): the same sprite, tinted, drawn smaller or larger, and with their own health
+
+    /// <summary>A look and a sturdiness for a spirit of a kind: a tint, a size (1: as drawn) and a health (0: the kind's own).</summary>
+    public readonly record struct Variant(Color Tint, float Size, int Health);
+
+    /// <summary>The sparks: small, warm and quick, in squads that cross in a hurry.</summary>
+    public static readonly Variant SparkVariant = new(new Color(1f, 0.92f, 0.55f), 0.8f, 0);
+    /// <summary>The embers: the blue ones when the river has heated up, orange.</summary>
+    public static readonly Variant EmberVariant = new(new Color(1f, 0.62f, 0.38f), 1f, 0);
+    /// <summary>The cinders: large, dark red and slow, that take a few hits (they never shoot; they are a wall to dodge or to break).</summary>
+    public static readonly Variant CinderVariant = new(new Color(0.95f, 0.5f, 0.5f), 1.25f, 4);
+
+    /// <summary>The spirits of a formation, made into the variant.</summary>
+    public static List<EnemySpec> As(this List<EnemySpec> specs, Variant variant) =>
+        specs.Select(sp => { var c = sp; c.Tint = variant.Tint; c.Size = variant.Size; c.Health = variant.Health; return c; }).ToList();
+
+    /// <summary>The spirits of a formation, drawn with a figure of their own (see <see cref="SpiritLook"/>).</summary>
+    public static List<EnemySpec> Looking(this List<EnemySpec> specs, SpiritLook look) =>
+        specs.Select(sp => { var c = sp; c.Look = look; return c; }).ToList();
+
+    /// <summary>A spray from one point: `count` spirits that fly out of it at once in a fan of directions (`from` to `to`, degrees, 90 is straight down).</summary>
+    public static List<EnemySpec> Fan(SpiritKind kind, int count, Vector2 from, float fromAngle, float toAngle, float start, float speed = 170, float interval = 0)
+    {
+        return Enumerable.Range(0, count).Select(i =>
+        {
+            float t = count > 1 ? (float)i / (count - 1) : 0.5f;
+            float a = Mathf.DegToRad(fromAngle + (toAngle - fromAngle) * t);
+            return new EnemySpec { Time = start + i * interval, Kind = kind, Position = from, Path = EnemyPath.Straight(new Vector2(MathF.Cos(a), MathF.Sin(a)) * speed), Patterns = ShotsFor(kind) };
+        }).ToList();
+    }
+
+    /// <summary>A pinwheel: spirits one after another from the same point, each going off at an angle `step` degrees from the one before (they draw an arm of a spiral as they leave).</summary>
+    public static List<EnemySpec> Spiral(SpiritKind kind, int count, Vector2 from, float startAngle, float step, float start, float interval, float speed = 150)
+    {
+        return Enumerable.Range(0, count).Select(i =>
+        {
+            float a = Mathf.DegToRad(startAngle + step * i);
+            return new EnemySpec { Time = start + i * interval, Kind = kind, Position = from, Path = EnemyPath.Straight(new Vector2(MathF.Cos(a), MathF.Sin(a)) * speed), Patterns = ShotsFor(kind) };
+        }).ToList();
+    }
+
+    /// <summary>A slanting line that falls: one spirit after another straight down, each `interval` seconds after the last and `dx` px to the side, so that the line of them goes across the field like a pen stroke.</summary>
+    public static List<EnemySpec> Slash(SpiritKind kind, int count, float x, float dx, float start, float interval, float speed = 200)
+    {
+        return Enumerable.Range(0, count).Select(i => new EnemySpec
+        {
+            Time = start + i * interval, Kind = kind, Position = new Vector2(Math.Clamp(x + dx * i, EdgeMargin, FieldWidth - EdgeMargin), Top), Path = EnemyPath.Straight(new Vector2(0, speed)), Patterns = ShotsFor(kind),
+        }).ToList();
+    }
+
     public static Vector2 V(float x, float y) => new Vector2(x, y);
     public static ScheduledPattern P(FirePattern pattern, float duration) => new ScheduledPattern(pattern, duration);
     public const SpiritKind Swarm = SpiritKind.Swarm, Gunner = SpiritKind.Gunner;

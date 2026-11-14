@@ -22,6 +22,10 @@ public class EnemyEntity
     public float PatternClock = 0;
     public float ShotClock;
     public float Spin = 0;
+    /// <summary>A variant of its kind (see EnemySpec): the colour that tints it, and how big it is drawn.</summary>
+    public Color Tint = Colors.White;
+    public SpiritLook Look = SpiritLook.Default;
+    public float Size = 1;
 
     // For Dive
     public bool Arrived = false;

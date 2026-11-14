@@ -314,8 +314,23 @@ public static partial class SelfTest
             Eq(art.Width, 64); Eq(art.Height, 64);
             Eq(PortraitArt.Square(DialogueSpeaker.Airu, 1, emotion, 0).Width, 68);
         }
+        // Atli: the face drawn by the author (clear background, shown at 4/3 in 128 x 128) and the other five expressions made from it, all different, over the container's gradient of a sunset (136 x 136 with its frame)
+        var atliFaces = new HashSet<string>();
+        foreach (var emotion in Enum.GetValues<Emotion>())
+        {
+            var face = PortraitArt.Face(DialogueSpeaker.Atli, 1, emotion);
+            Eq(face.Width, 128); Eq(face.Height, 128);
+            Eq(PortraitArt.Square(DialogueSpeaker.Atli, 1, emotion, 0).Width, 136, "in a frame of 4 pixels, shown as it is");
+            atliFaces.Add(string.Join(",", face.Pixels.Select(px => px.R * 3 + px.G * 5 + px.B * 7 + px.A)));
+        }
+        Eq(atliFaces.Count, 6, "six different expressions");
+        var neutral = PortraitArt.Face(DialogueSpeaker.Atli, 1, Emotion.Neutral);
+        Eq(neutral[2, 2].A, (byte)0, "a clear background");
+        True(neutral.Pixels.Count(px => px.A > 0) > 128 * 128 / 2, "the drawing fills most of the frame");
+        var box = PortraitArt.Square(DialogueSpeaker.Atli, 1, Emotion.Neutral, 0);
+        True(box[10, 8].G > box[10, 128].G, "the clear part shows the gradient: yellow at the top, orange below");
         True(!PortraitArt.Face(DialogueSpeaker.Airu, 1, Emotion.Neutral, 0).Pixels.Select(px => px.R).SequenceEqual(PortraitArt.Face(DialogueSpeaker.Airu, 1, Emotion.Neutral, 1).Pixels.Select(px => px.R)), "the flame flickers");
-        foreach (var speaker in new[] { DialogueSpeaker.Atli, DialogueSpeaker.Boss, DialogueSpeaker.Narrator })
+        foreach (var speaker in new[] { DialogueSpeaker.Boss, DialogueSpeaker.Narrator })
             Eq(PortraitArt.Square(speaker, 1, Emotion.Neutral, 0).Width, 34, $"{speaker}: the empty frame");
     }
 

@@ -27,6 +27,7 @@ public partial class GameScene : Node2D
         }
 
         foreach (var kind in Enum.GetValues<SpiritKind>()) _spiritFrames[kind] = Stage.Spirits.MakeFrames(kind);
+        foreach (var look in Enum.GetValues<SpiritLook>()) if (look != SpiritLook.Default) _lookFrames[look] = ForestSpiritArt.MakeFrames(look);
         var spiritSize = Stage.Spirits.SpriteSize;
         for (int i = 0; i < 48; i++)
         {
@@ -311,9 +312,13 @@ public partial class GameScene : Node2D
             var node = _enemyNodes[i]; var mirror = _enemyMirrors[i];
             if (i >= World.Enemies.Count) { node.Visible = false; mirror.Visible = false; continue; }
             var enemy = World.Enemies[i];
-            var frames = _spiritFrames[enemy.Kind];
+            var frames = enemy.Look != SpiritLook.Default && _lookFrames.TryGetValue(enemy.Look, out var own) ? own : _spiritFrames[enemy.Kind];
             node.Texture = frames[(frame + enemy.Id) % frames.Length];
             node.Position = Point(enemy.Position);
+            node.Modulate = enemy.Tint;
+            FitTo(node, Stage.Spirits.SpriteSize * enemy.Size);
+            mirror.Modulate = new Color(enemy.Tint.R, enemy.Tint.G, enemy.Tint.B, 0.55f);
+            mirror.Scale = new Vector2(node.Scale.X, -node.Scale.Y);
             SetBlend(node, enemy.HitFlash > 0 ? 0.7f : 0);
             node.Visible = true;
 

@@ -162,10 +162,24 @@ public static partial class SelfTest
     private static void StageOneHasOnlyTheBlueSpiritsAndAFewPlainGunners()
     {
         var waves = Stage1Waves.Waves;
-        Eq(waves.Count, 5);
+        Eq(waves.Count, 6);
         True(waves.All(w => w.Spawns.All(s => s.Kind != SpiritKind.Heavy)), "the first stage is only types 1 and 2");
         True(waves.All(w => w.Spawns.Where(s => s.Kind == SpiritKind.Swarm).All(s => s.Patterns.Count == 0)), "the blue ones do not shoot");
-        True(waves.All(w => w.Spawns.Where(s => s.Kind == SpiritKind.Gunner).All(s => s.Patterns.Count <= 1)), "the gunners only fire their plain shot");
+        True(waves.All(w => w.Spawns.Where(s => s.Kind == SpiritKind.Gunner).All(s => s.Patterns.Count <= 1)), "each gunner has one way of shooting");
+        True(waves.Select(w => w.Spawns.Where(s => s.Kind == SpiritKind.Gunner).SelectMany(s => s.Patterns.Select(p => p.Pattern.Kind)).ToHashSet()).Where(k => k.Count > 0).SelectMany(k => k).ToHashSet().Count >= 4, "the waves teach different ways of shooting (aimed, fan, a figure, a spiral)");
+        True(waves.SelectMany(w => w.Spawns).Where(s => s.Kind == SpiritKind.Swarm).Select(s => (s.Tint, s.Size, s.Health)).Distinct().Count() >= 4, "the spirits that do not shoot come in variants: blue, spark, ember and cinder");
+        // each way of shooting has a forest spirit of its own, and no other wears that figure
+        var looks = waves.SelectMany(w => w.Spawns).Where(s => s.Kind == SpiritKind.Gunner).GroupBy(s => s.Look).ToList();
+        True(looks.All(g => g.Key != SpiritLook.Default), "every gunner of stage 1 has a figure of its own");
+        Eq(looks.Count, 5, "five figures: mushroom, moth, owl, stump and flower");
+        foreach (var g in looks) Eq(g.SelectMany(s => s.Patterns.Select(p => (p.Pattern.Kind, p.Pattern.Interval))).Distinct().Count(), 1, $"{g.Key}: one way of shooting");
+        foreach (var look in looks.Select(g => g.Key))
+        {
+            var frames = Enumerable.Range(0, ForestSpiritArt.FrameCount).Select(f => ForestSpiritArt.MakeCanvas(look, f)).ToList();
+            True(frames.All(f => f.Width == SpiritArt.Width && f.Height == SpiritArt.Height && f.Pixels.Count(px => px.A > 0) > 120), $"{look}: a figure of the size of the spirits");
+            True(frames[0].Pixels.Select(px => px.R).SequenceEqual(frames[1].Pixels.Select(px => px.R)) == false, $"{look}: it bobs");
+        }
+        True(waves.SelectMany(w => w.Spawns).Where(s => s.Health > 0).All(s => s.Kind == SpiritKind.Swarm && s.Patterns.Count == 0), "the sturdy cinders never shoot");
         int gunners = waves.Sum(w => w.Spawns.Count(s => s.Kind == SpiritKind.Gunner));
         Greater(gunners, 0, "there are gunners");
         Less(gunners, Stage2Waves.Waves.Sum(w => w.Spawns.Count(s => s.Kind == SpiritKind.Gunner)), "fewer than in stage 2");
