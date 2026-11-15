@@ -229,10 +229,13 @@ public static partial class SelfTest
     private static void TheSerpentHasMoreHealthThanTheWoman()
     {
         var def = IrysshBoss.Definition;
-        for (int lives = 5; lives >= 4; lives--) Eq(def.PhaseFor(lives).MaxHealth, (int)(BossBuilder.HealthOf(300, BossMovementType.Patrol) * 2.2f), "the first two attacks have the health of an attack that she fights standing still, in her enraged form");
-        Eq(def.PhaseFor(3).MaxHealth, BossBuilder.HealthOf(300, BossMovementType.Stationary), "the great fireballs: a calm attack, and twice as much while she stands still");
+        // her health was cut by a fifth, and chosen so that, at best (the straight shot at level 2, focused: 28 a second, every shot a hit), each attack still goes round once or twice before it ends
+        int[] health = Enumerable.Range(1, 5).Select(lives => def.PhaseFor(lives).MaxHealth).Reverse().ToArray();       // the first attack first
+        int[] seconds = { 8, 6, 8, 6, 14 };                  // the least an attack must last at best
+        for (int i = 0; i < 5; i++) GreaterEq(health[i] / 28f, seconds[i], $"attack {i + 1} of the Iryssh lasts at least {seconds[i]} s at best");
+        Near(health.Sum() / 5f, 1583 / 5f * 0.8f, 6f, "the average health of her attacks is a fifth lower");
         Eq(def.PhaseFor(2).MaxHealth, (int)(BossBuilder.HealthOf(330, BossMovementType.Dash) * 1.2f), "the lunge, enraged, when she moves: a fifth more");
-        Eq(def.PhaseFor(1).MaxHealth, (int)(BossBuilder.HealthOf(330, BossMovementType.Stationary) * 1.6f), "the tail of the serpent of hell: still, enraged, and with more health than any other of her attacks");
+        Greater(def.PhaseFor(1).MaxHealth, def.PhaseFor(3).MaxHealth, "the tail has more health than the fireballs");
         var world = new World(practicePhase: 1);
         world.CalmWindForTesting();
         Eq(world.Boss.Health.MaxHealth, def.PhaseFor(5).MaxHealth);

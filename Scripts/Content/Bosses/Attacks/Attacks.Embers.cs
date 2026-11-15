@@ -7,8 +7,10 @@ using Godot;
 /// </summary>
 public static partial class Attacks
 {
-    /// <summary>The first two attacks of the Iryssh have the health of an attack of her enraged form that she fights standing still (about 316), not that of one in which she moves about.</summary>
-    private const float WomanHealth = 2.2f;
+    // The health of the attacks of the Iryssh, chosen so that a boat at the most that stage 1 allows (the straight shot at level 2, focused: 20 x 1.4 = 28 damage a second, every shot a hit) still sees
+    // each attack go round at least once or twice before it ends: the ring every 3.4 s (two rounds: 8 s), the lotus every 2.6 s (about two and a half: 7 s), a great fireball that flies, pulses two
+    // seconds and breaks (two lives of it: 9 s), a lunge and its curtains (one and a half rounds of 5.3 s: 6.8 s) and the tail (two rounds of its shots across the middle: 14 s).
+    private const float RingHealth = 1.6f, LotusHealth = 1.39f, FireballHealth = 0.87f, LungeHealth = 1.2f, TailHealth = 1.25f;
     private static readonly BulletStyle[] FireOrbs = { BulletStyle.OrbRed, BulletStyle.OrbOrange, BulletStyle.OrbYellow };
 
     /// <summary>Three arms of fire spiral out of her as she goes from station to station, and, now and then, a slow ring of orbs bursts out, stops and flies, all together, at the boat.</summary>
@@ -17,7 +19,7 @@ public static partial class Attacks
         Pat.Every(0.3f, c => Pat.Ring(c, c.Origin, 3, c.Count * 8.5f, new Shot(BulletStyle.Fireball, 135).Sized(0.9f))),
         Pat.Every(3.4f, c => StopAndAimRing(c, c.Origin, 12, c.Count * 15f, FireOrbs, 150, 0.9f, 165)).After(1.2f),
     })
-        .Pressured(0.51f).Tougher(WomanHealth);
+        .Pressured(0.51f).Tougher(RingHealth);
 
     /// <summary>A lotus: the petals burst out in a ring, brake to a stop and then fly, all together, at the boat; between the rings, a layered fan of embers.</summary>
     public static BossPhase BlazingBloom() => Attack("AttackBlazingBloom", BossMovementType.Patrol, Centre, patterns: new[]
@@ -25,7 +27,7 @@ public static partial class Attacks
         Pat.Every(2.6f, c => Pat.Shoot(c, c.Origin, Pat.Aim.Circle, 14, 1, c.Count * 13f, 0, 250, 250, new Shot(BulletStyle.LotusPetal, 0) { Anchor = c.Origin }.Sized(1.1f).Popping().Turning(3, 0.9f, 1, 0, 190))),
         Pat.Every(2.6f, c => Pat.Shoot(c, c.Origin, Pat.Aim.FanAimed, 3, 2, 0, 20, 220, 150, new Shot(BulletStyle.Fireball, 0).Sized(0.9f).Popping())).After(1.3f),
     })
-        .Pressured(1.37f).Tougher(WomanHealth);
+        .Pressured(1.37f).Tougher(LotusHealth);
 
     /// <summary>The serpent: great magma orbs at the boat, in a fan that opens out (the first of the three pairs in layers), and a thin spiral of serpents of fire that bend as they go.</summary>
     public static BossPhase FuryOfTheRiver() => Attack("AttackFuryOfTheRiver", BossMovementType.Stationary, new Vector2(300, 150), patterns: new[]
@@ -68,7 +70,7 @@ public static partial class Attacks
             c.Fire(c.Origin, heading, new Shot(BulletStyle.MagmaOrb, speed).Zoomed(2.0f).Hitting(22).Steady().Bursting(48).StoppingToPulse(fly).Splitting(fly + PulseSeconds, c.N(6, 5), BulletStyle.Fireball, 105, childScale: 0.8f));
         }),
     })
-        .Pressured(1.0f);
+        .Pressured(1.0f).Tougher(FireballHealth);
 
     /// <summary>
     /// The serpent lunges down the screen from one of three lanes, as before, and leaves TWO CURTAINS of great fireballs, one to the right of her way and one to the left, only while she lunges. Each curtain is a wall
@@ -91,7 +93,7 @@ public static partial class Attacks
             if (c.Difficulty == Difficulty.Hard && c.Count % 2 == 0) FireCurtainPair(c, 40, 0.7f, new Shot(BulletStyle.Ember, 0).Sized(1.2f).Steady());
         }),
     })
-        .Pressured(1.0f).Tougher(1.2f);
+        .Pressured(1.0f).Tougher(LungeHealth);
 
     /// <summary>Where the curtains of the lunge are hinged: a little below the bottom of the field (she leaves the screen at about 800).</summary>
     private const float CurtainHingeY = 850;
@@ -135,7 +137,7 @@ public static partial class Attacks
         Pat.Every(0.52f, c => LaserFireball(c, LaserInnerRight - 8, 180)).After(2.5f),
     })
         .Pressured(1.0f)
-        .Tougher(1.6f);
+        .Tougher(TailHealth);
 
     /// <summary>Where the two lasers end towards the middle: the space between them stays 280 px wide.</summary>
     private const float LaserInnerLeft = 160, LaserInnerRight = 440;
