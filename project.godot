@@ -15,6 +15,7 @@ config/name_localized={
 "pt": "Airumã",
 "pt_BR": "Airumã"
 }
+config/description="Airumã - Copyright (c) 2026 Luan Aiezza. All rights reserved."
 run/main_scene="res://Scenes/main.tscn"
 config/features=PackedStringArray("4.7", "C#", "Forward Plus")
 config/icon="res://Assets/icon.png"
