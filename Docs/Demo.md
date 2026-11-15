@@ -21,4 +21,4 @@ O script apaga a pasta de destino e a refaz do zero; rode de novo sempre que o j
 * Sem a opção "Sair" no navegador; sem Web: o Godot 4 **não exporta projetos C# para Web**.
 
 ## Copyright
-Todos os arquivos `.cs` levam o aviso de copyright e a proibição de descompilar/ler/usar em IA; o `.csproj` grava autor, empresa e copyright no assembly; os presets de exportação gravam o copyright nos aplicativos; o menu e a tela final mostram "(c) 2026 Luan Aiezza"; `COPYRIGHT.md` na raiz. É um aviso legal, não uma proteção técnica: o `.dll` ainda pode ser aberto por ferramentas de decompilação. Para dificultar de verdade, ofusque o assembly antes de publicar.
+Todos os arquivos `.cs` levam o aviso de copyright e a proibição de descompilar/ler/usar em IA; o `.csproj` grava autor, empresa e copyright no assembly; os presets de exportação gravam o copyright nos aplicativos; o menu e a tela final mostram "(c) 2026 Luezza"; `COPYRIGHT.md` na raiz. É um aviso legal, não uma proteção técnica: o `.dll` ainda pode ser aberto por ferramentas de decompilação. Para dificultar de verdade, ofusque o assembly antes de publicar.

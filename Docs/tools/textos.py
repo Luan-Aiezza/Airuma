@@ -111,8 +111,8 @@ INTERFACE = [
 ]
 
 WHO = {'Atli': 'Atli', 'Airu': 'Naru', 'Ukhumo': 'Ukhumo', 'LeftSerpent': 'Kuychu (esquerda)', 'RightSerpent': 'Kuychu (direita)', 'Narrator': 'Ninguém'}
-BOSS_WHO = {1: 'Iryssh', 2: 'Baylo', 3: 'Thaqai', 4: 'Ukhumo', 5: 'Kuychu', 6: 'Killa'}
-STAGE_NAMES = {1: 'Iryssh, a mulher-serpente de fogo', 2: 'Baylo, o boto da festa', 3: 'Thaqai, a gata das estrelas', 4: 'Ukhumo, a ursa da caverna', 5: 'Kuychu, o guardião de duas cabeças', 6: 'Mama Killa, a Lua'}
+BOSS_WHO = {1: 'Sshira Hono', 2: 'Baylo', 3: 'Thaqai', 4: 'Ukhumo', 5: 'Kuychu', 6: 'Killa'}
+STAGE_NAMES = {1: 'Sshira Hono, a mulher-serpente de fogo', 2: 'Baylo, o boto da festa', 3: 'Thaqai, a gata das estrelas', 4: 'Ukhumo, a ursa da caverna', 5: 'Kuychu, o guardião de duas cabeças', 6: 'Mama Killa, a Lua'}
 STAGE_TITLE = {1: 'StageTitle', 2: 'Stage2Title', 3: 'Stage3Title', 4: 'Stage4Title', 5: 'Stage5Title', 6: 'Stage6Title'}
 STAGE_PEOPLE = {1: ['IrysshName'], 2: ['BayloName'], 3: ['ThaqaiName'], 4: ['UkhumoName'], 5: ['KuychuName', 'SerpentLeftName', 'SerpentRightName'], 6: ['KillaName']}
 STAGE_ATTACKS = {

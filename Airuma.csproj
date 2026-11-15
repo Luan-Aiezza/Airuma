@@ -6,10 +6,13 @@
     <Nullable>disable</Nullable>
     <NoWarn>$(NoWarn);CS8981</NoWarn>
     <NuGetAudit>false</NuGetAudit>
-    <Company>Luan Aiezza</Company>
-    <Authors>Luan Aiezza</Authors>
+    <Company>Luezza</Company>
+    <Authors>Luezza</Authors>
     <Product>Airumã</Product>
-    <Copyright>Copyright (c) 2026 Luan Aiezza. All rights reserved. Decompiling, reverse engineering and redistributing are prohibited.</Copyright>
-    <Description>Proprietary software of Luan Aiezza. Decompiling, reverse engineering and redistributing are prohibited without written permission.</Description>
+    <Copyright>Copyright (c) 2026 Luezza. All rights reserved. Decompiling, reverse engineering and redistributing are prohibited.</Copyright>
+    <Description>Proprietary software of Luezza. Decompiling, reverse engineering and redistributing are prohibited without written permission.</Description>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="tools/**" />
+  </ItemGroup>
 </Project>

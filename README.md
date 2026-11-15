@@ -145,4 +145,4 @@ The presets for macOS and Windows are in `export_presets.cfg`; they need the exp
 
 ## Author
 
-[Luan Aiezza](https://github.com/Luan-Aiezza)
+[Luezza](https://github.com/Luan-Aiezza)
