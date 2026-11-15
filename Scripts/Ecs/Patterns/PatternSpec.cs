@@ -32,6 +32,11 @@ public sealed class PatternContext
     public float Width => Field.Size.X;
 
     /// <summary>Degrees from the origin to the boat.</summary>
+    /// <summary>Seconds since the boss began to lunge (the dash), or 0 when it is not lunging.</summary>
+    public float LungeTime;
+    /// <summary>The boss that is firing (for the figures that need to remember something of its movement).</summary>
+    public BossEntity Boss;
+
     public float Aim => AimFrom(Origin);
 
     public float AimFrom(Vector2 from) => Mathx.Degrees(MathF.Atan2(Player.Y - from.Y, Player.X - from.X));
@@ -86,6 +91,8 @@ public sealed class PatternSpec
     /// <summary>It fires only when the boss lets go of its jet (<see cref="BossBrains"/> sweep: the moment the beam goes on), `BeamDelay` seconds after, once for each jet.</summary>
     public bool OnBeam;
     public float BeamDelay;
+    /// <summary>It only fires while the boss is lunging (the dash: not while it drifts down to its place).</summary>
+    public bool LungeOnly;
     /// <summary>It only fires while the boss's quake is on.</summary>
     public bool QuakeOnly;
     /// <summary>Not in the easy mode / only in the hard mode.</summary>
@@ -96,6 +103,7 @@ public sealed class PatternSpec
     public PatternSpec InBursts(float on, float off) { OnFor = on; OffFor = off; return this; }
     public PatternSpec WithTheJet(float delay = 0) { OnBeam = true; BeamDelay = delay; return this; }
     public PatternSpec Twin() { FromTwin = true; return this; }
+    public PatternSpec OnLunge() { LungeOnly = true; return this; }
     public PatternSpec OnQuake() { QuakeOnly = true; return this; }
     public PatternSpec NotOnEasy() { NotEasy = true; return this; }
     public PatternSpec OnlyOnHard() { HardOnly = true; return this; }

@@ -66,7 +66,7 @@ public static partial class Attacks
             Pat.Every(1, c => GreatSpheres(c, 0)).WithTheJet(0),
             Pat.Every(1, c => GreatSpheres(c, 30)).WithTheJet(0.9f),
         })
-        .Pressured(1.0f);
+        .Pressured(1.0f).Tougher(1.5f);
 
     /// <summary>A ring of great spheres of water (white and blue in turns) opening out of the boss, `turn` degrees off the first ring.</summary>
     private static void GreatSpheres(PatternContext c, float turn)

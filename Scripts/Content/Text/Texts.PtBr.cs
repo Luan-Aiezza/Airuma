@@ -336,6 +336,8 @@ public static class TextsPtBr
     ["AttackTwinWhirlwinds"] = "Labareda: Redemoinhos Gêmeos",
     ["AttackBlazingBloom"] = "Lótus: Flor Flamejante",
     ["AttackFuryOfTheRiver"] = "Fúria do Rio Incandescente",
+    ["AttackShatteringFireballs"] = "Bolas de Fogo Estilhaçadas",
+    ["AttackSerpentTail"] = "Cauda da Serpente do Inferno",
     ["AttackTideOfEmbers"] = "Investida da Grande Serpente",
     ["Stage2Title"] = "Fase 2",
     ["BayloName"] = "Baylo",

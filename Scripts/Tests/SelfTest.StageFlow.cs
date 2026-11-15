@@ -30,7 +30,7 @@ public static partial class SelfTest
         Less(world.Boss.Transform.Position.Y, -200, "the boss is off-screen");
         StepN(world, 60 * 10);
         False(world.Bullets.Any(b => b.IsActive && b.Faction == Faction.Boss && b.Style == BulletStyle.Fireball), "no boss bullets");
-        Eq(world.Boss.Health.CurrentHealth, IrysshBoss.Definition.PhaseFor(4).MaxHealth);
+        Eq(world.Boss.Health.CurrentHealth, IrysshBoss.Definition.PhaseFor(5).MaxHealth);
     }
 
     private static void BossPracticeSkipsTheFairies()
@@ -189,14 +189,17 @@ public static partial class SelfTest
     {
         var stage = Stages.One;
         Eq(stage.Waves.Count, 6);
-        Eq(stage.Boss.Lives, 4, "four attacks");
-        True(!stage.Boss.PhaseFor(4).Enraged && !stage.Boss.PhaseFor(3).Enraged, "the first two attacks are calm");
-        True(stage.Boss.PhaseFor(2).Enraged && stage.Boss.PhaseFor(1).Enraged, "the last two are enraged");
+        Eq(stage.Boss.Lives, 5, "five attacks");
+        True(!stage.Boss.PhaseFor(5).Enraged && !stage.Boss.PhaseFor(4).Enraged && !stage.Boss.PhaseFor(3).Enraged, "the first three attacks are calm (the great fireballs are a calm attack)");
+        True(stage.Boss.PhaseFor(2).Enraged && stage.Boss.PhaseFor(1).Enraged, "she is enraged only in the last two");
         True(stage.Boss.PhaseFor(2).Theme == stage.Boss.PhaseFor(3).Theme, "one song for the whole fight");
-        Eq(stage.Boss.AttackName(4), Loc.Get("AttackRingOfEmbers"), "the first attack");
-        Eq(stage.Boss.AttackName(3), Loc.Get("AttackBlazingBloom"), "the homing lotus");
-        Eq(new World(withCards: false).StartingBossLives, 4);
-        Eq(new World(practicePhase: 3).StartingBossLives, 2);
+        Eq(stage.Boss.AttackName(5), Loc.Get("AttackRingOfEmbers"), "the first attack");
+        Eq(stage.Boss.AttackName(4), Loc.Get("AttackBlazingBloom"), "the homing lotus");
+        Eq(stage.Boss.AttackName(3), Loc.Get("AttackShatteringFireballs"), "the fireballs that break");
+        Eq(stage.Boss.AttackName(2), Loc.Get("AttackTideOfEmbers"), "the lunge with its trail");
+        Eq(stage.Boss.AttackName(1), Loc.Get("AttackSerpentTail"), "the tail of the serpent of hell, the last");
+        Eq(new World(withCards: false).StartingBossLives, 5);
+        Eq(new World(practicePhase: 3).StartingBossLives, 3);
     }
 
     /// <summary>
@@ -215,27 +218,29 @@ public static partial class SelfTest
                 Eq(phase.MaxHealth, (int)(BossBuilder.HealthOf(phase.Enraged ? enraged : calm[i], phase.Movement) * phase.HealthScale), $"boss {i + 1}, {phase.NameKey}: {(phase.Enraged ? "enraged" : "calm")}, {phase.Movement}");
             var still = boss.Phases.FirstOrDefault(p => p.Movement == BossMovementType.Stationary && !p.Enraged);
             var moving = boss.Phases.FirstOrDefault(p => p.Movement != BossMovementType.Stationary && !p.Enraged);
-            if (still != null && moving != null) Greater(still.MaxHealth, moving.MaxHealth * 3 / 2, $"boss {i + 1}: a still attack has twice the health");
+            if (still != null && moving != null) Greater(still.MaxHealth / still.HealthScale, moving.MaxHealth / moving.HealthScale * 3 / 2, $"boss {i + 1}: a still attack has twice the health (as the builder makes them)");
         }
         // the whole fight is longer from boss to boss
-        for (int i = 1; i < 6; i++)
+        // (the first boss is left out: its first two attacks and its last were made longer on purpose, and its whole fight is as long as the second's)
+        for (int i = 2; i < 6; i++)
             Greater(Stages.All[i].Boss.Phases.Sum(p => p.MaxHealth), Stages.All[i - 1].Boss.Phases.Sum(p => p.MaxHealth), $"boss {i + 1} has more health in all than boss {i}");
     }
 
     private static void TheSerpentHasMoreHealthThanTheWoman()
     {
         var def = IrysshBoss.Definition;
-        for (int lives = 4; lives >= 3; lives--) Eq(def.PhaseFor(lives).MaxHealth, BossBuilder.HealthOf(300, BossMovementType.Patrol), "the woman");
-        Eq(def.PhaseFor(2).MaxHealth, BossBuilder.HealthOf(330, BossMovementType.Stationary), "the serpent, her true form: a tenth more, and twice as much while she stands still");
-        Eq(def.PhaseFor(1).MaxHealth, BossBuilder.HealthOf(330, BossMovementType.Dash), "and when she moves");
+        for (int lives = 5; lives >= 4; lives--) Eq(def.PhaseFor(lives).MaxHealth, (int)(BossBuilder.HealthOf(300, BossMovementType.Patrol) * 2.2f), "the first two attacks have the health of an attack that she fights standing still, in her enraged form");
+        Eq(def.PhaseFor(3).MaxHealth, BossBuilder.HealthOf(300, BossMovementType.Stationary), "the great fireballs: a calm attack, and twice as much while she stands still");
+        Eq(def.PhaseFor(2).MaxHealth, (int)(BossBuilder.HealthOf(330, BossMovementType.Dash) * 1.2f), "the lunge, enraged, when she moves: a fifth more");
+        Eq(def.PhaseFor(1).MaxHealth, (int)(BossBuilder.HealthOf(330, BossMovementType.Stationary) * 1.6f), "the tail of the serpent of hell: still, enraged, and with more health than any other of her attacks");
         var world = new World(practicePhase: 1);
         world.CalmWindForTesting();
-        Eq(world.Boss.Health.MaxHealth, def.PhaseFor(4).MaxHealth);
-        world.Boss.Health.Lives = 3;
+        Eq(world.Boss.Health.MaxHealth, def.PhaseFor(5).MaxHealth);
+        world.Boss.Health.Lives = 4;
         world.Boss.Health.CurrentHealth = 0;
         world.Step(Dt, Idle());
-        Eq(world.Boss.Health.Lives, 2);
-        Eq(world.Boss.Health.MaxHealth, def.PhaseFor(2).MaxHealth, "the bar is refilled for the serpent");
-        Eq(world.Boss.Health.CurrentHealth, def.PhaseFor(2).MaxHealth);
+        Eq(world.Boss.Health.Lives, 3);
+        Eq(world.Boss.Health.MaxHealth, def.PhaseFor(3).MaxHealth, "the bar is refilled for the next attack");
+        Eq(world.Boss.Health.CurrentHealth, def.PhaseFor(3).MaxHealth);
     }
 }

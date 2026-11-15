@@ -72,6 +72,50 @@ public partial class SlashEffect : Node2D
     }
 
     /// <summary>
+    /// A giant laser (a column of fire, as wide as a part of the field): a very light pulse in its width and its glow; its colours go from a deep red at the edges, through the orange of its colour, to a hot yellow and a
+    /// warm white core; crisp bright edges; and streaks of light that run down along it. It is drawn the same as the thin lasers in how it warns and how it fades.
+    /// </summary>
+    private void DrawWideLaser(SlashData s, Vector2 top, Vector2 bottom, Vector2 dir, Vector2 normal, float fade, float grow)
+    {
+        var tint = s.Tint;
+        float width = s.Width * (0.35f + 0.65f * grow);
+        float wave = MathF.Sin(_clock * MathF.Tau * 1.3f);                 // a slow pulse, about once in 0.8 s
+        float pulse = 1 + 0.03f * wave, breath = 0.93f + 0.07f * wave;
+        var deep = new Color(tint.R * 0.8f, tint.G * 0.3f, tint.B * 0.3f);
+        var hot = tint.Lerp(new Color(1f, 0.9f, 0.5f), 0.55f);
+        var light = tint.Lerp(new Color(1f, 0.97f, 0.8f), 0.8f);
+        var core = new Color(1f, 0.98f, 0.9f);
+        float w = width * pulse;
+        DrawLine(top, bottom, new Color(deep.R, deep.G, deep.B, 0.20f * fade * breath), w * 1.22f);
+        DrawLine(top, bottom, new Color(tint.R, tint.G, tint.B, 0.55f * fade * breath), w * 1.0f);
+        DrawLine(top, bottom, new Color(hot.R, hot.G, hot.B, 0.80f * fade * breath), w * 0.78f);
+        DrawLine(top, bottom, new Color(light.R, light.G, light.B, 0.85f * fade * breath), w * 0.5f);
+        DrawLine(top, bottom, new Color(core.R, core.G, core.B, 0.92f * fade * breath), w * 0.24f);
+        // the edges: two crisp lines
+        foreach (int side in new[] { -1, 1 })
+            DrawLine(top + normal * (side * w * 0.5f), bottom + normal * (side * w * 0.5f), new Color(hot.R, hot.G, hot.B, 0.7f * fade), 3);
+        // streaks of light that run down the column, each at its own place across it and its own pace
+        for (int k = 0; k < 5; k++)
+        {
+            float across = (k - 2) * w * 0.2f + MathF.Sin(_clock * 0.9f + k * 1.7f) * w * 0.03f;
+            float pace = 150 + 40 * k, period = 120, phase = (_clock * pace + k * 53) % period;
+            for (float d = -period + phase; d < s.TotalLength; d += period)
+            {
+                float a = Math.Max(0, d), b = Math.Min(s.TotalLength, d + 44);
+                if (b <= a) continue;
+                DrawLine(top + dir * a + normal * across, top + dir * b + normal * across, new Color(light.R, light.G, light.B, 0.28f * fade), 3);
+            }
+        }
+        // sparks that fly off the edges
+        for (int k = 0; k < 34; k++)
+        {
+            float d = (_clock * (420 + k * 29) + k * 97) % s.TotalLength;
+            float side = ((k * 37) % 13 - 6) / 6f;
+            DrawRect(new Rect2(top + dir * d + normal * (side * w * 0.5f) - new Vector2(2, 2), new Vector2(4, 4)), new Color(1f, 0.93f, 0.7f, 0.75f * fade));
+        }
+    }
+
+    /// <summary>
     /// A laser: a thin dashed line of its colour that warns (blinking quicker as it comes); then a beam with a glow round it, a body of its colour, a white core, a flare at its origin and sparks that run along it;
     /// then it thins and fades.
     /// </summary>
@@ -107,6 +151,7 @@ public partial class SlashEffect : Node2D
         }
         float grow = Math.Clamp(t / 0.08f, 0, 1);
         float half = s.Width / 2 * (0.3f + 0.7f * grow) * (t < s.Strike ? 1 : 0.25f + 0.75f * fade);
+        if (s.Width >= 100) { DrawWideLaser(s, top, bottom, dir, normal, fade, grow); return; }
         float flick = 0.9f + 0.1f * MathF.Sin(_clock * 60);
         DrawLine(top, bottom, new Color(tint.R, tint.G, tint.B, 0.18f * fade), half * 3.2f);
         DrawLine(top, bottom, new Color(tint.R, tint.G, tint.B, 0.4f * fade), half * 2.1f);

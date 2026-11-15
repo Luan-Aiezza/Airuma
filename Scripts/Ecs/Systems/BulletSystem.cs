@@ -504,6 +504,16 @@ public static partial class BulletSystem
             if (b.Behavior == BulletBehavior.Split)
             {
                 b.Timer += delta;
+                if (b.StopAt > 0 && b.Timer >= b.StopAt)
+                {
+                    // it has got where it was going: it stops and pulses, a beat that comes quicker towards the end
+                    if (!b.Pulsing) { b.Pulsing = true; b.PulseClock = 0; b.PulseBeat = true; }
+                    b.Velocity = Vector2.Zero; b.Acceleration = 0; b.CurveRate = 0;
+                    float progress = Math.Clamp((b.Timer - b.StopAt) / Math.Max(0.1f, b.Fuse - b.StopAt), 0, 1);
+                    b.PulseClock += delta;
+                    float beat = 0.55f - 0.3f * progress;
+                    if (b.PulseClock >= beat) { b.PulseClock -= beat; b.PulseBeat = true; }
+                }
                 if (b.Timer >= b.Fuse)
                 {
                     float start = b.SplitAimed ? Mathx.Degrees(MathF.Atan2(player.Transform.Position.Y - b.Position.Y, player.Transform.Position.X - b.Position.X))
@@ -515,6 +525,7 @@ public static partial class BulletSystem
                         float angle = b.SplitSpread >= 360 ? start + 360f * k / n : start - b.SplitSpread / 2 + (n > 1 ? b.SplitSpread * k / (n - 1) : b.SplitSpread / 2);
                         Fire(pool, b.Position, angle, child);
                     }
+                    if (b.BurstSize > 0) Breaks.Add((b.Position, b.BurstSize));
                     b.IsActive = false;
                     continue;
                 }
@@ -598,16 +609,24 @@ public static partial class BulletSystem
     /// <summary>
     /// Tells the scene what kinds of bullets were fired since the last call, once for each kind (it makes the sound of each).
     /// </summary>
+    /// <summary>The bullets that broke with a burst of light since it was last emptied (where, and how big): the world tells the scene.</summary>
+    public static readonly List<(Vector2 At, float Size)> Breaks = new();
+
     public static void ReportFresh(BulletData[] pool, List<WorldEvent> events)
     {
         Dictionary<BulletStyle, int> fired = null;
+        bool pulsed = false;
         for (int i = 0; i < pool.Length; i++)
         {
+            if (pool[i].PulseBeat) { pool[i].PulseBeat = false; pulsed = true; }
             if (!pool[i].Fresh) continue;
             pool[i].Fresh = false;
             fired ??= new Dictionary<BulletStyle, int>();
             fired[pool[i].Style] = fired.GetValueOrDefault(pool[i].Style) + 1;
         }
+        if (pulsed) events.Add(WorldEvent.BulletPulsed());
+        foreach (var (at, size) in Breaks) events.Add(WorldEvent.BulletBroke(at, (int)size));
+        Breaks.Clear();
         if (fired == null) return;
         foreach (var pair in fired) events.Add(WorldEvent.BulletsFired(pair.Key, pair.Value));
     }

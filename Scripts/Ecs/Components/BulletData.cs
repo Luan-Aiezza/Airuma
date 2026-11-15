@@ -6,6 +6,12 @@ public struct BulletData
     public bool IsActive;
     /// <summary>A boss bullet that cannot hurt the boat yet (it is shown faded): it becomes dangerous at its first turn (see <see cref="Shot.Inert"/>).</summary>
     public bool Inert;
+    /// <summary>A bullet that stops where it is going and pulses before it breaks (see <see cref="Shot.StoppingToPulse"/>): when it stops (`StopAt` seconds after it was fired), whether it is stopped and pulsing, the clock of its beats and the beat of this frame (for the sound).</summary>
+    public float StopAt;
+    /// <summary>If above 0, the bullet breaks with a burst of light of this radius (px) when it splits (see <see cref="Shot.Bursting"/>).</summary>
+    public float BurstSize;
+    public bool Pulsing, PulseBeat;
+    public float PulseClock;
     /// <summary>Set when the bullet is fired, so the world can tell the scene about it (for the sound) exactly once.</summary>
     public bool Fresh;
     public Vector2 Position;

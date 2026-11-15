@@ -29,6 +29,8 @@ public struct Shot
     public Vector2 Anchor;
     public float Blink;
     public bool IsInert;
+    public float StopAt;
+    public float BurstSize;
     public float Cruise;
     public int TurnMode, TurnTimes;
     public float TurnInterval, TurnRotation, TurnSpeed;
@@ -46,6 +48,10 @@ public struct Shot
     /// <summary>The wind does not move it: the figures that make a way (walls with a gap, lattices, combs, crescents, polygons, stars, constellations) must stay where they were drawn.</summary>
     /// <summary>The bullet cannot hurt the boat (and is drawn faded) until its first turn: bullets that rise and stop before they fall on the boat.</summary>
     public Shot Inert() { var s = this; s.IsInert = true; return s; }
+    /// <summary>The bullet flies for `seconds`, then STOPS and pulses (it throbs, with a sound, quicker as it nears its end) until its fuse (see <see cref="Splitting"/>) is over.</summary>
+    public Shot StoppingToPulse(float seconds) { var s = this; s.StopAt = seconds; return s; }
+    /// <summary>When the bullet splits, a burst of light of `radius` px shows (and sounds) where it was.</summary>
+    public Shot Bursting(float radius) { var s = this; s.BurstSize = radius; return s; }
     public Shot Steady() { var s = this; s.WindFactor = 0; return s; }
     public Shot Sized(float scale) { var s = this; s.Scale = scale; return s; }
     public Shot Speeded(float speed) { var s = this; s.Speed = speed; return s; }
@@ -100,6 +106,8 @@ public static partial class BulletSystem
         b.Anchor = shot.Anchor;
         b.Blink = shot.Blink;
         b.Inert = shot.IsInert;
+        b.StopAt = shot.StopAt;
+        b.BurstSize = shot.BurstSize;
         b.Cruise = shot.Cruise;
         b.TurnMode = shot.TurnMode; b.TurnTimes = shot.TurnTimes; b.TurnInterval = shot.TurnInterval; b.TurnRotation = shot.TurnRotation; b.TurnSpeed = shot.TurnSpeed;
         b.TurnBase = shot.Speed; b.TurnHeading = Mathx.Radians(angle);

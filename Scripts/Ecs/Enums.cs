@@ -6,6 +6,8 @@ public enum Faction { Player = 0, Boss = 1 }
 public enum BulletStyle
 {
     Fireball, FlameDart, Spark, VenomOrb, LotusPetal, MagmaOrb, FireSerpent, Ember,
+    /// <summary>A bullet like those of a firearm (a pointed tip, a body, a flat base) in the colours of fire: it points where it goes.</summary>
+    FireSlug,
     LightBolt, OrbGreen, OrbRed, RiceRed, Wisp, Hail, Star, Shard, Claw, Rock, Stalactite,
     // The danmaku family: orbs (7 x 7) in every colour, beads (5 x 5, for the thick streams), rice (3 x 7, they point where they go), kunai (5 x 9), little stars in colours (7 x 7)
     // and the great orbs (25 x 25). Colours: the name says which.

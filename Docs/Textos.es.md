@@ -404,6 +404,8 @@ Cada carta tem um nome (**Título**) e uma descrição curta do que ela faz (**D
 | `GameOverMusic` | ♪ Luz que se apaga - game over | ♪ Luz que se apaga - game over | Texto sem contexto catalogado ainda. |
 | `AttackBonus` | ¡Bonus de tiempo! | Bônus de tempo! | Texto sem contexto catalogado ainda. |
 | `DifficultyStages` | ({0} Fases) | ({0} Fases) | Texto sem contexto catalogado ainda. |
+| `AttackShatteringFireballs` | Bolas de Fuego Estalladas | Bolas de Fogo Estilhaçadas | Texto sem contexto catalogado ainda. |
+| `AttackSerpentTail` | Cola de la Serpiente del Infierno | Cauda da Serpente do Inferno | Texto sem contexto catalogado ainda. |
 | `AttackCatPlay` | Juego de la Gata: Ovillos que Rebotan | Brincadeira da Gata: Novelos que Quicam | Texto sem contexto catalogado ainda. |
 | `AttackKillaCrescent` | Luna Creciente: Los Cuernos de Plata | Lua Crescente: Os Chifres de Prata | Texto sem contexto catalogado ainda. |
 | `AttackKillaTide` | Marea Lunar: El Río del Cielo | Maré Lunar: O Rio do Céu | Texto sem contexto catalogado ainda. |

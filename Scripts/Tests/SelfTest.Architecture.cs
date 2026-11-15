@@ -47,7 +47,7 @@ public static partial class SelfTest
                 True(p.Theme == stage.Boss.Phases[0].Theme, "the boss has one song for the whole fight");
                 Greater(p.MaxHealth, 0);
             }
-            Greater(phases.First(p => p.Enraged).MaxHealth, phases.First(p => !p.Enraged).MaxHealth, "the enraged attacks are stronger");
+            Greater(phases.First(p => p.Enraged).MaxHealth / phases.First(p => p.Enraged).HealthScale, phases.First(p => !p.Enraged).MaxHealth / phases.First(p => !p.Enraged).HealthScale, "the enraged attacks are stronger (as the builder makes them)");
         }
     }
 

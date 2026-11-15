@@ -24,7 +24,9 @@ public sealed class RoamBrain
 public sealed class DashBrain
 {
     public float Timer, LastX = 300;
-    public void Reset(float startX) { Timer = 0; LastX = startX; }
+    /// <summary>The height at which the last bullet of the trail was let go (NaN: none yet in this pass); the trail is let go every few pixels she moves, whether she drifts down or lunges.</summary>
+    public float TrailY = float.NaN;
+    public void Reset(float startX) { Timer = 0; LastX = startX; TrailY = float.NaN; }
 }
 
 /// <summary>

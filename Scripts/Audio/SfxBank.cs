@@ -16,7 +16,7 @@ public static class SfxBank
         DefeatSwarm, DefeatGunner, DefeatHeavy, BossBroken,
         OrbGreen, OrbRed, RiceRed, Fireball, FlameDart, Spark, VenomOrb, LotusPetal, MagmaOrb, FireSerpent, Ember,
         Bomb, Pickup, LevelUp, MenuMove, MenuSelect, MenuBack, DialogueNext,
-        HitGunner, HitHeavy, HitBoss, Twirl, Splash, Jet, Rage, RagePulse, Thunder, Slash, Roar, Quake, Rock, Gravity, Tick, LaserWarn, LaserFire,
+        HitGunner, HitHeavy, HitBoss, Twirl, Splash, Jet, Rage, RagePulse, Thunder, Slash, Roar, Quake, Rock, Gravity, Tick, LaserWarn, LaserFire, Pulse, FireBurst,
     }
 
     /// <summary>Volume in dB, and the least time in seconds between two plays (so volleys do not pile up into noise).</summary>
@@ -31,7 +31,7 @@ public static class SfxBank
         Sound.Bomb => (-5f, 0.5f), Sound.Pickup => (-19f, 0.035f), Sound.LevelUp => (-8f, 0.3f),
         Sound.MenuMove => (-15f, 0.03f), Sound.MenuSelect => (-11f, 0.1f), Sound.MenuBack => (-13f, 0.1f), Sound.DialogueNext => (-16f, 0.05f),
         Sound.HitGunner => (-18f, 0.05f), Sound.HitHeavy => (-16f, 0.05f), Sound.HitBoss => (-14f, 0.06f), Sound.Twirl => (-12f, 0.3f), Sound.Splash => (-9f, 0.15f), Sound.Jet => (-8f, 0.5f), Sound.Rage => (-3f, 1.0f), Sound.Thunder => (-6f, 1.0f), Sound.RagePulse => (-17f, 0.5f), Sound.Slash => (-9f, 0.2f), Sound.Roar => (-3f, 1.0f), Sound.Quake => (-4f, 1.0f), Sound.Rock => (-17f, 0.07f),
-        Sound.Gravity => (-11f, 1.0f), Sound.Tick => (-9f, 0.5f), Sound.LaserWarn => (-5f, 0.35f), Sound.LaserFire => (-6f, 0.35f),
+        Sound.Gravity => (-11f, 1.0f), Sound.Tick => (-9f, 0.5f), Sound.LaserWarn => (-5f, 0.35f), Sound.Pulse => (-8f, 0.18f), Sound.FireBurst => (-6f, 0.1f), Sound.LaserFire => (-6f, 0.35f),
         _ => (-12f, 0.05f),
     };
 
@@ -44,7 +44,7 @@ public static class SfxBank
         BulletStyle.OrbGreen => Sound.OrbGreen,
         BulletStyle.OrbRed => Sound.OrbRed,
         BulletStyle.RiceRed => Sound.RiceRed,
-        BulletStyle.Fireball => Sound.Fireball,
+        BulletStyle.Fireball or BulletStyle.FireSlug => Sound.Fireball,
         BulletStyle.FlameDart => Sound.FlameDart,
         BulletStyle.Spark => Sound.Spark,
         BulletStyle.BoltYellow or BulletStyle.BoltBlue or BulletStyle.BoltRed => Sound.Spark,
@@ -318,6 +318,22 @@ public static class SfxBank
                     double f = t < 0.15 ? 880 + 500 * (local / 0.15) : 1320 + 900 * (local / 0.19);
                     p += 2 * Math.PI * f / Rate;
                     return (Math.Sin(p) + 0.35 * Math.Sin(2 * p)) * Env(local, 0.004, 9) * 0.75;
+                });
+            }
+            case Sound.FireBurst: // a fireball breaks: a soft boom and a crackle of embers
+            {
+                var boom = Sweep(t => 150 * Math.Exp(-t * 10) + 55);
+                var crackle = HighNoise(81, 0.9);
+                return Render(0.4, t => boom(t) * Env(t, 0.002, 9) * 0.8 + crackle(t) * Math.Exp(-t * 8) * 0.45);
+            }
+            case Sound.Pulse: // the throb of a fireball that waits to break: a low, round "bum" that swells
+            {
+                double p = 0;
+                return Render(0.3, t =>
+                {
+                    double f = 120 + 110 * Math.Min(1, t / 0.12);
+                    p += 2 * Math.PI * f / Rate;
+                    return (Math.Sin(p) + 0.3 * Math.Sin(2 * p)) * Math.Min(1, t / 0.02) * Math.Exp(-t * 11) * 0.9;
                 });
             }
             case Sound.LaserFire: // the shot: a sharp electric zap that falls

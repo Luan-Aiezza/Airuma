@@ -44,7 +44,7 @@ public static partial class SelfTest
 
     private static void TheBossFiresFewerBulletsOnEasyAndMoreOnHard()
     {
-        foreach (int lives in new[] { 4, 3, 2, 1 })
+        foreach (int lives in new[] { 5, 4 })      // (the fireballs that break and the trail of the lunge are scaled in flight: see TheGreatFireballsBreak... and TheLungeLeavesATrail...)
         {
             int Total(Difficulty d)
             {

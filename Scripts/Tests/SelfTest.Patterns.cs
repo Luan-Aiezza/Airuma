@@ -51,8 +51,8 @@ public static partial class SelfTest
 
     private static void TheAttacksOfTheBossesFollowTheCurveOfPatterns()
     {
-        // the number of attacks of each boss, in its first form and its second: 2+2, 3+2, 4+2, 4+3, 5+3, 6+4
-        var expected = new (int calm, int enraged)[] { (2, 2), (3, 2), (4, 2), (4, 3), (5, 3), (6, 4) };
+        // the number of attacks of each boss, in its first form and its second: 3+2, 3+2, 4+2, 4+3, 5+3, 6+4
+        var expected = new (int calm, int enraged)[] { (3, 2), (3, 2), (4, 2), (4, 3), (5, 3), (6, 4) };
         for (int s = 1; s <= 6; s++)
         {
             var boss = Stages.All[s - 1].Boss;
@@ -324,13 +324,24 @@ public static partial class SelfTest
             atliFaces.Add(string.Join(",", face.Pixels.Select(px => px.R * 3 + px.G * 5 + px.B * 7 + px.A)));
         }
         Eq(atliFaces.Count, 6, "six different expressions");
+        // the Iryssh of stage 1, the same way (embers behind her); the other bosses have no picture yet
+        var irysshFaces = new HashSet<string>();
+        foreach (var emotion in Enum.GetValues<Emotion>())
+        {
+            var face = PortraitArt.Face(DialogueSpeaker.Boss, 1, emotion);
+            Eq(face.Width, 128); Eq(face.Height, 128);
+            Eq(PortraitArt.Square(DialogueSpeaker.Boss, 1, emotion, 0).Width, 136);
+            irysshFaces.Add(string.Join(",", face.Pixels.Select(px => px.R * 3 + px.G * 5 + px.B * 7 + px.A)));
+        }
+        Eq(irysshFaces.Count, 6, "six different expressions for the Iryssh");
+        True(PortraitArt.Face(DialogueSpeaker.Boss, 2, Emotion.Neutral) == null, "the other bosses have no picture yet");
         var neutral = PortraitArt.Face(DialogueSpeaker.Atli, 1, Emotion.Neutral);
         Eq(neutral[2, 2].A, (byte)0, "a clear background");
         True(neutral.Pixels.Count(px => px.A > 0) > 128 * 128 / 2, "the drawing fills most of the frame");
         var box = PortraitArt.Square(DialogueSpeaker.Atli, 1, Emotion.Neutral, 0);
         True(box[10, 8].G > box[10, 128].G, "the clear part shows the gradient: yellow at the top, orange below");
         True(!PortraitArt.Face(DialogueSpeaker.Airu, 1, Emotion.Neutral, 0).Pixels.Select(px => px.R).SequenceEqual(PortraitArt.Face(DialogueSpeaker.Airu, 1, Emotion.Neutral, 1).Pixels.Select(px => px.R)), "the flame flickers");
-        foreach (var speaker in new[] { DialogueSpeaker.Boss, DialogueSpeaker.Narrator })
+        foreach (var speaker in new[] { DialogueSpeaker.Narrator })
             Eq(PortraitArt.Square(speaker, 1, Emotion.Neutral, 0).Width, 34, $"{speaker}: the empty frame");
     }
 

@@ -264,6 +264,17 @@ public partial class GameScene : Node2D
                 if (!_bulletRotates[(int)bullet.Style]) node.Rotation = 0;
             }
             node.Modulate = bullet.Inert ? new Color(1, 1, 1, 0.3f) : Colors.White;      // a bullet that cannot hurt yet is faded
+            if (bullet.Pulsing)
+            {
+                // a fireball that waits to break throbs, bigger and brighter, quicker as it nears its end
+                float progress = Mathf.Clamp((bullet.Timer - bullet.StopAt) / Mathf.Max(0.1f, bullet.Fuse - bullet.StopAt), 0, 1);
+                float wave = MathF.Sin(bullet.Timer * (11 + 20 * progress));
+                var baseScale = bullet.Zoom == 1 ? _bulletScale[bullet.Style] : _bulletScale[bullet.Style] * bullet.Zoom;
+                node.Scale = baseScale * (1 + (0.10f + 0.14f * progress) * wave);
+                float glow = 0.5f + 0.5f * wave;
+                node.Modulate = new Color(1 + 0.6f * glow, 1 + 0.35f * glow, 1 + 0.15f * glow);
+                _bulletKey[i] = -1;        // (never a real key, but not 0 either: so that the size is put back when it stops pulsing, and the sprite is hidden when the bullet is gone)
+            }
             // Keep the last heading while a bullet is (almost) stopped, e.g. braking lotus petals.
             if (_bulletRotates[(int)bullet.Style] && bullet.Velocity.LengthSquared() > 1) node.Rotation = BulletArt.GodotRotation(bullet.Velocity);
         }

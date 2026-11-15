@@ -3,7 +3,7 @@ using Godot;
 using P = PixelColor;
 
 /// <summary>
-/// The faces of the dialogues: `Square(speaker, stage, emotion, frame)` is the picture for the square at the left of the dialogue box. For now the lantern spirit (the flame, see <see cref="FlamePortrait"/>) and Atli (<see cref="AtliPortrait"/>, over a gradient of a sunset) have a picture;
+/// The faces of the dialogues: `Square(speaker, stage, emotion, frame)` is the picture for the square at the left of the dialogue box. For now the lantern spirit (the flame, see <see cref="FlamePortrait"/>) Atli (<see cref="AtliPortrait"/>, over a gradient of a sunset) and the Iryssh of stage 1 (<see cref="IrysshPortrait"/>, over one of embers) have a picture;
 /// the others show the empty frame until their portraits are made again.
 /// </summary>
 public static class PortraitArt
@@ -14,16 +14,17 @@ public static class PortraitArt
     public static PixelCanvas Face(DialogueSpeaker speaker, int stage, Emotion emotion, int frame = 0) =>
         speaker == DialogueSpeaker.Airu ? FlamePortrait.Make(emotion, frame)
         : speaker == DialogueSpeaker.Atli ? AtliPortrait.Make(emotion)
+        : speaker == DialogueSpeaker.Boss && stage == 1 ? IrysshPortrait.Make(emotion)
         : null;
 
     /// <summary>The whole square for the box: the face over its backdrop, in a frame (68 x 68 for the flame). Without a face, the empty frame (34 x 34).</summary>
     public static PixelCanvas Square(DialogueSpeaker speaker, int stage, Emotion emotion, int frame)
     {
         var face = Face(speaker, stage, emotion, frame);
-        if (speaker == DialogueSpeaker.Atli)
+        if (face != null && face.Width == 128 && speaker != DialogueSpeaker.Airu)
         {
-            // the drawing has a clear background: it goes over the container's gradient of a sunset
-            var back = SunsetBackdrop();
+            // the drawings of Atli and the Iryssh have a clear background: they go over the container's gradient (a sunset for him, embers for her)
+            var back = speaker == DialogueSpeaker.Atli ? SunsetBackdrop() : EmberBackdrop();
             for (int y = 0; y < back.Height; y++) for (int x = 0; x < back.Width; x++) if (face[x, y].A > 0) back[x, y] = face[x, y];
             return BigFramed(back);
         }
@@ -36,6 +37,19 @@ public static class PortraitArt
     {
         var c = new PixelCanvas(128, 128);
         var top = P.Hex(0xFFD95C); var bottom = P.Hex(0xF2762C);
+        for (int y = 0; y < 128; y++)
+        {
+            var colour = top.Mixed(bottom, y / 127f);
+            for (int x = 0; x < 128; x++) c[x, y] = colour;
+        }
+        return c;
+    }
+
+    /// <summary>The backdrop of the portrait of the Iryssh: a gradient of embers, from deep red at the top to orange at the bottom (128 x 128).</summary>
+    private static PixelCanvas EmberBackdrop()
+    {
+        var c = new PixelCanvas(128, 128);
+        var top = P.Hex(0x4A1210); var bottom = P.Hex(0x92401A);
         for (int y = 0; y < 128; y++)
         {
             var colour = top.Mixed(bottom, y / 127f);

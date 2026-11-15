@@ -1,6 +1,6 @@
 using Godot;
 
-public enum WorldEventKind { WaveStarted, EnemyDefeated, BossEntered, PowerUp, WardBroke, CardTaken, BombRefilled, LifeRefilled, BulletsFired, PlayerHit, BossBroken, BombFired, LightGathered, EnemyHit, BossHit, SlashStruck, Roared, QuakeStarted, GravityPulled, TimerTick, AttackBonus, TimeUp, LaserWarning, LaserFired }
+public enum WorldEventKind { WaveStarted, EnemyDefeated, BossEntered, PowerUp, WardBroke, CardTaken, BombRefilled, LifeRefilled, BulletsFired, PlayerHit, BossBroken, BombFired, LightGathered, EnemyHit, BossHit, SlashStruck, Roared, QuakeStarted, GravityPulled, TimerTick, AttackBonus, TimeUp, LaserWarning, LaserFired, BulletPulsed, BulletBroke }
 
 /// <summary>Something that happened in the world that the scene may want to show or tell.</summary>
 public class WorldEvent
@@ -39,6 +39,10 @@ public class WorldEvent
     public static WorldEvent LaserWarning() => new WorldEvent { Kind = WorldEventKind.LaserWarning };
     /// <summary>A laser strikes.</summary>
     public static WorldEvent LaserFired() => new WorldEvent { Kind = WorldEventKind.LaserFired };
+    /// <summary>A bullet that waits to break beat once (its pulse).</summary>
+    public static WorldEvent BulletPulsed() => new WorldEvent { Kind = WorldEventKind.BulletPulsed };
+    /// <summary>A bullet broke with a burst of light at `at` (Int: its radius, px).</summary>
+    public static WorldEvent BulletBroke(Vector2 at, int radius) => new WorldEvent { Kind = WorldEventKind.BulletBroke, Position = at, Int = radius };
     public static WorldEvent BombFired() => new WorldEvent { Kind = WorldEventKind.BombFired };
     public static WorldEvent LightGathered() => new WorldEvent { Kind = WorldEventKind.LightGathered };
     public static WorldEvent PlayerHit() => new WorldEvent { Kind = WorldEventKind.PlayerHit };

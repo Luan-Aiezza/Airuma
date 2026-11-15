@@ -324,6 +324,8 @@ public static class TextsEs
     ["AttackTwinWhirlwinds"] = "Llamarada: Torbellinos Gemelos",
     ["AttackBlazingBloom"] = "Loto: Flor Llameante",
     ["AttackFuryOfTheRiver"] = "Furia del Río Incandescente",
+    ["AttackShatteringFireballs"] = "Bolas de Fuego Estalladas",
+    ["AttackSerpentTail"] = "Cola de la Serpiente del Infierno",
     ["AttackTideOfEmbers"] = "Embestida de la Gran Serpiente",
     ["Stage2Title"] = "Fase 2",
     ["BayloName"] = "Baylo",

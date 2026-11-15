@@ -336,6 +336,8 @@ public static class TextsEn
     ["AttackTwinWhirlwinds"] = "Blaze: Twin Whirlwinds",
     ["AttackBlazingBloom"] = "Lotus: Blazing Bloom",
     ["AttackFuryOfTheRiver"] = "Fury of the Blazing River",
+    ["AttackShatteringFireballs"] = "Shattering Fireballs",
+    ["AttackSerpentTail"] = "Tail of the Hellfire Serpent",
     ["AttackTideOfEmbers"] = "Charge of the Great Serpent",
     ["Stage2Title"] = "Stage 2",
     ["BayloName"] = "Baylo",

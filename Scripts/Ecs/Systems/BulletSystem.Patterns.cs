@@ -12,6 +12,8 @@ public static partial class BulletSystem
         var c = Context;
         c.Slashes = slashes;
         c.Pool = pool; c.Player = player.Transform.Position; c.Field = field; c.Difficulty = difficulty; c.Pressure = boss.PatternPressure; c.Speed = boss.PatternSpeed;
+        c.Boss = boss;
+        c.LungeTime = boss.MovementType == BossMovementType.Dash ? MathF.Max(0, boss.Dash.Timer - MovementSystem.DashWaitSeconds) : 0;
         float rate = MathF.Sqrt(MathF.Max(0.1f, boss.PatternPressure));
         var runs = boss.Patterns;
         for (int i = 0; i < runs.Length; i++)
@@ -32,6 +34,7 @@ public static partial class BulletSystem
                 continue;
             }
             if (spec.QuakeOnly && boss.Specials.QuakeLeft <= 0) continue;
+            if (spec.LungeOnly && !(boss.MovementType == BossMovementType.Dash && boss.Dash.Timer >= MovementSystem.DashWaitSeconds)) continue;
             float t = run.Clock - spec.Delay;
             if (t < 0) continue;
             // inside a burst or in the rest after it

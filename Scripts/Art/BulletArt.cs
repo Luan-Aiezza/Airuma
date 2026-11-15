@@ -20,6 +20,7 @@ public static class BulletArt
         BulletStyle.MagmaOrb => (26, 26),
         BulletStyle.FireSerpent => (5, 9),
         BulletStyle.Ember => (4, 4),
+        BulletStyle.FireSlug => (5, 11),
         BulletStyle.LightBolt => (5, 10),
         BulletStyle.FanBolt => (3, 8),
         BulletStyle.HomingOrb => (5, 5),
@@ -51,7 +52,7 @@ public static class BulletArt
     /// <summary>Styles that are elongated or directional are rotated to face where the bullet is going.</summary>
     public static bool Rotates(BulletStyle style) => style switch
     {
-        BulletStyle.FlameDart or BulletStyle.LotusPetal or BulletStyle.FireSerpent or BulletStyle.LightBolt or BulletStyle.FanBolt or BulletStyle.RiceRed or BulletStyle.Shard or BulletStyle.Claw or BulletStyle.Stalactite or BulletStyle.BoltYellow or BulletStyle.BoltBlue or BulletStyle.BoltRed or BulletStyle.Bite or BulletStyle.GiantStalactite => true,
+        BulletStyle.FireSlug or BulletStyle.FlameDart or BulletStyle.LotusPetal or BulletStyle.FireSerpent or BulletStyle.LightBolt or BulletStyle.FanBolt or BulletStyle.RiceRed or BulletStyle.Shard or BulletStyle.Claw or BulletStyle.Stalactite or BulletStyle.BoltYellow or BulletStyle.BoltBlue or BulletStyle.BoltRed or BulletStyle.Bite or BulletStyle.GiantStalactite => true,
         _ => Family(style) is Shape.Rice or Shape.Kunai,
     };
 
@@ -79,6 +80,7 @@ public static class BulletArt
             case BulletStyle.MagmaOrb: DrawMagmaOrb(c, frame); break;
             case BulletStyle.FireSerpent: DrawFireSerpent(c, frame); break;
             case BulletStyle.Ember: DrawEmber(c, frame); break;
+            case BulletStyle.FireSlug: DrawFireSlug(c, frame); break;
             case BulletStyle.LightBolt: DrawLightBolt(c, frame); break;
             case BulletStyle.FanBolt: DrawFanBolt(c, frame); break;
             case BulletStyle.HomingOrb: DrawHomingOrb(c, frame); break;
@@ -138,6 +140,34 @@ public static class BulletArt
     /// <summary>Phase 1: a round fireball that pulses.</summary>
     private static void DrawFireball(PixelCanvas c, int frame) =>
         Disk(c, 3.5f, 3.5f, frame == 0 ? 3.6f : 3.2f, new[] { Fire[0], Fire[1], Fire[2], Fire[3], Fire[4] });
+
+    /// <summary>
+    /// A bullet of a firearm, in the colours of the fireball (pointing up): a rounded point, a body lit on the left and shaded on the right, a darker band near the foot and a flat base, with a little flame at its tail
+    /// that flickers between the frames.
+    /// </summary>
+    private static void DrawFireSlug(PixelCanvas c, int frame)
+    {
+        // rows of 5: each digit is the index of the fire ramp, '.' is clear
+        string[] rows =
+        {
+            "..0..",
+            ".010.",
+            ".011.",
+            "01123",
+            "01123",
+            "01123",
+            "01223",
+            "12234",
+            "23344",
+            "44445",
+        };
+        for (int y = 0; y < rows.Length; y++)
+            for (int x = 0; x < 5; x++)
+                if (rows[y][x] != '.') Put(c, x, y, Fire[rows[y][x] - '0']);
+        if (frame == 1) Put(c, 2, 0, Fire[0]);
+        Put(c, 2, 10, frame == 0 ? Fire[4] : Fire[3]);
+        if (frame == 1) { Put(c, 1, 10, Fire[5]); Put(c, 3, 10, Fire[5]); }
+    }
 
     /// <summary>Phase 2: a comet of flame with a wavering tail.</summary>
     private static void DrawFlameDart(PixelCanvas c, int frame)

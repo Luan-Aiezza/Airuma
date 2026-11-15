@@ -14,20 +14,20 @@ public static class Stage1Waves
 
     /// <summary>Wave 2: a single slow shot at the boat, from each gunner that stops.</summary>
     private static readonly List<ScheduledPattern> Warning = new() { P(FirePattern.Aimed(1.6f, 150).Styled(BulletStyle.OrbOrange, 0.95f), 1000) };
-    /// <summary>Wave 3: a gunner that crosses the field drops a bullet straight down every 0.4 s: the row of them draws combs of bullets that sweep across.</summary>
+    /// <summary>Wave 3: a gunner that crosses the field drops a bullet straight down every half second or so: the row of them draws combs of bullets that sweep across.</summary>
     private static readonly List<ScheduledPattern> Curtain = new()
     {
-        P(FirePattern.Custom(0.4f, c => c.Fire(c.Origin, 90, new Shot(BulletStyle.OrbOrange, 150).Sized(0.9f))), 1000),
+        P(FirePattern.Custom(0.53f, c => c.Fire(c.Origin, 90, new Shot(BulletStyle.OrbOrange, 150).Sized(0.9f))), 1000),
     };
     /// <summary>Wave 4: a fan of three at the boat.</summary>
-    private static readonly List<ScheduledPattern> FanOfThree = new() { P(FirePattern.Fan(2.0f, 3, 28, 160).Styled(BulletStyle.RiceRed), 1000) };
+    private static readonly List<ScheduledPattern> FanOfThree = new() { P(FirePattern.Fan(2.6f, 3, 28, 160).Styled(BulletStyle.RiceRed), 1000) };
     /// <summary>Wave 5: a slow ring that bursts out, stops, and then every bullet flies at the boat (the same figure as the first attack of the Iryssh).</summary>
     private static readonly List<ScheduledPattern> WaitingRing = new()
     {
-        P(FirePattern.Custom(3.2f, c => Attacks.StopAndAimRing(c, c.Origin, 8, c.Count * 17f, RingStyles, 110, 0.9f, 130)), 1000),
+        P(FirePattern.Custom(3.2f, c => Attacks.StopAndAimRing(c, c.Origin, 6, c.Count * 17f, RingStyles, 110, 0.9f, 130)), 1000),
     };
     /// <summary>Wave 6: a slow spiral of two arms.</summary>
-    private static readonly List<ScheduledPattern> Spiral2 = new() { P(FirePattern.Spiral(0.28f, 2, 14, 100).Styled(BulletStyle.OrbOrange, 0.95f), 1000) };
+    private static readonly List<ScheduledPattern> Spiral2 = new() { P(FirePattern.Spiral(0.37f, 2, 18, 100).Styled(BulletStyle.OrbOrange, 0.95f), 1000) };
 
     public static readonly List<Wave> Waves = new List<Wave>
     {

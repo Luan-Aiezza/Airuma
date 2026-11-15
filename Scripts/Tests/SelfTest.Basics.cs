@@ -38,7 +38,10 @@ public static partial class SelfTest
         T("BossHitboxIsTwoThirdsOfItsSprite", BossHitboxIsTwoThirdsOfItsSprite);
         T("BossPatrolKeepsItsHitboxInsideTheField", BossPatrolKeepsItsHitboxInsideTheField);
         T("DashLanesFitTheSerpent", DashLanesFitTheSerpent);
-        T("TheLastAttackOnlyLungesAndItsEmbersGoOneStepDown", TheLastAttackOnlyLungesAndItsEmbersGoOneStepDown);
+        T("TheLungeLeavesATrailOnlyWhileItLunges", TheLungeLeavesATrailOnlyWhileItLunges);
+        T("AGreatFireballStopsAndPulsesTwoSecondsBeforeItBreaks", AGreatFireballStopsAndPulsesTwoSecondsBeforeItBreaks);
+        T("TheTrailOfTheLungeFallsToBothSidesLikeAWave", TheTrailOfTheLungeFallsToBothSidesLikeAWave);
+        T("TheGreatFireballsBreakWhereTheyAreAimedAndTheLasersFlankTheField", TheGreatFireballsBreakWhereTheyAreAimedAndTheLasersFlankTheField);
         T("ThePatrolStopsAtEachStationAndStaysAWhile", ThePatrolStopsAtEachStationAndStaysAWhile);
         T("FocusingSlowsTheBoatAndNarrowsAndStrengthensTheShot", FocusingSlowsTheBoatAndNarrowsAndStrengthensTheShot);
         T("ThePlayersBoltsAreWideAndTheWispsStrong", ThePlayersBoltsAreWideAndTheWispsStrong);
@@ -470,17 +473,144 @@ public static partial class SelfTest
         True(seen.SetEquals(new[] { 100f, 500f }) || seen.SetEquals(new[] { 100f, 300f, 500f }) , "only left, centre and right");
     }
 
-    private static void TheLastAttackOnlyLungesAndItsEmbersGoOneStepDown()
+    private static void TheLungeLeavesATrailOnlyWhileItLunges()
+    {
+        // the dash: while she comes down to her place and waits she lets go of nothing; once she lunges, two trails along her way
+        var boss = new BossEntity(IrysshBoss.Definition);
+        int Fired(float seconds, float fromY, float speed, bool lunging, Difficulty d)
+        {
+            PhaseManagerSystem.ChangePhase(boss, 2, d);
+            boss.MovementType = BossMovementType.Dash;
+            var pool = BulletSystem.NewPool(); var player = PlayerEntity.Create(); player.Transform.Position = V(300, 650);
+            int count = 0;
+            for (int i = 0; i < (int)(seconds * 60); i++)
+            {
+                boss.Transform.Position = V(300, fromY + speed * i / 60f);
+                boss.Dash.Timer = lunging ? MovementSystem.DashWaitSeconds + i / 60f : 0.5f;
+                BulletSystem.UpdateBossWeapons(boss, player, pool, 1f / 60, d);
+                for (int k = 0; k < pool.Length; k++) if (pool[k].IsActive && pool[k].Fresh) { count++; pool[k].Fresh = false; pool[k].IsActive = false; }
+            }
+            return count;
+        }
+        Eq(Fired(1.5f, -50, 100, false, Difficulty.Normal), 0, "nothing while she comes down");
+        Eq(Fired(2, 150, 0, false, Difficulty.Normal), 0, "nor while she waits");
+        Greater(Fired(1.5f, 150, 500, true, Difficulty.Normal), 12, "a long trail while she lunges");
+        Greater(Fired(1.5f, 150, 500, true, Difficulty.Hard), Fired(1.5f, 150, 500, true, Difficulty.Easy), "more bullets on hard");
+    }
+
+    private static void AGreatFireballStopsAndPulsesTwoSecondsBeforeItBreaks()
+    {
+        var pool = BulletSystem.NewPool(); var p = PlayerEntity.Create(); var events = new List<WorldEvent>();
+        BulletSystem.Fire(pool, V(300, 150), 90, new Shot(BulletStyle.MagmaOrb, 150).Steady().StoppingToPulse(1.0f).Splitting(3.0f, 6, BulletStyle.Fireball, 105));      // it flies for a second, then waits two
+        int slot = Array.FindIndex(pool, b => b.IsActive);
+        for (int i = 0; i < 59; i++) BulletSystem.MoveBullets(pool, World.PlayArea, Dt, V(0, 0), p);
+        True(!pool[slot].Pulsing && pool[slot].Velocity.Length() > 100, "it flies until it gets there");
+        float y = 0; bool beat = false; int beats = 0;
+        for (int i = 0; i < 6; i++) { BulletSystem.MoveBullets(pool, World.PlayArea, Dt, V(0, 0), p); BulletSystem.ReportFresh(pool, events); }
+        True(pool[slot].Pulsing, "then it stops and pulses");
+        Eq(pool[slot].Velocity.Length(), 0f, "stopped");
+        y = pool[slot].Position.Y;
+        for (int i = 0; i < 100; i++)
+        {
+            BulletSystem.MoveBullets(pool, World.PlayArea, Dt, V(0, 0), p);
+            BulletSystem.ReportFresh(pool, events);
+        }
+        True(pool[slot].IsActive && MathF.Abs(pool[slot].Position.Y - y) < 0.01f, "it waits where it stopped");
+        beats = events.Count(e => e.Kind == WorldEventKind.BulletPulsed);
+        Greater(beats, 2, "and it beats (a sound each time)");
+        for (int i = 0; i < 60; i++) BulletSystem.MoveBullets(pool, World.PlayArea, Dt, V(0, 0), p);
+        True(!pool[slot].IsActive || pool[slot].Style != BulletStyle.MagmaOrb, "after two seconds it breaks");
+        Eq(pool.Count(b => b.IsActive && b.Style == BulletStyle.Fireball), 6, "into six smaller ones");
+        _ = beat;
+    }
+
+    private static void TheTrailOfTheLungeFallsToBothSidesLikeAWave()
+    {
+        // she lunges down the middle (x = 300) leaving two trails: the right one falls to the right, the left one to the left, and the bullets of each draw apart as they fall
+        var boss = new BossEntity(IrysshBoss.Definition);
+        PhaseManagerSystem.ChangePhase(boss, 2, Difficulty.Normal);
+        boss.MovementType = BossMovementType.Dash;
+        var pool = BulletSystem.NewPool(); var player = PlayerEntity.Create(); player.Transform.Position = V(300, 700);
+        float lunge = 0;
+        for (int i = 0; i < 60 * 2; i++)
+        {
+            lunge += 1f / 60;
+            boss.Dash.Timer = MovementSystem.DashWaitSeconds + lunge;
+            boss.Transform.Position = V(300, -50 + 500 * lunge);
+            BulletSystem.UpdateBossWeapons(boss, player, pool, 1f / 60, Difficulty.Normal);
+            BulletSystem.MoveBullets(pool, World.PlayArea, 1f / 60, V(0, 0), player);
+        }
+        var live = pool.Where(b => b.IsActive).ToList();
+        var right = live.Where(b => b.Position.X > 330).OrderByDescending(b => b.Position.X).ToList();      // (the oldest is the farthest out)
+        var left = live.Where(b => b.Position.X < 270).OrderBy(b => b.Position.X).ToList();
+        Greater(right.Count, 5, "a trail to the right"); Greater(left.Count, 5, "and one to the left");
+        True(right.All(b => b.Velocity.X > 0) && left.All(b => b.Velocity.X < 0), "each goes to its own side");
+        float Gap(List<BulletData> trail, int k) => (trail[k].Position - trail[k + 1].Position).Length();
+        Greater(Gap(right, 0), Gap(right, right.Count - 2), "the oldest bullets are the farthest apart: the trail draws apart as it falls");
+        Greater(Gap(left, 0), Gap(left, left.Count - 2), "the same on the left");
+        Greater(Gap(right, right.Count - 2), 15, "and the newest are still close, but not on top of one another");
+    }
+
+    private static void TheGreatFireballsBreakWhereTheyAreAimedAndTheLasersFlankTheField()
     {
         var boss = new BossEntity(IrysshBoss.Definition);
-        PhaseManagerSystem.ChangePhase(boss, 1, Difficulty.Easy);
-        True(boss.EmitterMain.IsActive, "easy: embers");
-        True(boss.EmitterMain.BulletsPerVolley < 8, "easy: fewer than the design");
-        PhaseManagerSystem.ChangePhase(boss, 1, Difficulty.Normal);
-        Eq(boss.EmitterMain.BulletsPerVolley, 8);
-        PhaseManagerSystem.ChangePhase(boss, 1, Difficulty.Hard);
-        True(boss.EmitterMain.BulletsPerVolley > 8, "hard: more");
-        False(boss.EmitterSub.IsActive, "hard: no aimed embers any more");
+        PhaseManagerSystem.ChangePhase(boss, 3, Difficulty.Normal);
+        boss.MovementType = BossMovementType.Stationary; boss.Transform.Position = V(300, 150);
+        var pool = BulletSystem.NewPool(); var player = PlayerEntity.Create(); player.Transform.Position = V(300, 650);
+        for (int i = 0; i < 60 * 8; i++) BulletSystem.UpdateBossWeapons(boss, player, pool, 1f / 60, Difficulty.Normal);
+        var great = pool.Where(b => b.IsActive && b.Style == BulletStyle.MagmaOrb).ToList();
+        True(great.Count >= 3, "great fireballs are thrown");
+        True(great.All(b => b.Behavior == BulletBehavior.Split && b.SplitCount >= 5), "and each breaks into smaller ones");
+        // they go to the corners and the sides of the scene, not just under the boss
+        var headings = new List<float>();
+        for (int i = 0; i < 60 * 40; i++)
+        {
+            var spread = BulletSystem.NewPool();
+            BulletSystem.UpdateBossWeapons(boss, player, spread, 1f / 60, Difficulty.Normal);
+            foreach (var b in spread) if (b.IsActive && b.Style == BulletStyle.MagmaOrb) headings.Add(b.Velocity.X / b.Velocity.Length());
+            if (headings.Count >= 40) break;
+        }
+        True(headings.Count(h => h > 0.5f) >= 3 && headings.Count(h => h < -0.5f) >= 3, "some go far to the right and some far to the left");
+
+        // the tail: two giant lasers at the sides, and the fireballs that go across the middle
+        var tail = new BossEntity(IrysshBoss.Definition);
+        PhaseManagerSystem.ChangePhase(tail, 1, Difficulty.Normal);
+        tail.MovementType = BossMovementType.Stationary; tail.Transform.Position = V(300, 100);
+        var bullets = BulletSystem.NewPool(); var slashes = new List<SlashData>();
+        bool toRight = false, toLeft = false;
+        for (int i = 0; i < 60 * 12; i++)
+        {
+            BulletSystem.UpdateBossWeapons(tail, player, bullets, 1f / 60, Difficulty.Normal, World.PlayArea, null, slashes);
+            for (int s = 0; s < slashes.Count; s++) { var sl = slashes[s]; sl.Age += 1f / 60; slashes[s] = sl; }
+            foreach (var b in bullets) if (b.IsActive && b.Faction == Faction.Boss) { if (b.Velocity.X > 50) toRight = true; if (b.Velocity.X < -50) toLeft = true; }
+        }
+        Eq(slashes.Count(s => s.Beam), 2, "two lasers");
+        True(slashes.All(s => s.Beam && s.Width >= 150), "giant ones");
+        True(slashes.Any(s => s.Top.X < 150) && slashes.Any(s => s.Top.X > 450), "one at each side");
+        True(slashes.Any(s => s.Top.X - s.Width / 2 <= -World.FieldExtraMax) && slashes.Any(s => s.Top.X + s.Width / 2 >= 600 + World.FieldExtraMax), "they cover the whole of the sides, to the edge of the scene");
+        True(slashes.Any(s => s.Top.X + s.Width / 2 >= 159 && s.Top.X < 150) && slashes.Any(s => s.Top.X - s.Width / 2 <= 441 && s.Top.X > 450), "and leave 280 px free in the middle");
+        True(toRight && toLeft, "fireballs go from the left laser to the right and from the right one to the left");
+        True(bullets.Where(b => b.IsActive).All(b => b.Position.Y < 780), "inside the scene");
+        // the shots take in every height of the space in the middle in turn (nowhere, the bottom included, is safe for long), and are shaped like the bullets of a firearm
+        var heights = new List<float>();
+        var cover = new BossEntity(IrysshBoss.Definition);
+        PhaseManagerSystem.ChangePhase(cover, 1, Difficulty.Normal);
+        cover.MovementType = BossMovementType.Stationary; cover.Transform.Position = V(300, 140);
+        for (int i = 0; i < 60 * 14; i++)
+        {
+            var one = BulletSystem.NewPool();
+            BulletSystem.UpdateBossWeapons(cover, player, one, 1f / 60, Difficulty.Normal, World.PlayArea, null, new List<SlashData>());
+            foreach (var b in one) if (b.IsActive && b.Faction == Faction.Boss && b.Velocity.X > 50) heights.Add(b.Position.Y);
+        }
+        Greater(heights.Count, 15, "shots go across");
+        for (int band = 0; band < 6; band++)
+        {
+            float lo = 190 + band * (765 - 190) / 6f, hi = lo + (765 - 190) / 6f;
+            True(heights.Any(h => h >= lo && h < hi), $"a shot has crossed the band of heights {lo:F0} to {hi:F0}");
+        }
+        True(bullets.Where(b => b.IsActive && b.Faction == Faction.Boss).All(b => b.Style == BulletStyle.FireSlug), "firearm bullets, not spheres");
+        Greater(tail.Health.MaxHealth, IrysshBoss.Definition.PhaseFor(2).MaxHealth, "the tail has more health");
+        Near(IrysshBoss.Definition.PhaseFor(1).Target.Y, Layout.Horizon - BossStyles.Iryssh.Waterline, 0.01f, "she stands with her skirt on the horizon of the water");
     }
 
     private static void ThePatrolStopsAtEachStationAndStaysAWhile()
@@ -548,8 +678,10 @@ public static partial class SelfTest
     private static void TheLastAttacksOfABossAreEnragedAndNoOneChangesShape()
     {
         var boss = new BossEntity(IrysshBoss.Definition);
+        boss.Health.Lives = 4; False(boss.Definition.PhaseFor(4).Enraged);
         boss.Health.Lives = 3; False(boss.Definition.PhaseFor(3).Enraged);
         boss.Health.Lives = 2; True(boss.Definition.PhaseFor(2).Enraged);
+        boss.Health.Lives = 1; True(boss.Definition.PhaseFor(1).Enraged);
     }
 
     private static void PracticeStartsAtTheChosenAttack()

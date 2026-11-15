@@ -404,6 +404,8 @@ Cada carta tem um nome (**Título**) e uma descrição curta do que ela faz (**D
 | `GameOverMusic` | ♪ Luz que se apaga - game over | Texto sem contexto catalogado ainda. |
 | `AttackBonus` | Bônus de tempo! | Texto sem contexto catalogado ainda. |
 | `DifficultyStages` | ({0} Fases) | Texto sem contexto catalogado ainda. |
+| `AttackShatteringFireballs` | Bolas de Fogo Estilhaçadas | Texto sem contexto catalogado ainda. |
+| `AttackSerpentTail` | Cauda da Serpente do Inferno | Texto sem contexto catalogado ainda. |
 | `AttackCatPlay` | Brincadeira da Gata: Novelos que Quicam | Texto sem contexto catalogado ainda. |
 | `AttackKillaCrescent` | Lua Crescente: Os Chifres de Prata | Texto sem contexto catalogado ainda. |
 | `AttackKillaTide` | Maré Lunar: O Rio do Céu | Texto sem contexto catalogado ainda. |
