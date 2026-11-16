@@ -8,8 +8,8 @@ using Godot;
 
 /// <summary>
 /// Visual feedback for the wind: small leaves swept across the river in the wind's direction.
-/// A burst of leaves is sent whenever the wind changes (call Announce(); also when a run begins); a few more come
-/// every now and then while there is wind. Stronger wind means more leaves, and faster ones. When calm, nothing is shown.
+/// A burst of leaves is sent only when the wind changes (call Announce(): when a run begins, when the boss comes in halfway through the stage,
+/// and at every new attack of the boss); there are no leaves in between. Stronger wind means more leaves, and faster ones. When calm, nothing is shown.
 ///
 /// API
 ///   new WindEffect(Vector2 field, int capacity = 90)   // field = area to cover (the river), screen px: (Layout.RiverWidth, Layout.Height)
@@ -56,7 +56,6 @@ public partial class WindEffect : Node2D
 
     public Vector2 WindDirection { get; private set; } // screen space, unit, axis-aligned
     public int WindLevel { get; private set; }         // 0 calm ... 3 strong
-    private float _nextAmbient = 6;
 
     public int ActiveCount { get { int n = 0; foreach (var l in _leaves) if (l.Active) n++; return n; } }
     public int PendingCount => _pending.Count;
@@ -102,7 +101,6 @@ public partial class WindEffect : Node2D
     {
         if (WindLevel <= 0) return;
         Enqueue(BurstLeaves(WindLevel), 1.8f);
-        _nextAmbient = Rand(7, 12);
     }
 
     public void Reset()
@@ -113,7 +111,6 @@ public partial class WindEffect : Node2D
             _nodes[i].Visible = false;
         }
         _pending.Clear();
-        _nextAmbient = 6;
     }
 
     // Update
@@ -121,20 +118,6 @@ public partial class WindEffect : Node2D
     public void Update(float dt)
     {
         if (dt <= 0) return; // time never runs backwards
-        if (WindLevel > 0)
-        {
-            _nextAmbient -= dt;
-            if (_nextAmbient <= 0)
-            {
-                Enqueue(GustLeaves(WindLevel), 1.2f);
-                _nextAmbient = Rand(7, 13);
-            }
-        }
-        else
-        {
-            _nextAmbient = Math.Max(_nextAmbient, 3); // a gust is not saved up while it is calm
-        }
-
         for (int i = 0; i < _pending.Count; i++) _pending[i] = new Pending { Delay = _pending[i].Delay - dt, Level = _pending[i].Level };
         var due = _pending.FindAll(p => p.Delay <= 0);
         _pending.RemoveAll(p => p.Delay <= 0);

@@ -196,13 +196,13 @@ public static partial class BulletSystem
         }
     }
 
-    public static void UpdateBossWeapons(BossEntity boss, PlayerEntity player, BulletData[] pool, float delta, Difficulty difficulty = Difficulty.Easy, Rect2? field = null, BossEntity twin = null, List<SlashData> slashes = null)
+    public static void UpdateBossWeapons(BossEntity boss, PlayerEntity player, BulletData[] pool, float delta, Difficulty difficulty = Difficulty.Easy, Rect2? field = null, BossEntity twin = null, List<SlashData> slashes = null, List<BossEntity> decoys = null)
     {
         // No shooting during the breather between phases.
         if (boss.MovementType == BossMovementType.Transition) return;
 
-        // Out of the water the dolphin throws up a fan of spray; it fires nothing while it sinks, is under, or leaps.
-        if (boss.Dive.Emerged) { boss.Dive.Emerged = false; SpawnSplash(boss, pool, difficulty); }
+        // Out of the water the dolphin fires nothing (the sound of its coming out is made by the view); it fires nothing either while it sinks, is under, or leaps.
+        boss.Dive.Emerged = false;
         if (boss.Dive.Submerged || (boss.MovementType == BossMovementType.Dive && boss.Dive.State != DiveState.Surface)) return;
 
         if (boss.EmitterMain.IsActive)
@@ -210,21 +210,10 @@ public static partial class BulletSystem
         if (boss.EmitterSub.IsActive)
             ProcessEmitter(boss, player, ref boss.EmitterSub, pool, delta, field ?? World.PlayArea, twin);
         if (boss.Patterns.Length > 0)
-            RunPatterns(boss, player, pool, delta, difficulty, field ?? World.PlayArea, twin, slashes);
+            RunPatterns(boss, player, pool, delta, difficulty, field ?? World.PlayArea, twin, slashes, decoys);
     }
 
     /// <summary>The spray where the dolphin leaps out: a fan of bullets going up and out from the water.</summary>
-    private static void SpawnSplash(BossEntity boss, BulletData[] pool, Difficulty difficulty)
-    {
-        int count = difficulty.Scale(18, 6);
-        Vector2 at = boss.Transform.Position + new Vector2(0, -boss.Hitbox.Radius);
-        for (int i = 0; i < count; i++)
-        {
-            float angle = Mathx.Radians(200 + 140 * (count > 1 ? (float)i / (count - 1) : 0.5f));
-            Spawn(pool, at, new Vector2(MathF.Cos(angle), MathF.Sin(angle)) * 190, Faction.Boss, BulletStyle.Spark, scale: 0.9f);
-        }
-    }
-
     private static void ProcessEmitter(BossEntity boss, PlayerEntity player, ref BulletEmitterComponent emitter, BulletData[] pool, float delta, Rect2 field, BossEntity twin = null)
     {
         // Where the bullets come from: the boss, or, for a boss that is two, the second body.
@@ -442,7 +431,23 @@ public static partial class BulletSystem
                 }
             }
 
-            if (b.Behavior == BulletBehavior.Zigzag)
+            if (b.Behavior == BulletBehavior.Zigzag && b.LegSeconds > 0)
+            {
+                // The pawn: a leg, a stop (TurnMode 1) where it stands still, then the turn and the next leg. ExClock times the stage, Anchor keeps the velocity while it waits.
+                b.Timer += delta;
+                b.ExClock += delta;
+                if (b.TurnMode == 0)
+                {
+                    if (b.ExClock >= (b.TurnCount == 0 ? b.LegSeconds / 2 : b.LegSeconds)) { b.ExClock = 0; b.TurnMode = 1; b.Anchor = b.Velocity; b.Velocity = Vector2.Zero; }
+                }
+                else if (b.ExClock >= b.PauseSeconds)
+                {
+                    b.ExClock = 0; b.TurnMode = 0; b.TurnCount++;
+                    b.Velocity = b.Anchor.Rotated(Mathx.Radians(b.CurveRate));
+                    b.CurveRate = -b.CurveRate;
+                }
+            }
+            else if (b.Behavior == BulletBehavior.Zigzag)
             {
                 // Turns by the bullet's curve (degrees) every interval, one way and then the other; the first turn comes after half an interval.
                 float before = b.Timer;

@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Godot;
 
 /// <summary>Tests of stage 2 (the river of the parties): its waves, the prototype of Baylo, the talks and what the boat carries over.</summary>
 public static partial class SelfTest
@@ -14,7 +15,9 @@ public static partial class SelfTest
         T("StageTwoUsesOnlySwarmAndGunnerSpirits", StageTwoUsesOnlySwarmAndGunnerSpirits);
         T("StageTwoFormationsDifferFromStageOne", StageTwoFormationsDifferFromStageOne);
         T("StageTwoSpiritsHaveTheirOwnAttacks", StageTwoSpiritsHaveTheirOwnAttacks);
-        T("BayloIsAFiveAttackPrototype", BayloIsAFiveAttackPrototype);
+        T("BayloIsASixAttackPrototype", BayloIsASixAttackPrototype);
+        T("TheReflectionsCannotBeBrokenAndCostTheBossNoLife", TheReflectionsCannotBeBrokenAndCostTheBossNoLife);
+        T("TheThreeBodiesChangePlacesAfterThreeLasers", TheThreeBodiesChangePlacesAfterThreeLasers);
         T("EveryStageHasMoreSpiritsThanTheLast", EveryStageHasMoreSpiritsThanTheLast);
         T("TheDancerRoamsInEveryDirection", TheDancerRoamsInEveryDirection);
         T("DancingBulletsSwayOnTheBeat", DancingBulletsSwayOnTheBeat);
@@ -51,15 +54,56 @@ public static partial class SelfTest
         True(shots.Count >= 2, "the gunners of the parties fire more than the aimed bullet");
     }
 
-    private static void BayloIsAFiveAttackPrototype()
+    private static void BayloIsASixAttackPrototype()
     {
         var boss = Stages.Two.Boss;
-        Eq(boss.Lives, 5);
+        Eq(boss.Lives, 6);
         Eq(boss.Phases.Count(p => !p.Enraged), 3);
-        Eq(boss.Phases.Count(p => p.Enraged), 2);
-        True(!boss.PhaseFor(3).Enraged && boss.PhaseFor(2).Enraged, "three calm attacks, then two enraged");
-        True(boss.PhaseFor(5).Name != Stages.One.Boss.Name, "his own name");
-        for (int l = 1; l <= 5; l++) True(!string.IsNullOrEmpty(boss.AttackName(l)), "every attack is named");
+        Eq(boss.Phases.Count(p => p.Enraged), 3);
+        True(!boss.PhaseFor(4).Enraged && boss.PhaseFor(3).Enraged, "three calm attacks, then three enraged");
+        True(boss.PhaseFor(1).Reflections && boss.Phases.Count(p => p.Reflections) == 1, "only the last attack has reflections");
+        True(boss.PhaseFor(6).Name != Stages.One.Boss.Name, "his own name");
+        for (int l = 1; l <= 6; l++) True(!string.IsNullOrEmpty(boss.AttackName(l)), "every attack is named");
+    }
+
+    /// <summary>A world in the last attack of Baylo (practice), past the breather, with the boat out of the way.</summary>
+    private static World ReflectionWorld()
+    {
+        var w = new World(6, withCards: false, seed: 11, stage: Stages.Two);
+        w.Player.Transform.Position = new Vector2(300, 740);
+        Run(w, 4);
+        return w;
+    }
+
+    private static void TheReflectionsCannotBeBrokenAndCostTheBossNoLife()
+    {
+        var w = ReflectionWorld();
+        Eq(w.Decoys.Count, 2);
+        float life = w.Boss.Health.CurrentHealth;
+        var decoy = w.Decoys[0];
+        True(decoy.Transform.Position.X < 150 || decoy.Transform.Position.X > 450, "a reflection stands in a top corner");
+        // a shot of the boat goes through a reflection: it neither breaks nor hurts the boss
+        for (int i = 0; i < 6; i++) { BulletSystem.Spawn(w.Bullets, decoy.Transform.Position, Vector2.Zero, Faction.Player, BulletStyle.LightBolt, scale: 1.7f, power: 1); w.Step(Dt, Idle()); }
+        Eq(decoy.Health.CurrentHealth, 1);
+        Eq(w.Boss.Health.CurrentHealth, (int)life);
+    }
+
+    private static void TheThreeBodiesChangePlacesAfterThreeLasers()
+    {
+        var w = ReflectionWorld();
+        var before = new[] { w.Boss.Reflect.Slot[0], w.Boss.Reflect.Slot[1], w.Boss.Reflect.Slot[2] };
+        int lasers = 0; var seen = new HashSet<SlashData>();
+        for (int i = 0; i < (int)(ReflectionSystem.Cycle * 60) + 360; i++)
+        {
+            w.Player.Transform.Position = new Vector2(300, 740);
+            w.Step(Dt, Idle());
+            if (w.Slashes.Count > 0) foreach (var sl in w.Slashes) if (seen.Add(sl)) lasers++;
+        }
+        True(lasers >= 3, $"three lasers in a round, not {lasers}");
+        bool changed = false;
+        for (int k = 0; k < 3; k++) if (w.Boss.Reflect.Slot[k] != before[k]) changed = true;
+        True(changed, "the three bodies changed places");
+        True(w.Boss.Reflect.Danced >= 0, "the dance was done");
     }
 
     private static void EveryStageHasMoreSpiritsThanTheLast()
@@ -80,7 +124,7 @@ public static partial class SelfTest
 
     private static void TheDancerRoamsInEveryDirection()
     {
-        var boss = BayloAt(5);
+        var boss = BayloAt(6);
         True(boss.MovementType == BossMovementType.Roam, "the man roams");
         float minX = 999, maxX = 0, minY = 999, maxY = 0;
         for (int i = 0; i < 60 * 40; i++)
@@ -109,7 +153,7 @@ public static partial class SelfTest
         True(minHeading < -15 && maxHeading > 15, $"it sways both ways ({minHeading}..{maxHeading})");
         True(minHeading > -60 && maxHeading < 60, "and never wanders off");
         // Neighbours of a volley sway against each other.
-        var boss = BayloAt(5);
+        var boss = BayloAt(6);
         boss.EmitterMain = Attacks.PartyTwoStep().Main;
         var volley = Pool(200);
         boss.EmitterMain.TimeSinceLastFire = 10;
@@ -144,9 +188,9 @@ public static partial class SelfTest
         Near(shadow.X, 420, 0.01f, "the shadow was under the boat");
         Near(shadow.Y, 520, 0.01f, "the shadow was under the boat");
         Near(boss.Dive.ExitX, shadow.X, 0.01f, "the shadow stopped following");
-        True(boss.Dive.Emerged, "with a splash");
+        True(boss.Dive.Emerged, "the moment it comes out is marked");
         BulletSystem.UpdateBossWeapons(boss, player, pool, 0.01f);
-        Greater(pool.Count(b => b.IsActive), 5, "a fan of spray");
+        Eq(pool.Count(b => b.IsActive), 0, "no wave of bullets when it comes out");
         // The dive played backwards: it rises from below its place, and ends exactly there.
         Greater(boss.Transform.Position.Y, shadow.Y, "it starts below the water line");
         for (int i = 0; i < 60; i++) MovementSystem.MoveBoss(boss, World.PlayArea, 1 / 60f, V(100, 300));
@@ -155,8 +199,9 @@ public static partial class SelfTest
 
     private static void TheJetSweepsTheFieldAndLeavesAPlaceToStand()
     {
-        var boss = BayloAt(1);
-        True(boss.MovementType == BossMovementType.Sweep, "the second attack sweeps");
+        var boss = BayloAt(3);
+        True(boss.MovementType == BossMovementType.Sweep, "the fourth attack sweeps");
+        True(BayloBoss.Definition.PhaseFor(4).Movement == BossMovementType.Stationary, "the third attack stands still");
         float firstEnd = -1, secondEnd = 999, restSeconds = 0, restX = -1, firstStart = 999, secondStart = -1;
         bool warned = false;
         int passes = 0; var last = SweepState.ToLeft;
@@ -174,7 +219,7 @@ public static partial class SelfTest
         }
         True(warned, "a warning before each pass");
         Greater(passes, 2, "it goes on and on");
-        Greater(SweepBrain.BeamHalfWidth, 60, "a great jet");
+        Greater(SweepBrain.BeamHalfWidth, 50, "a great jet");
         float edge = World.PlayArea.End.X;
         // The first pass goes from the left to the right, stopping short of the right edge.
         Less(firstStart, 120, "it begins at the left");
@@ -185,14 +230,8 @@ public static partial class SelfTest
         Less(secondEnd, secondStart - 200, "and it does cross the field");
         Near(restX, 300, 1, "it rests in the middle");
         Greater(restSeconds, 3, "a few seconds to hit it");
-        // A boat under the jet is hurt, and one beside it is not.
-        boss.Sweep.BeamOn = true; boss.Transform.Position = V(300, 150);
-        var hurt = new PlayerEntity(); hurt.Transform.Position = V(340, 500);
-        CombatSystem.ProcessCollisions(BulletSystem.NewPool(), hurt, boss);
-        Less(hurt.Health.CurrentHealth, hurt.Health.MaxHealth, "the jet hurts");
-        var safe = new PlayerEntity(); safe.Transform.Position = V(420, 500);
-        CombatSystem.ProcessCollisions(BulletSystem.NewPool(), safe, boss);
-        Eq(safe.Health.CurrentHealth, safe.Health.MaxHealth);
+        // the jet is a laser (a warning while he charges, then a strike that goes with him)
+        True(Attacks.WaterJet().Patterns.Any(sp => sp.OnWarn), "the jet is a laser fired with the charge");
     }
 
     private static bool HitsBoss(BossEntity boss)

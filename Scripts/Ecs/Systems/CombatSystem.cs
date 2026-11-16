@@ -19,7 +19,7 @@ public static class CombatSystem
     /// shots hit the boss.
     /// </summary>
     public static int ProcessCollisions(BulletData[] pool, PlayerEntity player, BossEntity boss, bool bossActive = true,
-                                        IList<EnemyEntity> enemies = null, BossEntity twin = null)
+                                        IList<EnemyEntity> enemies = null, BossEntity twin = null, IList<BossEntity> decoys = null)
     {
         int bossHits = 0;
         if (player.Health.InvincibilityTimer <= 0 && !player.Bomb.IsActive)
@@ -29,20 +29,20 @@ public static class CombatSystem
                 && player.Transform.Position.DistanceTo(boss.Transform.Position) < player.Hitbox.Radius + boss.Hitbox.Radius;
             if (bossActive && twin != null && player.Transform.Position.DistanceTo(twin.Transform.Position) < player.Hitbox.Radius + twin.Hitbox.Radius) touchesBoss = true;
             bool touchesSpirit = false;
+            // her reflections hurt the boat that touches them as she does
+            if (bossActive && decoys != null)
+                foreach (var d in decoys)
+                    if (player.Transform.Position.DistanceTo(d.Transform.Position) < player.Hitbox.Radius + d.Hitbox.Radius) touchesBoss = true;
             if (enemies != null)
                 foreach (var e in enemies)
                     if (e.Health > 0 && player.Transform.Position.DistanceTo(e.Position) < player.Hitbox.Radius + e.Kind.HitboxRadius())
                     { touchesSpirit = true; break; }
-            // The jet of water that the boss fires down the field.
-            bool hitByBeam = bossActive && boss.Sweep.BeamOn
-                && MathF.Abs(player.Transform.Position.X - boss.Transform.Position.X) < SweepBrain.BeamHalfWidth + player.Hitbox.Radius
-                && player.Transform.Position.Y > boss.Transform.Position.Y;
             // The thin lines of a constellation that hangs still.
             bool hitByLine = false;
             foreach (var (a, b, still) in BulletSystem.Links(pool))
                 if (still && Mathx.DistanceToSegment(player.Transform.Position, a, b) < BulletSystem.LineHalfWidth + player.Hitbox.Radius) { hitByLine = true; break; }
-            if (hitByLine && !(touchesBoss || touchesSpirit || hitByBeam)) Hurt(player, 1, 0);
-            else if (touchesBoss || touchesSpirit || hitByBeam)
+            if (hitByLine && !(touchesBoss || touchesSpirit)) Hurt(player, 1, 0);
+            else if (touchesBoss || touchesSpirit)
                 Hurt(player, 1, ContactGrace);
         }
 
@@ -88,8 +88,12 @@ public static class CombatSystem
     public const float WardGrace = 1.0f;
 
     /// <summary>A hit on the player: a ward, if there is one, takes it instead of a life.</summary>
+    /// <summary>For testing (see <see cref="Progress.UnlockAll"/>): in a practice nothing hurts the boat.</summary>
+    public static bool Immortal;
+
     public static void Hurt(PlayerEntity player, int damage, float grace)
     {
+        if (Immortal) return;
         if (player.Shield > 0)
         {
             player.Shield -= 1;
@@ -165,7 +169,7 @@ public static class CombatSystem
     /// spirits it finished off.
     /// </summary>
     public static List<(SpiritKind kind, Vector2 position)> ProcessBombDamage(PlayerEntity player, IList<EnemyEntity> enemies, BossEntity boss,
-        bool bossActive, float delta, float damageMultiplier = 1, BossEntity twin = null)
+        bool bossActive, float delta, float damageMultiplier = 1, BossEntity twin = null, IList<BossEntity> decoys = null)
     {
         var defeated = new List<(SpiritKind kind, Vector2 position)>();
         if (!player.Bomb.IsActive) return defeated;

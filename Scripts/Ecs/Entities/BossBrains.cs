@@ -49,7 +49,7 @@ public sealed class DiveBrain
 public sealed class SweepBrain
 {
     /// <summary>Half the width of the jet.</summary>
-    public const float BeamHalfWidth = 75;
+    public const float BeamHalfWidth = 55;
 
     public SweepState State = SweepState.ToLeft;
     public float Clock;

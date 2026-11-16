@@ -90,6 +90,10 @@ public struct SlashData
     /// <summary>Seconds until a transparent laser is solid again (0 if it is not transparent).</summary>
     public float SecondsToSolid => Ghost ? Blink - (Age - Telegraph) % Blink : 0;
     public bool Follow;
+    /// <summary>A laser that turns to the boat while it warns (and holds its aim for the last part of the warning, so that it can be dodged).</summary>
+    public bool Homing;
+    /// <summary>How long before it strikes a homing laser stops turning (the time the boat has to dodge a laser that is already set).</summary>
+    public const float HomingLockSeconds = 0.92f;
     public Vector2 Offset;
 
     public float TotalLength => Len > 0 ? Len : Length;

@@ -19,6 +19,7 @@ public static class TextsEn
     ["Back"] = "Back",
     ["Menu"] = "Menu",
     ["ComingSoon"] = "Coming soon",
+    ["PracticeWholeStage"] = "Whole stage",
     ["PracticeTitle"] = "Boss Practice",
     ["PracticeStages"] = "Stages",
     ["PracticeBosses"] = "Bosses",
@@ -349,6 +350,7 @@ public static class TextsEn
     ["AttackConfettiRain"] = "Music: Rain of Notes",
     ["AttackSambaWheel"] = "Music: Wheel of Petals",
     ["AttackDolphinLeap"] = "The Great Dive of the King of the Party",
+    ["AttackRiverKingReflection"] = "Reflection of the River King",
     ["AttackPartyWave"] = "Shot of the Deep River",
     
 

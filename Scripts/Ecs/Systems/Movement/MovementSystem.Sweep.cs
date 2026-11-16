@@ -12,6 +12,16 @@ public static partial class MovementSystem
     public const float SweepY = 195, SweepTravelSpeed = 800, SweepChargeSeconds = 1.0f, SweepCharge2Seconds = 0.8f, SweepPassSpeed = 190,
                        SweepRestSeconds = 4.0f, SweepFirstGap = 130, SweepSecondGap = 80;
 
+    /// <summary>How long the pass of the jet lasts (the first, to the right, or the second, back to the left), so that the laser of the jet strikes for as long as he sweeps.</summary>
+    public static float SweepPassSeconds(BossEntity boss, Rect2 bounds, bool second)
+    {
+        float r = boss.Hitbox.Radius, left = bounds.Position.X + r + 4, right = bounds.End.X - r - 4;
+        float firstEnd = Math.Clamp(bounds.End.X - SweepFirstGap * boss.Sweep.GapScale - SweepBrain.BeamHalfWidth, left, right);
+        float secondEnd = Math.Clamp(bounds.Position.X + SweepSecondGap * boss.Sweep.GapScale + SweepBrain.BeamHalfWidth, left, right);
+        float distance = second ? right - secondEnd : firstEnd - left;
+        return distance / (SweepPassSpeed * boss.Sweep.SpeedScale);
+    }
+
     private static void SweepStep(BossEntity boss, Rect2 bounds, float delta)
     {
         float r = boss.Hitbox.Radius, left = bounds.Position.X + r + 4, right = bounds.End.X - r - 4;

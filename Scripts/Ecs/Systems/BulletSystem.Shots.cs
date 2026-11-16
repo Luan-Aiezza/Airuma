@@ -22,7 +22,7 @@ public struct Shot
     public float Accel, Curve;
     public BulletBehavior Behavior;
     public Vector2 Pull;
-    public float Fuse, LaunchSpeed, LaunchAngle, LaunchAccel;
+    public float Fuse, LaunchSpeed, LaunchAngle, LaunchAccel, LegSeconds, PauseSeconds;
     public int SplitCount;
     public float SplitSpread, SplitSpeed, ChildScale;
     public bool SplitAimed;
@@ -67,6 +67,8 @@ public struct Shot
     public Shot Hitting(float radius) { var s = this; s.Hit = radius; return s; }
     public Shot Dancing(float curve) { var s = this; s.Behavior = BulletBehavior.Dance; s.Curve = curve; return s; }
     public Shot Zigzagging(float curve) { var s = this; s.Behavior = BulletBehavior.Zigzag; s.Curve = curve; return s; }
+    /// <summary>Goes like a pawn: straight for `leg` seconds (the first leg is half as long), then stands still for `pause` seconds, then turns by `curve` degrees (one way, then the other) and goes on.</summary>
+    public Shot Pawning(float curve, float leg, float pause) { var s = this; s.Behavior = BulletBehavior.Zigzag; s.Curve = curve; s.LegSeconds = leg; s.PauseSeconds = pause; return s; }
     /// <summary>Gravity: the bullet is pulled by `pull` (px/s each second), so that it flies in an arc.</summary>
     public Shot Pulled(Vector2 pull) { var s = this; s.Pull = pull; return s; }
     /// <summary>Stays (braking by its acceleration) for `fuse` seconds and then goes off at `speed`, along `angle` (NaN: at the boat).</summary>
@@ -104,6 +106,7 @@ public static partial class BulletSystem
         if (shot.Hit > 0) b.HitboxRadius = shot.Hit;
         b.Zoom = shot.Zoom;
         b.Pull = shot.Pull;
+        b.LegSeconds = shot.LegSeconds; b.PauseSeconds = shot.PauseSeconds;
         b.Fuse = shot.Fuse; b.LaunchSpeed = shot.LaunchSpeed; b.LaunchAngle = shot.LaunchAngle; b.LaunchAccel = shot.LaunchAccel;
         b.SplitCount = shot.SplitCount; b.SplitSpread = shot.SplitSpread; b.SplitSpeed = shot.SplitSpeed; b.ChildScale = shot.ChildScale; b.SplitAimed = shot.SplitAimed; b.ChildStyle = shot.ChildStyle;
         b.Bounces = shot.Bounces;

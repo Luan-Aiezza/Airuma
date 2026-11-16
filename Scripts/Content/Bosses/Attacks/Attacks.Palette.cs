@@ -36,6 +36,7 @@ public static partial class Attacks
     private static BossPhase Faster(this BossPhase phase, float factor) { phase.AttackSpeed = factor; return phase; }
 
     /// <summary>Sets how heavy the attack is made (see <see cref="PatternContext.Pressure"/>): tuned so that the bullets on the screen rise from boss to boss.</summary>
+    private static BossPhase Reflected(this BossPhase phase) { phase.Reflections = true; return phase; }
     private static BossPhase Pressured(this BossPhase phase, float pressure) { phase.Pressure = pressure; return phase; }
 
     /// <summary>Adds patterns to an attack (the attacks are written with their signature figures first and their texture layers after).</summary>

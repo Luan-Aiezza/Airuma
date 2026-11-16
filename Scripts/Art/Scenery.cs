@@ -30,12 +30,6 @@ public sealed class Scenery
     public bool OpensToSea;
     /// <summary>A few lanterns float on the water during the boss fight.</summary>
     public bool FloatingLanterns;
-    /// <summary>The wind carries lanterns instead of leaves.</summary>
-    public bool LanternWind;
-    /// <summary>The wind is shown by birds that pass.</summary>
-    public bool BirdWind;
-    /// <summary>The wind is shown by little stars that drift across.</summary>
-    public bool StarWind;
     /// <summary>The river of stars (stage 6): there are no banks (so the sides of the field are open from the start); the water is that of the river of stage 1 and reflects the sky of the stage.</summary>
     public bool Cosmic;
 
@@ -78,7 +72,7 @@ public sealed class Scenery
     public static readonly Scenery Cosmos = new Scenery
     {
         MakeSky = CosmosArt.MakeSky, MakeBed = CosmosArt.MakeBed, MakeHorizon = CosmosArt.MakeHorizon, MakeHorizonRage = CosmosArt.MakeHorizonRed, MakeDeep = CosmosArt.MakeDeep,
-        Cosmic = true, StarWind = true, OpensToSea = true, MirrorLake = true, Moonless = true, RiverReflection = 0.85f, LakeReflection = 0.85f,
+        Cosmic = true, OpensToSea = true, MirrorLake = true, Moonless = true, RiverReflection = 0.85f, LakeReflection = 0.85f,
     };
 
     /// <summary>The jungle: a night sky with its moon and stars, trees on the banks, leaves in the wind.</summary>
@@ -92,7 +86,7 @@ public sealed class Scenery
     public static readonly Scenery Festival = new Scenery
     {
         MakeSky = FestivalArt.MakeSky, MakeReflection = FestivalArt.MakeReflection, MakeGround = FestivalArt.MakeGround,
-        MakeOverhead = FestivalArt.MakeStrings, MakeRipples = FestivalArt.MakeRipples, FloatingLanterns = true, LanternWind = true,
+        MakeOverhead = FestivalArt.MakeStrings, MakeRipples = FestivalArt.MakeRipples, FloatingLanterns = true,
     };
 
     /// <summary>The storm over the black forest: dark water, dry trees, nearly black and bare, bent by the wind (with eyes that glow among them), a sky of dark
@@ -122,7 +116,7 @@ public sealed class Scenery
     public static readonly Scenery Waterfall = new Scenery
     {
         MakeSky = WaterfallArt.MakeSky, MakeReflection = WaterfallArt.MakeReflection, MakeGround = WaterfallArt.MakeGround, MakeOverhead = null,
-        MakeRipples = WaterfallArt.MakeRipples, OpensToSea = true, MakeHorizon = AndesArt.MakeHorizon, Snow = true, MirrorLake = true, Moonless = true, BirdWind = true,
+        MakeRipples = WaterfallArt.MakeRipples, OpensToSea = true, MakeHorizon = AndesArt.MakeHorizon, Snow = true, MirrorLake = true, Moonless = true,
         WaterfallRush = true, RockSpeedFactor = 2.4f, RipplePeriod = 0.11f, Agitation = 1.5f, BossAgitation = 0.06f,
         RiverReflection = 0.9f, LakeReflection = 0.6f,
         BankTint = new Godot.Color(0.95f, 0.98f, 1f), WaterGrade = new Godot.Color(1f, 1.1f, 1.18f),

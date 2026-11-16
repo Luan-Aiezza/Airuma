@@ -13,7 +13,7 @@ public partial class GameScene : Node2D
     private void BuildWorldNodes()
     {
         River = new RiverBackground(new Vector2(Layout.RiverWidth, Layout.Height), Stage.Scenery);
-        _windEffect.Style = Stage.Scenery.StarWind ? WindEffect.Kind.Stars : Stage.Scenery.BirdWind ? WindEffect.Kind.Birds : (Stage.Scenery.LanternWind ? WindEffect.Kind.Lanterns : WindEffect.Kind.Leaves);
+        _windEffect.Style = WindEffect.Kind.Leaves;        // (the wind is shown by leaves in every stage, as in the first)
         AddChild(River);
         BuildMirrors();
 
@@ -83,6 +83,8 @@ public partial class GameScene : Node2D
         AddChild(_playerNode);
         _boss = new BossView(Stage.Boss.Style, River.MirrorLayer);
         AddChild(_boss);
+        if (System.Linq.Enumerable.Any(Stage.Boss.Phases, p => p.Reflections))
+            for (int i = 0; i < 2; i++) { var reflection = new BossView(Stage.Boss.Style, River.MirrorLayer, mirage: true); _decoys.Add(reflection); AddChild(reflection); }
         if (Stage.Boss.Style.Twin != null) { _twin = new BossView(Stage.Boss.Style.Twin, River.MirrorLayer); AddChild(_twin); }
         BuildPlayerLight();
         _wardRing.Texture = _wardFrames[0];
@@ -203,6 +205,15 @@ public partial class GameScene : Node2D
             Dt = _bombDelta, Boss = World.Twin, Phase = CurrentPhase, Fighting = World.Part == StagePart.Boss, Over = World.Result != null,
             Scripted = _bossSequence != BossSequence.None, Hidden = World.Twin.Merged,
         });
+        for (int i = 0; i < _decoys.Count; i++)
+        {
+            bool there = i < World.Decoys.Count;
+            _decoys[i].Update(new BossFrame
+            {
+                Dt = _bombDelta, Boss = i < World.Decoys.Count ? World.Decoys[i] : World.Boss, Phase = CurrentPhase, Fighting = World.Part == StagePart.Boss, Over = World.Result != null,
+                Scripted = _bossSequence != BossSequence.None, Hidden = !there,
+            });
+        }
         River.Modulate = Colors.White.Lerp(_boss.Style.SceneTint, _boss.RageAmount);
         World.HorizonOpen = River.HorizonAmount;
         World.Rock = River.RockNow;

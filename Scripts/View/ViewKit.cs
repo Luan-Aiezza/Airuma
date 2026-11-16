@@ -22,6 +22,30 @@ void fragment() { COLOR.rgb = mix(COLOR.rgb, target, amount); }
 ";
     private static Shader _tintShader;
 
+    /// <summary>The look of a mirage: bluish, a little see-through, and wavering sideways as if seen through moving water. `amount` blends towards `target` as the tint shader does (the flash of the boss).</summary>
+    private const string MirageShader = @"
+shader_type canvas_item;
+uniform vec3 target = vec3(1.0);
+uniform float amount = 0.0;
+void fragment() {
+    vec2 uv = UV;
+    uv.x += sin(uv.y * 38.0 + TIME * 4.0) * 0.018 + sin(uv.y * 11.0 - TIME * 2.3) * 0.012;
+    vec4 c = texture(TEXTURE, uv);
+    float luma = dot(c.rgb, vec3(0.3, 0.59, 0.11));
+    vec3 blue = mix(c.rgb, vec3(0.25, 0.62, 1.0) * (0.45 + luma), 0.62);
+    COLOR = vec4(mix(blue, target, amount), c.a * (0.78 + 0.12 * sin(TIME * 5.0 + uv.y * 9.0)));
+}
+";
+    private static Shader _mirageShader;
+    public static ShaderMaterial NewMirageMaterial()
+    {
+        _mirageShader ??= new Shader { Code = MirageShader };
+        var m = new ShaderMaterial { Shader = _mirageShader };
+        m.SetShaderParameter("target", new Vector3(1, 1, 1));
+        m.SetShaderParameter("amount", 0f);
+        return m;
+    }
+
     /// <summary>A shader material that blends the sprite's colour towards `target` by `amount`.</summary>
     public static ShaderMaterial NewTintMaterial(Color target, float amount)
     {

@@ -19,6 +19,7 @@ public static class TextsPtBr
     ["Back"] = "Voltar",
     ["Menu"] = "Menu",
     ["ComingSoon"] = "Em breve",
+    ["PracticeWholeStage"] = "Fase inteira",
     ["PracticeTitle"] = "Treino de Chefe",
     ["PracticeStages"] = "Fases",
     ["PracticeBosses"] = "Chefes",
@@ -349,6 +350,7 @@ public static class TextsPtBr
     ["AttackConfettiRain"] = "Música: Chuva de Notas",
     ["AttackSambaWheel"] = "Música: Roda de Pétalas",
     ["AttackDolphinLeap"] = "Grande Mergulho do Rei da Festa",
+    ["AttackRiverKingReflection"] = "Reflexo do Rei do Rio",
     ["AttackPartyWave"] = "Disparo do Rio Profundo",
     
 

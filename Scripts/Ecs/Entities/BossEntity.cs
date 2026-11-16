@@ -35,6 +35,7 @@ public class BossEntity
     public readonly DiveBrain Dive = new DiveBrain();
     public readonly SweepBrain Sweep = new SweepBrain();
     public readonly CrossBrain Cross = new CrossBrain();
+    public readonly ReflectBrain Reflect = new ReflectBrain();
 
     public BossMovementType MovementType = BossMovementType.Patrol;
 

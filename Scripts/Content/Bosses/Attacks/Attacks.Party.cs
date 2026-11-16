@@ -38,15 +38,20 @@ public static partial class Attacks
     })
         .Pressured(1.24f).Tougher(1.7f);
 
-    /// <summary>A turning wheel of swaying petals, one galaxy a beat, and rings of notes that burst out, stop and then fly at the boat.</summary>
-    public static BossPhase SambaWheel() => Attack("AttackSambaWheel", BossMovementType.Roam, Centre, patterns: new[]
+    /// <summary>A turning wheel of petals (red and blue, turning against each other, never on the same spot), and great fish that swim out in eight directions.</summary>
+    public static BossPhase SambaWheel() => Attack("AttackSambaWheel", BossMovementType.Stationary, Centre, patterns: new[]
     {
-        Pat.Every(Pat.Beat * 2, c => Pat.PolarRing(c, c.Origin, 7, c.Count * 12f, 12, 42, c.Count % 8 < 4 ? 24 : -24, new Shot(BulletStyle.LotusPetal, 0).Sized(1.0f), PartyPetals)),
-        Pat.Every(3.4f, c => StopAndAimRing(c, c.Origin, 10, c.Count * 17f, Notes, 150, 0.9f, 170)).After(1.2f),
+        // two streams of petals, the red and the blue, that turn against each other and cross. Inside a colour the rings are far apart (no dense lines that grow out of the boss: there is room
+        // between the reds and between the blues), and the blue rings come half a turn of the clock after the red ones, so that the two colours cross without ever falling on the same spot
+        Pat.Every(Pat.Beat * 1.6f, c => Pat.PolarRing(c, c.Origin, 5, c.Count * 12f, 12, 72, 30, new Shot(BulletStyle.LotusPetal, 0).Sized(1.0f), PartyPetals)),
+        Pat.Every(Pat.Beat * 1.6f, c => Pat.PolarRing(c, c.Origin, 5, 36f - c.Count * 12f, 12, 72, -30, new Shot(BulletStyle.BluePetal, 0).Sized(1.0f), BluePetals)).After(Pat.Beat * 0.8f),
+        // great fish (seen from above) in the eight directions, as big as the great spheres of the jet; the ring is turned by half a gap every time
+        Pat.Every(3.0f, c => Pat.Ring(c, c.Origin, 8, c.Count % 2 * 22.5f + 11f, new Shot(BulletStyle.GiantFish, 95).Zoomed(1.5f).Hitting(34).Steady(), scale: false)).After(1.2f),
     })
-        .Pressured(1.00f).Tougher(1.7f);
+        .Pressured(1.00f).Tougher(0.85f);
 
     private static readonly BulletStyle[] PartyPetals = { BulletStyle.LotusPetal };
+    private static readonly BulletStyle[] BluePetals = { BulletStyle.BluePetal };
 
     /// <summary>
     /// The dolphin dives and a shadow lies under the boat, following it a while and then holding still; he comes out of the water at the shadow (the dive backwards), with a fan of spray. Ringed bubbles that
@@ -67,10 +72,45 @@ public static partial class Attacks
     public static BossPhase WaterJet() => Attack("AttackPartyWave", BossMovementType.Sweep, new Vector2(300, MovementSystem.SweepY),
         main: new BulletEmitterComponent(), patterns: new[]
         {
+            // the jet is a laser like the others of the game: a thin line warns of it while he charges, then it strikes for as long as he sweeps, going with him
+            Pat.Every(1, c =>
+            {
+                bool second = c.Boss.Sweep.State == SweepState.Charge2;
+                float time = c.Difficulty.Pick(1f, 0.9f, 0.8f);
+                float charge = second ? MovementSystem.SweepCharge2Seconds : MovementSystem.SweepChargeSeconds;
+                Pat.Laser(c, c.Origin, 90, SweepBrain.BeamHalfWidth * 2, charge / time, MovementSystem.SweepPassSeconds(c.Boss, c.Field, second), WaterLaser, follow: true);
+            }).WithTheCharge(),
             Pat.Every(1, c => GreatSpheres(c, 0)).WithTheJet(0),
             Pat.Every(1, c => GreatSpheres(c, 30)).WithTheJet(0.9f),
         })
         .Pressured(1.0f).Tougher(1.5f);
+
+    private static readonly Color WaterLaser = new Color(0.40f, 0.80f, 1f);
+
+    /// <summary>
+    /// "The reflection of the king of the river": there are three of him, one in the middle and one in each top corner, all alike, but only the one that is him loses life (the other two can be broken and
+    /// cost him nothing; they come back). They take turns to throw a great laser of water at the boat, and a body that is throwing it does not fire notes; the others let out circles of slow notes, that
+    /// all take the same step, diagonal, to the right and to the left in turn, like the pawn of a chess game. After every third laser they dance: the three change places (see <see cref="ReflectionSystem"/>).
+    /// </summary>
+    public static BossPhase ReflectionOfTheRiverKing() => Attack("AttackRiverKingReflection", BossMovementType.Stationary, new Vector2(300, Layout.BossY), patterns: new[]
+    {
+        // the laser: only the real one throws it, and it follows the boat while it warns; one every 4.5 s, three of them, then the dance
+        Pat.Every(ReflectionSystem.LaserSlot, c =>
+        {
+            var from = c.Body[0];
+            float heading = c.AimFrom(from);
+            // the beam leaves from a little in front of the body, so that the body stays in sight
+            Pat.Laser(c, from + Pat.Dir(heading) * 40, heading, 84, 1.9f, 0.7f, WaterLaser, homing: true);
+        }).InBursts(3 * ReflectionSystem.LaserSlot - 0.1f, ReflectionSystem.DanceSeconds + 0.1f).After(ReflectionSystem.Delay),
+        // the notes: only the reflections let them out, a circle from each (not while they dance)
+        Pat.Every(1.7f, c =>
+        {
+            if (ReflectionSystem.Dancing(c.Time)) return;
+            for (int body = 1; body < 3; body++)
+                Pat.Ring(c, c.Body[body], c.N(5, 3), c.Count * 9f, new Shot(BulletStyle.NoteGold, 88).Pawning(90, 1.1f, 1.0f).Sized(1.0f), Notes);
+        }).After(ReflectionSystem.Delay),
+    })
+        .Pressured(1.0f).Tougher(1.1f).Reflected();
 
     /// <summary>A ring of great spheres of water (white and blue in turns) opening out of the boss, `turn` degrees off the first ring.</summary>
     private static void GreatSpheres(PatternContext c, float turn)

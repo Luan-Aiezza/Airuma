@@ -68,19 +68,20 @@ public partial class RiverBackground : Node2D
     private double _rippleClock;
     private double _time;
 
-    // The lanterns afloat on the water during the boss fight at the festival: four, each kept in its place, bobbing a little.
-    private readonly List<(Sprite2D sprite, Vector2 home)> _floaters = new List<(Sprite2D, Vector2)>();
+    // The sky lanterns of the festival, in the boss fight: they drift up high in the sky, and the water shows them as the rest of the sky, rippled and soft (they are not on the water: a lantern
+    // that is crisp and still among the bullets is taken for one of them). They live in the picture that the water reflects.
+    private readonly List<(Sprite2D sprite, Vector2 home, float speed)> _floaters = new List<(Sprite2D, Vector2, float)>();
     private bool _floatersWanted;
     private float _floatersShown;
-    private static readonly Vector2[] FloaterSpots = { new Vector2(190, 330), new Vector2(440, 250), new Vector2(300, 540), new Vector2(460, 650) };
+    private static readonly Vector2[] FloaterSpots = { new Vector2(190, 330), new Vector2(440, 250), new Vector2(300, 540), new Vector2(460, 650), new Vector2(120, 600), new Vector2(380, 420) };
 
     private void BuildFloaters()
     {
         for (int i = 0; i < FloaterSpots.Length; i++)
         {
-            var sprite = new Sprite2D { Texture = FestivalArt.MakeFloatingLantern(i * 2 + 1).ToTexture(), Scale = new Vector2(4, 4), ZIndex = -90, Visible = false, TextureFilter = TextureFilterEnum.Nearest };
-            AddChild(sprite);
-            _floaters.Add((sprite, FloaterSpots[i]));
+            var sprite = new Sprite2D { Texture = FestivalArt.MakeFloatingLantern(i * 2 + 1).ToTexture(), Scale = new Vector2(4, 4), ZIndex = ReflectionLayer.Sky + 1, Visible = false, TextureFilter = TextureFilterEnum.Nearest };
+            WaterViewport.AddChild(sprite);
+            _floaters.Add((sprite, FloaterSpots[i], 7 + 2.5f * (i % 3)));
         }
     }
 
@@ -90,10 +91,15 @@ public partial class RiverBackground : Node2D
         _floatersShown = Mathf.MoveToward(_floatersShown, _floatersWanted ? 1 : 0, dt / 1.5f);
         for (int i = 0; i < _floaters.Count; i++)
         {
-            var (sprite, home) = _floaters[i];
+            var (sprite, home, speed) = _floaters[i];
             sprite.Visible = _floatersShown > 0;
-            sprite.Position = home + new Vector2(2.5f * Mathf.Sin((float)_time * 0.9f + i * 1.7f), 2f * Mathf.Sin((float)_time * 1.3f + i));
-            sprite.Modulate = new Color(1, 1, 1, _floatersShown);
+            // they rise slowly and sway, and come round again below the picture: they fade in and out at its edges
+            float travel = ((float)_time * speed) % (Size.Y + 160);
+            float y = home.Y - travel;
+            if (y < -80) y += Size.Y + 160;
+            sprite.Position = new Vector2(home.X + 14 * Mathf.Sin((float)_time * 0.5f + i * 1.7f), y);
+            float edge = Mathf.Clamp(Mathf.Min(y + 60, Size.Y + 60 - y) / 120f, 0, 1);
+            sprite.Modulate = new Color(1, 1, 1, _floatersShown * edge);
         }
     }
 

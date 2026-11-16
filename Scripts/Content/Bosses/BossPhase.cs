@@ -76,4 +76,7 @@ public sealed class BossPhase
 
     /// <summary>The boss is enraged in this attack (the last ones of a boss): its music changes, it gets extra effects and the scenery turns redder.</summary>
     public bool Enraged;
+
+    /// <summary>The boss has two reflections in this attack, one in each top corner (see <see cref="ReflectionSystem"/>): all three are alike, and only she loses life.</summary>
+    public bool Reflections;
 }

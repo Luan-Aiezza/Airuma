@@ -40,6 +40,9 @@ public sealed class PatternContext
     public float LungeTime;
     /// <summary>The boss that is firing (for the figures that need to remember something of its movement).</summary>
     public BossEntity Boss;
+    /// <summary>Where the three bodies of a boss with reflections are (0: the boss, 1 and 2: the reflections), and whether each is standing. Seconds of the attack, from when the patterns began, are in <see cref="Time"/>.</summary>
+    public readonly Vector2[] Body = new Vector2[3];
+    public readonly bool[] BodyAlive = new bool[3];
 
     public float Aim => AimFrom(Origin);
 
@@ -105,6 +108,9 @@ public sealed class PatternSpec
 
     public PatternSpec After(float seconds) { Delay = seconds; return this; }
     public PatternSpec InBursts(float on, float off) { OnFor = on; OffFor = off; return this; }
+    /// <summary>With `WithTheJet`: it fires when the jet begins to charge (the warning), not when it goes on.</summary>
+    public bool OnWarn;
+    public PatternSpec WithTheCharge() { OnBeam = true; OnWarn = true; BeamDelay = 0; return this; }
     public PatternSpec WithTheJet(float delay = 0) { OnBeam = true; BeamDelay = delay; return this; }
     public PatternSpec Twin() { FromTwin = true; return this; }
     public PatternSpec OnLunge() { LungeOnly = true; return this; }

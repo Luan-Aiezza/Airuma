@@ -14,12 +14,12 @@ using Godot;
 /// A screen-space node tree for the 1110x775 viewport (Y down). The owner listens to <see cref="StartGame"/> and <see cref="StartPractice"/>.</summary>
 public partial class MenuScene : Node2D
 {
-	public enum Screen { Main, Difficulty, Practice, Scores, Config, Controls, MusicRoom }
+	public enum Screen { Main, Difficulty, Practice, Scores, Config, Controls, MusicRoom, PracticeAttacks }
 
 	public enum ActionKind { Start, Practice, Scores, MusicRoom, Config, Quit, Rehearse, Back, Choose, Setting, OpenControls, RestoreSettings, KeyBind, RestoreKeys, Track }
 
 	/// <summary>The settings of the Config screen (the Phase of an entry of kind Setting).</summary>
-	public enum SettingId { Lives, Bombs, Music, Sfx, Mode, Language }
+	public enum SettingId { Lives, Bombs, Music, Sfx, Mode, Language, PracticeLevel }
 
 	public struct Entry
 	{
@@ -175,6 +175,14 @@ public partial class MenuScene : Node2D
 			case Screen.Scores:
 				Entries = new List<Entry> { new(UIText.Back, ActionKind.Back) };
 				break;
+			case Screen.PracticeAttacks:
+				// (to test the game) the whole stage from its start, or each attack of its boss
+				Entries = new List<Entry> { new(UIText.DifficultyTitle, ActionKind.Setting, (int)SettingId.PracticeLevel), new($"0  {UIText.PracticeWholeStage}", ActionKind.Rehearse, 0, stage: _practiceStage) };
+				Selection = 1;
+				for (int i = 0; i < Stages.All[_practiceStage].Boss.Phases.Count; i++)
+					Entries.Add(new Entry($"{i + 1}  {Stages.All[_practiceStage].Boss.Phases[i].AttackName}", ActionKind.Rehearse, i + 1, stage: _practiceStage));
+				Entries.Add(new Entry(UIText.Back, ActionKind.Back));
+				break;
 			case Screen.Config:
 				Entries = new List<Entry>
 				{
@@ -214,6 +222,7 @@ public partial class MenuScene : Node2D
 		Screen.Main => At(780, 318),
 		Screen.Difficulty => At(780, 340),
 		Screen.Practice => At(560, 262),
+		Screen.PracticeAttacks => At(380, 226),
 		Screen.Config => At(300, 250),
 		Screen.Controls => At(300, 236),
 		_ => At(700, 650),
@@ -233,7 +242,7 @@ public partial class MenuScene : Node2D
 		return new Vector2(origin.X, origin.Y + i * ItemPitch);
 	}
 
-	private float ItemPitch => CurrentScreen == Screen.Config ? 52 : CurrentScreen == Screen.Controls ? 46 : CurrentScreen == Screen.Main || CurrentScreen == Screen.Difficulty ? 66 : (CurrentScreen == Screen.Practice ? 50 : 60);
+	private float ItemPitch => CurrentScreen == Screen.Config ? 52 : CurrentScreen == Screen.Controls ? 46 : CurrentScreen == Screen.Main || CurrentScreen == Screen.Difficulty ? 66 : (CurrentScreen == Screen.Practice ? 50 : CurrentScreen == Screen.PracticeAttacks ? 36 : 60);
 	private float ItemScale => CurrentScreen == Screen.Main || CurrentScreen == Screen.Difficulty ? 4 : 3;
 
 	private void Rebuild()
@@ -297,6 +306,11 @@ public partial class MenuScene : Node2D
 				var heading = new PixelLabel(PixelLabel.Style.MenuHeading, 5) { Position = At(560, 182) };
 				heading.SetText(UIText.PracticeTitle);
 				_extras.AddChild(heading);
+				break;
+			case Screen.PracticeAttacks:
+				var attacksHeading = new PixelLabel(PixelLabel.Style.MenuHeading, 5) { Position = At(380, 170) };
+				attacksHeading.SetText($"{_practiceStage + 1}  {Stages.All[_practiceStage].Boss.Name}");
+				_extras.AddChild(attacksHeading);
 				break;
 			case Screen.MusicRoom:
 				var roomTitle = new PixelLabel(PixelLabel.Style.MenuHeading, 5) { Position = At(300, 160) };
@@ -442,7 +456,7 @@ public partial class MenuScene : Node2D
 
 	private static string KeyName(Key key) => OS.GetKeycodeString(key).ToUpperInvariant();
 
-	private static string ValueOf(Entry entry) => entry.Action == ActionKind.KeyBind
+	private string ValueOf(Entry entry) => entry.Action == ActionKind.KeyBind
 		? KeyName(Settings.KeyFor((ControlAction)entry.Phase))
 		: (SettingId)entry.Phase switch
 		{
@@ -451,6 +465,7 @@ public partial class MenuScene : Node2D
 			SettingId.Music => $"< {Settings.Music * 10}% >",
 			SettingId.Sfx => $"< {Settings.Sfx * 10}% >",
 			SettingId.Language => $"< {Loc.Current.NativeName()} >",
+			SettingId.PracticeLevel => $"< {PracticeLevel.Title()} >",
 			_ => Main.FullscreenChosen ? $"< {UIText.CfgFullscreen} >" : $"< {UIText.CfgWindowed} >",
 		};
 
@@ -476,8 +491,9 @@ public partial class MenuScene : Node2D
 			case SettingId.Sfx: Settings.SetSfx(Settings.Sfx + delta); SfxPlayer.Instance?.Play(SfxBank.Sound.MenuMove); break;
 			case SettingId.Mode: Main.SetFullscreen(!Main.FullscreenChosen); break;
 			case SettingId.Language: ChangeLanguage(delta); return;
+			case SettingId.PracticeLevel: PracticeLevel = (Difficulty)Math.Clamp((int)PracticeLevel + delta, 0, 2); break;
 		}
-		if ((SettingId)Entries[Selection].Phase is SettingId.Lives or SettingId.Bombs or SettingId.Music) SfxPlayer.Instance?.Play(SfxBank.Sound.MenuMove);
+		if ((SettingId)Entries[Selection].Phase is SettingId.Lives or SettingId.Bombs or SettingId.Music or SettingId.PracticeLevel) SfxPlayer.Instance?.Play(SfxBank.Sound.MenuMove);
 		RefreshValues();
 	}
 
@@ -503,6 +519,7 @@ public partial class MenuScene : Node2D
 			case SettingId.Bombs when Settings.Bombs >= Settings.MaxBombsChoice: step = -(Settings.MaxBombsChoice - Settings.MinBombs); break;
 			case SettingId.Music when Settings.Music >= Settings.MaxVolume: step = -Settings.MaxVolume; break;
 			case SettingId.Sfx when Settings.Sfx >= Settings.MaxVolume: step = -Settings.MaxVolume; break;
+			case SettingId.PracticeLevel when PracticeLevel == Difficulty.Hard: step = -2; break;
 		}
 		AdjustSelection(step);
 	}
@@ -559,7 +576,11 @@ public partial class MenuScene : Node2D
 			case ActionKind.RestoreKeys: Settings.RestoreKeys(); RefreshValues(); break;
 			case ActionKind.KeyBind: _capturing = true; ShowNotice(UIText.CfgPressKey); RefreshValues(); break;
 			case ActionKind.Quit: Quit?.Invoke(); break;
-			case ActionKind.Rehearse: StartPractice?.Invoke(entry.Stage, entry.Phase); break;
+			case ActionKind.Rehearse:
+				// with everything unlocked (to test) a boss opens the list of its attacks; the choice there starts the fight
+				if (Progress.UnlockAll && CurrentScreen == Screen.Practice) { _practiceStage = entry.Stage; Show(Screen.PracticeAttacks); }
+				else StartPractice?.Invoke(entry.Stage, entry.Phase);
+				break;
 			case ActionKind.Back: Back(); break;
 		}
 	}
@@ -612,7 +633,11 @@ public partial class MenuScene : Node2D
 		BackTo();
 	}
 
-	private void BackTo() => Show(CurrentScreen == Screen.Controls ? Screen.Config : Screen.Main);
+	private int _practiceStage;
+	/// <summary>The difficulty the practice is made in (chosen on the list of the attacks).</summary>
+	public Difficulty PracticeLevel { get; private set; } = Difficulty.Normal;
+
+	private void BackTo() => Show(CurrentScreen == Screen.Controls ? Screen.Config : CurrentScreen == Screen.PracticeAttacks ? Screen.Practice : Screen.Main);
 
 	private void ShowNotice(string text)
 	{

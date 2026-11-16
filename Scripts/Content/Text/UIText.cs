@@ -38,6 +38,7 @@ public static class UIText
     public static string PracticeStages => Loc.Get(nameof(PracticeStages));
     public static string PracticeBosses => Loc.Get(nameof(PracticeBosses));
     public static string PracticeStageTitle => Loc.Get(nameof(PracticeStageTitle));
+    public static string PracticeWholeStage => Loc.Get(nameof(PracticeWholeStage));
     public static string PracticeTitle => Loc.Get(nameof(PracticeTitle));
     public static string ScoresTitle => Loc.Get(nameof(ScoresTitle));
     public static string NoScore => Loc.Get(nameof(NoScore));

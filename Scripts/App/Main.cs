@@ -274,7 +274,7 @@ public partial class Main : Node2D
         var menu = _menu = new MenuScene();
         menu.Quit += () => GetTree().Quit();
         menu.StartGame += (level, weapon) => CallDeferred(nameof(StartGameDeferred), -1, (int)level, 0, (int)weapon);
-        menu.StartPractice += (stage, phase) => CallDeferred(nameof(StartGameDeferred), phase, (int)Difficulty.Normal, stage, (int)Settings.Weapon);
+        menu.StartPractice += (stage, phase) => CallDeferred(nameof(StartGameDeferred), phase, (int)menu.PracticeLevel, stage, (int)Settings.Weapon);
         Swap(menu);
     }
 
@@ -292,7 +292,7 @@ public partial class Main : Node2D
         var definition = Stages.All[System.Math.Clamp(stage, 0, Stages.All.Count - 1)];
         var attack = weapon ?? Settings.Weapon;
         // (the practice of a boss from the menu is a simulation of the fight: the lives and bombs of the options, and a defeat is a defeat)
-        var game = new GameScene(phase, difficulty, definition, carry, stagePractice, attack, noLifeLoss: phase.HasValue && !stagePractice ? false : (bool?)null) { Autoplay = _autoplay };
+        var game = new GameScene(phase, difficulty, definition, carry, stagePractice, attack, noLifeLoss: Progress.UnlockAll ? true : phase.HasValue && !stagePractice ? false : (bool?)null) { Autoplay = _autoplay };
         game.Exit += () => CallDeferred(nameof(ShowMenu));
         game.NextStage += next =>
         {

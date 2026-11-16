@@ -79,6 +79,8 @@ public partial class World
     /// <summary>The second body while it is a body of its own (not after it has fused into the first); null if there is none.</summary>
     private BossEntity TwinBody => Twin != null && !Twin.Merged ? Twin : null;
     public List<EnemyEntity> Enemies { get; private set; } = new List<EnemyEntity>();
+    /// <summary>The reflections of a boss in an attack that has them (see <see cref="ReflectionSystem"/>): two bodies that look like hers, can be broken, and cost her no life.</summary>
+    public List<BossEntity> Decoys { get; } = new List<BossEntity>();
     public BulletData[] Bullets { get; private set; } = BulletSystem.NewPool();
     /// <summary>Little lights falling through the picture, for the player to gather.</summary>
     public LightItem[] Lights { get; private set; } = LightSystem.NewPool();
@@ -115,6 +117,7 @@ public partial class World
     {
         Weapon = weapon;
         NoLifeLoss = noLifeLoss ?? (practicePhase.HasValue || stagePractice);
+        CombatSystem.Immortal = Progress.UnlockAll && (practicePhase.HasValue || stagePractice) && noLifeLoss == true;
         Carry = carry;
         Definition = stage ?? Stages.One;
         Difficulty = difficulty;
@@ -243,6 +246,7 @@ public partial class World
         }
         _dance.Reset();
         PhaseManagerSystem.ChangePhase(Boss, Boss.Health.Lives, Difficulty);
+        ReflectionSystem.Begin(Boss, Decoys, Boss.Health.Lives > 0 ? Boss.Definition.PhaseFor(Boss.Health.Lives) : null);
         if (Twin != null) PhaseManagerSystem.ChangeTwinPhase(Twin, Boss);
     }
 
@@ -338,7 +342,7 @@ public partial class World
         // 1. Input and spawners
         Player.Input = input;
         BulletSystem.UpdatePlayerWeapons(Player, Bullets, delta, Effects, Weapon);
-        if (bossActive) BulletSystem.UpdateBossWeapons(Boss, Player, Bullets, delta, Difficulty, Field, TwinBody, Slashes);
+        if (bossActive) BulletSystem.UpdateBossWeapons(Boss, Player, Bullets, delta, Difficulty, Field, TwinBody, Slashes, Decoys);
         foreach (var enemy in Enemies) EnemySystem.Fire(enemy, Player.Transform.Position, Bullets, PlayArea, delta, Difficulty);
 
         // 2. Movement
@@ -361,6 +365,7 @@ public partial class World
             Player.Transform.Position.Y = MathF.Min(MathF.Max(Player.Transform.Position.Y, f.Position.Y), f.End.Y);
         }
         if (bossActive) MovementSystem.MoveBoss(Boss, Field, delta, Player.Transform.Position);
+        if (bossActive && Decoys.Count > 0) ReflectionSystem.Update(Boss, Decoys, delta, Boss.MovementType != BossMovementType.Transition, _events, Random.Shared);
         if (bossActive && Twin != null)
         {
             if (!Twin.Merged) MovementSystem.MoveBoss(Twin, Field, delta, Player.Transform.Position);
@@ -388,7 +393,7 @@ public partial class World
         // 4. Collisions and health
         _lastHitAge += delta;
         DefeatSpirits(delta, bossActive);
-        int bossHits = CombatSystem.ProcessCollisions(Bullets, Player, Boss, bossActive, Enemies, TwinBody);
+        int bossHits = CombatSystem.ProcessCollisions(Bullets, Player, Boss, bossActive, Enemies, TwinBody, Decoys);
         if (bossHits > 0) { _events.Add(WorldEvent.BossHit()); _lastHit = Boss.Transform.Position; _lastHitAge = 0; }
         NoteTheFoeHit();
         AddScore(bossHits * ScoreSystem.PointsPerHit);
@@ -430,7 +435,7 @@ public partial class World
     /// <summary>The bomb and the player's shots hurt the spirits; those that fall let go of their lights.</summary>
     private void DefeatSpirits(float delta, bool bossActive)
     {
-        var defeated = CombatSystem.ProcessBombDamage(Player, Enemies, Boss, bossActive, delta, Effects.BombDamageMultiplier, TwinBody);
+        var defeated = CombatSystem.ProcessBombDamage(Player, Enemies, Boss, bossActive, delta, Effects.BombDamageMultiplier, TwinBody, Decoys);
         var spirits = CombatSystem.ProcessEnemyHits(Bullets, Enemies);
         AddScore(spirits.Hits * ScoreSystem.PointsPerSpiritHit);
         defeated.AddRange(spirits.Defeated);

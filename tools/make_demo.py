@@ -383,6 +383,12 @@ def wind_tutorial():
 
 
 @step
+def demo_locks():
+    # the padlocks are real in the demo (the main project has them open, for testing)
+    sub('Scripts/App/Progress.cs', 'public const bool UnlockAll = true;', 'public const bool UnlockAll = false;')
+
+
+@step
 def demo_identity():
     """The name of the demo, its project, its presets of export (Windows and Mac; the web cannot be exported from a C# project in Godot 4) and its folder."""
     # project: name, assembly

@@ -95,6 +95,15 @@ public partial class SlashEffect : Node2D
         DrawLine(top, bottom, new Color(hot.R, hot.G, hot.B, 0.80f * fade * breath), w * 0.78f);
         DrawLine(top, bottom, new Color(light.R, light.G, light.B, 0.85f * fade * breath), w * 0.5f);
         DrawLine(top, bottom, new Color(core.R, core.G, core.B, 0.92f * fade * breath), w * 0.24f);
+        // where the beam leaves (when that is on the field): a round aura, not a bare cut of the column
+        if (top.Y > -10)
+        {
+            DrawCircle(top, w * 0.6f, new Color(deep.R, deep.G, deep.B, 0.22f * fade * breath));
+            DrawCircle(top, w * 0.48f, new Color(tint.R, tint.G, tint.B, 0.55f * fade * breath));
+            DrawCircle(top, w * 0.36f, new Color(hot.R, hot.G, hot.B, 0.8f * fade * breath));
+            DrawCircle(top, w * 0.22f, new Color(light.R, light.G, light.B, 0.9f * fade * breath));
+            DrawCircle(top, w * 0.1f, new Color(core.R, core.G, core.B, 0.95f * fade));
+        }
         // the edges: two crisp lines
         foreach (int side in new[] { -1, 1 })
             DrawLine(top + normal * (side * w * 0.5f), bottom + normal * (side * w * 0.5f), new Color(hot.R, hot.G, hot.B, 0.7f * fade), 3);

@@ -79,6 +79,8 @@ public partial class GameScene : Node2D
     private BossView _boss;
     /// <summary>The second body of a boss that is two (null for the others).</summary>
     private BossView _twin;
+    /// <summary>The views of the reflections of the boss, in the attacks that have them (see <see cref="ReflectionSystem"/>).</summary>
+    private readonly System.Collections.Generic.List<BossView> _decoys = new();
     private readonly BombEffect _bombEffect = new();
     private readonly List<Sprite2D> _bulletNodes = new();
     private readonly Dictionary<BulletStyle, Texture2D[]> _bulletFrames = new();
@@ -191,6 +193,7 @@ public partial class GameScene : Node2D
         _bossSequence = BossSequence.None;
         _boss.Reset();
         _twin?.Reset();
+        foreach (var d in _decoys) d.Reset();
         _endSequence = EndSequence.None;
         ResetFinale();
         _afterBossOffered = false;

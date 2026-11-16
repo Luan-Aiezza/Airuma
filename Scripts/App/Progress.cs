@@ -19,8 +19,11 @@ public static class Progress
         }
     }
 
+    /// <summary>For testing: everything that is behind a padlock is open (the bosses of the practice, the songs), and the practice cannot hurt the boat. The demo is made with this off (see tools/make_demo.py).</summary>
+    public const bool UnlockAll = true;
+
     /// <summary>Whether the stage (0 for the first) was cleared in some run.</summary>
-    public static bool IsCleared(int stage) => stage >= 0 && (Mask & (1 << stage)) != 0;
+    public static bool IsCleared(int stage) => stage >= 0 && (UnlockAll || (Mask & (1 << stage)) != 0);
 
     public static void MarkCleared(int stage)
     {

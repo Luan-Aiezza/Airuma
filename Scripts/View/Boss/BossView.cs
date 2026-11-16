@@ -54,6 +54,8 @@ public partial class BossView : Node2D
     private readonly WaterJet _jet = new() { Visible = false };
     private float _spin, _enragedFor, _rageClock;
     private DiveState _lastDive;
+    /// <summary>Seconds to the next ping of the warning while the shadow lies under the boat.</summary>
+    private float _warnClock;
     private SweepState _lastSweep;
     private readonly RandomNumberGenerator _rng = new();
 
@@ -66,7 +68,7 @@ public partial class BossView : Node2D
     public BossStyle Style => _style;
 
     /// <summary>`mirrorParent` is the layer of the water that mirrors what is above it.</summary>
-    public BossView(BossStyle style, Node mirrorParent)
+    public BossView(BossStyle style, Node mirrorParent, bool mirage = false)
     {
         _style = style;
         _baseStyle = style;
@@ -82,7 +84,7 @@ public partial class BossView : Node2D
         _glow.Material = AddMaterial();
         _glow.ZIndex = Z(-0.2f);
         _body.AddChild(_glow);
-        _sprite.Material = NewTintMaterial(Colors.White, 0);
+        _sprite.Material = mirage ? NewMirageMaterial() : NewTintMaterial(Colors.White, 0);
         _sprite.Scale = new Vector2(style.Scale, style.Scale);
         _sprite.Offset = -_frames[0].GetSize() * style.Anchor;
         _sprite.Texture = _frames[0];
@@ -238,7 +240,19 @@ public partial class BossView : Node2D
         _dive.Update(f.Dt, boss, diving);
         _body.Visible = !(diving && boss.Dive.Submerged);
         _body.Scale = Vector2.One * _dive.BodySize(boss, diving);
-        if (diving && boss.Dive.State != _lastDive && (boss.Dive.State == DiveState.Sinking || boss.Dive.State == DiveState.Rising)) SfxPlayer.Instance?.Play(SfxBank.Sound.Splash);
+        if (diving && boss.Dive.State != _lastDive && (boss.Dive.State == DiveState.Sinking || boss.Dive.State == DiveState.Rising)) SfxPlayer.Instance?.Play(boss.Dive.State == DiveState.Rising ? SfxBank.Sound.Emerge : SfxBank.Sound.Splash);
+        // while the shadow is under the boat a ping sounds, quicker and quicker until he comes out of the water
+        if (diving && boss.Dive.State == DiveState.Under)
+        {
+            _warnClock -= f.Dt;
+            if (_warnClock <= 0)
+            {
+                SfxPlayer.Instance?.Play(SfxBank.Sound.DiveWarn);
+                float progress = Math.Clamp(boss.Dive.Clock / MovementSystem.DiveUnderSeconds, 0, 1);
+                _warnClock = 0.42f - 0.28f * progress;
+            }
+        }
+        else _warnClock = 0;
         _lastDive = boss.Dive.State;
     }
 
@@ -247,7 +261,7 @@ public partial class BossView : Node2D
         var boss = f.Boss;
         bool sweeping = boss.MovementType == BossMovementType.Sweep && f.Fighting;
         var mouth = Point(boss.Transform.Position + new Vector2(0, boss.Hitbox.Radius * 0.9f));
-        _jet.Update(f.Dt, sweeping && boss.Sweep.BeamWarn, sweeping && boss.Sweep.BeamOn, mouth, Layout.Height, SweepBrain.BeamHalfWidth);
+        _jet.Update(f.Dt, false, false, mouth, Layout.Height, SweepBrain.BeamHalfWidth);
         if (sweeping && boss.Sweep.State != _lastSweep && (boss.Sweep.State == SweepState.Pass || boss.Sweep.State == SweepState.Pass2)) SfxPlayer.Instance?.Play(SfxBank.Sound.Jet);
         _lastSweep = boss.Sweep.State;
     }

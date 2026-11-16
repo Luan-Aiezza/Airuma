@@ -21,6 +21,7 @@ public static class BulletArt
         BulletStyle.Spark => (5, 5),
         BulletStyle.VenomOrb => (5, 5),
         BulletStyle.LotusPetal => (7, 9),
+        BulletStyle.BluePetal => (7, 9),
         BulletStyle.MagmaOrb => (26, 26),
         BulletStyle.FireSerpent => (5, 9),
         BulletStyle.Ember => (4, 4),
@@ -42,6 +43,7 @@ public static class BulletArt
         BulletStyle.MossBoulder => (64, 64),
         BulletStyle.Bite => (24, 24),
         BulletStyle.GiantStalactite => (16, 40),
+        BulletStyle.GiantFish => (25, 25),
         BulletStyle.NoteGold or BulletStyle.NotePink or BulletStyle.NoteCyan => (7, 11),
         BulletStyle.NoteBeamed => (9, 11),
         _ => FamilySize(style),
@@ -56,7 +58,7 @@ public static class BulletArt
     /// <summary>Styles that are elongated or directional are rotated to face where the bullet is going.</summary>
     public static bool Rotates(BulletStyle style) => style switch
     {
-        BulletStyle.FireSlug or BulletStyle.FlameDart or BulletStyle.LotusPetal or BulletStyle.FireSerpent or BulletStyle.LightBolt or BulletStyle.FanBolt or BulletStyle.RiceRed or BulletStyle.Shard or BulletStyle.Claw or BulletStyle.Stalactite or BulletStyle.BoltYellow or BulletStyle.BoltBlue or BulletStyle.BoltRed or BulletStyle.Bite or BulletStyle.GiantStalactite => true,
+        BulletStyle.FireSlug or BulletStyle.FlameDart or BulletStyle.LotusPetal or BulletStyle.BluePetal or BulletStyle.FireSerpent or BulletStyle.LightBolt or BulletStyle.FanBolt or BulletStyle.RiceRed or BulletStyle.Shard or BulletStyle.Claw or BulletStyle.Stalactite or BulletStyle.BoltYellow or BulletStyle.BoltBlue or BulletStyle.BoltRed or BulletStyle.Bite or BulletStyle.GiantStalactite or BulletStyle.GiantFish => true,
         _ => Family(style) is Shape.Rice or Shape.Kunai,
     };
 
@@ -81,6 +83,7 @@ public static class BulletArt
             case BulletStyle.Spark: DrawSpark(c, frame); break;
             case BulletStyle.VenomOrb: DrawVenomOrb(c, frame); break;
             case BulletStyle.LotusPetal: DrawLotusPetal(c, frame); break;
+            case BulletStyle.BluePetal: DrawLotusPetal(c, frame, true); break;
             case BulletStyle.MagmaOrb: DrawMagmaOrb(c, frame); break;
             case BulletStyle.FireSerpent: DrawFireSerpent(c, frame); break;
             case BulletStyle.Ember: DrawEmber(c, frame); break;
@@ -102,6 +105,7 @@ public static class BulletArt
             case BulletStyle.MossBoulder: DrawMossBoulder(c, frame); break;
             case BulletStyle.Bite: DrawBite(c, frame); break;
             case BulletStyle.GiantStalactite: DrawGiantStalactite(c, frame); break;
+            case BulletStyle.GiantFish: DrawGiantFish(c, frame); break;
             case BulletStyle.NoteGold: DrawNote(c, frame, PixelColor.Hex(0xA8700C), PixelColor.Hex(0xFFD24A), PixelColor.Hex(0xFFF6C8)); break;
             case BulletStyle.NotePink: DrawNote(c, frame, PixelColor.Hex(0x9A2864), PixelColor.Hex(0xFF70B8), PixelColor.Hex(0xFFE0F0)); break;
             case BulletStyle.NoteCyan: DrawNote(c, frame, PixelColor.Hex(0x1C7898), PixelColor.Hex(0x5CD8F0), PixelColor.Hex(0xE0FAFF)); break;
@@ -212,10 +216,11 @@ public static class BulletArt
     }
 
     /// <summary>Phase 4: a petal of the flaming lotus, tip first.</summary>
-    private static void DrawLotusPetal(PixelCanvas c, int frame)
+    private static void DrawLotusPetal(PixelCanvas c, int frame, bool blue = false)
     {
-        var edge = PixelColor.Hex(0xC2284A);
-        var mid = Fire[3];
+        var edge = PixelColor.Hex(blue ? 0x2A4FC2u : 0xC2284Au);
+        var mid = blue ? PixelColor.Hex(0x4FA3E8) : Fire[3];
+        var veinColours = blue ? new[] { PixelColor.Hex(0xFFFFFF), PixelColor.Hex(0xBFE8FF), PixelColor.Hex(0x7CC8FF) } : new[] { Fire[0], Fire[1], Fire[2] };
         // Row widths from the tip down to the rounded base.
         var rows = new[] { (3, 3), (3, 3), (2, 4), (2, 4), (1, 5), (1, 5), (1, 5), (2, 4), (3, 3) };
         for (int y = 0; y < rows.Length; y++)
@@ -228,9 +233,9 @@ public static class BulletArt
             }
         }
         // A glowing vein that pulses.
-        var vein = frame == 0 ? new[] { Fire[1], Fire[1], Fire[2], Fire[2] } : new[] { Fire[0], Fire[1], Fire[1], Fire[2] };
+        var vein = frame == 0 ? new[] { veinColours[1], veinColours[1], veinColours[2], veinColours[2] } : new[] { veinColours[0], veinColours[1], veinColours[1], veinColours[2] };
         for (int i = 0; i < 4; i++) Put(c, 3, 2 + i, vein[i]);
-        Put(c, 3, 6, Fire[2]);
+        Put(c, 3, 6, veinColours[2]);
     }
 
     /// <summary>Phase 5 (big): a sphere of molten rock with a cracked crust and flame licking off the rim.</summary>
@@ -498,6 +503,39 @@ public static class BulletArt
     /// A giant stalactite, 16 x 40, point up (it falls point first): a tapering spike of cave rock with a broken, jagged base, lit from the left (a pale edge on the lit side, the dark side cool and blue),
     /// layers of mineral across it, cracks, little veins of ore, wet glints, a dithered gradient of light along its length, and a drop that gathers at its tip on the second frame.
     /// </summary>
+    /// <summary>A great fish seen from above, head up: a long body, two fins at the sides and a forked tail that sways on the second frame. Only the silhouette: a rim and a body, in blue.</summary>
+    private static void DrawGiantFish(PixelCanvas c, int frame)
+    {
+        var (rim, body, _) = Tones(Hue.Blue);
+        const int w = 25, h = 25, mid = 12;
+        int sway = frame == 0 ? -1 : 1;
+        // for each row, the stretches of distance from the middle line that are fish: the snout at the top, the body, the fins at the sides, the narrow of the tail, the fork of the tail at the bottom
+        var rows = new (int, int)[][]
+        {
+            new[] { (0, 1) }, new[] { (0, 2) }, new[] { (0, 3) }, new[] { (0, 4) }, new[] { (0, 5) }, new[] { (0, 5) }, new[] { (0, 6) }, new[] { (0, 6) },
+            new[] { (0, 6) }, new[] { (0, 6), (7, 8) }, new[] { (0, 6), (7, 7) }, new[] { (0, 5) },
+            new[] { (0, 5) }, new[] { (0, 4) }, new[] { (0, 4) }, new[] { (0, 3) }, new[] { (0, 3) }, new[] { (0, 2) }, new[] { (0, 1) }, new[] { (0, 1) },
+            new[] { (0, 2) }, new[] { (0, 3) }, new[] { (0, 4) }, new[] { (0, 5) }, new[] { (2, 6) },
+        };
+        bool Inside(int x, int y)
+        {
+            if (y < 0 || y >= h) return false;
+            int shift = y >= 19 ? sway * (y - 18) / 3 : 0;          // the tail sways
+            int d = Math.Abs(x - mid - shift);
+            foreach (var (lo, hi) in rows[y]) if (d >= lo && d <= hi) return true;
+            return false;
+        }
+        for (int y = 0; y < h; y++)
+            for (int x = 0; x < w; x++)
+            {
+                if (!Inside(x, y)) continue;
+                bool edge = !Inside(x - 1, y) || !Inside(x + 1, y) || !Inside(x, y - 1) || !Inside(x, y + 1);
+                c[x, y] = edge ? rim : body;
+            }
+        // the eyes
+        c[mid - 3, 4] = rim; c[mid + 3, 4] = rim;
+    }
+
     private static void DrawGiantStalactite(PixelCanvas c, int frame)
     {
         var tone = new[] { PixelColor.Hex(0xE9E1D2), PixelColor.Hex(0xC4B8A4), PixelColor.Hex(0x978B79), PixelColor.Hex(0x6B6152), PixelColor.Hex(0x4A4D54), PixelColor.Hex(0x30343E), PixelColor.Hex(0x1C1E26) };

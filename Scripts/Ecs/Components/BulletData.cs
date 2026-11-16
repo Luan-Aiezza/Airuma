@@ -38,6 +38,8 @@ public struct BulletData
     // The motion beyond a straight line (see BulletBehavior): a gravity that pulls the bullet; the fuse of a Launch / Split; what a Launch does; what a Split makes; the bounces left; a polar track.
     public Vector2 Pull;
     public float Fuse;
+    /// <summary>A zigzag that goes in legs: seconds of each leg and seconds it stands still at each turn (0: the plain zigzag).</summary>
+    public float LegSeconds, PauseSeconds;
     public float LaunchSpeed, LaunchAngle;
     public int SplitCount;
     public float SplitSpread, SplitSpeed, ChildScale;
@@ -78,6 +80,6 @@ public struct BulletData
         IsActive = false; Position = Vector2.Zero; Velocity = Vector2.Zero; Faction = Faction.Player; HitboxRadius = 0;
         Damage = 0; WindModifier = 1; Acceleration = 0; CurveRate = 0; Scale = 1; Behavior = BulletBehavior.Normal;
         Timer = 0; Chain = 0; Prev = -1; Style = BulletStyle.Fireball; Power = 1; Pierce = 0; BurstRadius = 0; BurstScale = 1; LastHit = -1;
-        Zoom = 1; Pull = Vector2.Zero; Fuse = 0; LaunchSpeed = 0; LaunchAngle = 0; SplitCount = 0; SplitSpread = 360; SplitSpeed = 0; ChildScale = 1; SplitAimed = false; ChildStyle = BulletStyle.Fireball; Bounces = 0; LaunchAccel = 0; LinkIndex = 0; Blink = 0; Cruise = 0; TurnMode = 0; TurnTimes = 0; TurnCount = 0; TurnInterval = 0; TurnRotation = 0; TurnSpeed = 0; TurnBase = 0; TurnHeading = 0; PopSpeed = 0; PopTime = 0; PopLeft = 0; ExFor = 0; ExClock = 0; Anchor = Vector2.Zero; Radius = 0; RadialSpeed = 0; RadialAcceleration = 0; Theta = 0; Omega = 0;
+        Zoom = 1; Pull = Vector2.Zero; Fuse = 0; LegSeconds = 0; PauseSeconds = 0; LaunchSpeed = 0; LaunchAngle = 0; SplitCount = 0; SplitSpread = 360; SplitSpeed = 0; ChildScale = 1; SplitAimed = false; ChildStyle = BulletStyle.Fireball; Bounces = 0; LaunchAccel = 0; LinkIndex = 0; Blink = 0; Cruise = 0; TurnMode = 0; TurnTimes = 0; TurnCount = 0; TurnInterval = 0; TurnRotation = 0; TurnSpeed = 0; TurnBase = 0; TurnHeading = 0; PopSpeed = 0; PopTime = 0; PopLeft = 0; ExFor = 0; ExClock = 0; Anchor = Vector2.Zero; Radius = 0; RadialSpeed = 0; RadialAcceleration = 0; Theta = 0; Omega = 0;
     }
 }

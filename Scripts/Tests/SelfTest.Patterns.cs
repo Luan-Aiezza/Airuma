@@ -55,8 +55,8 @@ public static partial class SelfTest
 
     private static void TheAttacksOfTheBossesFollowTheCurveOfPatterns()
     {
-        // the number of attacks of each boss, in its first form and its second: 3+2, 3+2, 4+2, 4+3, 5+3, 6+4
-        var expected = new (int calm, int enraged)[] { (3, 2), (3, 2), (4, 2), (4, 3), (5, 3), (6, 4) };
+        // the number of attacks of each boss, in its first form and its second: 3+2, 3+3, 4+2, 4+3, 5+3, 6+4
+        var expected = new (int calm, int enraged)[] { (3, 2), (3, 3), (4, 2), (4, 3), (5, 3), (6, 4) };
         for (int s = 1; s <= 6; s++)
         {
             var boss = Stages.All[s - 1].Boss;

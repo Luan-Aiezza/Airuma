@@ -11,9 +11,16 @@ public static partial class BulletSystem
     private static readonly PatternContext Context = new PatternContext();
 
     /// <summary>Runs the patterns of the boss's attack: each has its own clock, begins after its delay, rests between bursts and fires every interval.</summary>
-    private static void RunPatterns(BossEntity boss, PlayerEntity player, BulletData[] pool, float delta, Difficulty difficulty, Rect2 field, BossEntity twin, List<SlashData> slashes = null)
+    private static void RunPatterns(BossEntity boss, PlayerEntity player, BulletData[] pool, float delta, Difficulty difficulty, Rect2 field, BossEntity twin, List<SlashData> slashes = null, List<BossEntity> decoys = null)
     {
         var c = Context;
+        c.Body[0] = boss.Transform.Position; c.BodyAlive[0] = true;
+        for (int d = 0; d < 2; d++)
+        {
+            bool there = decoys != null && d < decoys.Count && decoys[d].Health.CurrentHealth > 0;
+            c.BodyAlive[d + 1] = there;
+            c.Body[d + 1] = there ? decoys[d].Transform.Position : Vector2.Zero;
+        }
         c.Slashes = slashes;
         c.Pool = pool; c.Player = player.Transform.Position; c.Field = field; c.Difficulty = difficulty; c.Pressure = boss.PatternPressure; c.Speed = boss.PatternSpeed;
         c.Boss = boss;
@@ -28,7 +35,7 @@ public static partial class BulletSystem
             if (spec.OnBeam)
             {
                 // a figure that goes with the jet: once, a moment after the beam goes on, for each jet
-                if (!boss.Sweep.BeamOn) { run.BeamClock = 0; run.BeamDone = false; continue; }
+                if (!(spec.OnWarn ? boss.Sweep.BeamWarn : boss.Sweep.BeamOn)) { run.BeamClock = 0; run.BeamDone = false; continue; }
                 run.BeamClock += delta;
                 if (run.BeamDone || run.BeamClock < spec.BeamDelay) continue;
                 run.BeamDone = true;

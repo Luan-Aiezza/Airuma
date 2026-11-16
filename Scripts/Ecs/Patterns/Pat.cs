@@ -82,7 +82,7 @@ public static class Pat
     /// A laser: a straight beam from `from` along `heading` (degrees), through and beyond the whole field. First a thin line of its colour warns of it for `warn` seconds; then it strikes for `strike` seconds, `width`
     /// px thick; then it fades. It may turn about its origin (`spin`, degrees a second) and may go with the boss (`follow`).
     /// </summary>
-    public static void Laser(PatternContext c, Vector2 from, float heading, float width, float warn, float strike, Color tint, float spin = 0, bool follow = false, float blink = 0)
+    public static void Laser(PatternContext c, Vector2 from, float heading, float width, float warn, float strike, Color tint, float spin = 0, bool follow = false, float blink = 0, bool homing = false)
     {
         if (c.Slashes == null) return;
         float h = Mathx.Radians(heading);
@@ -90,7 +90,7 @@ public static class Pat
         c.Slashes.Add(new SlashData
         {
             Top = from, Angle = MathF.PI / 2 - h, Telegraph = warn * time, Strike = strike, Width = width, Leader = true, Len = 2300, Beam = true, Tint = tint,
-            Spin = -Mathx.Radians(spin), Follow = follow, Blink = blink, Offset = follow ? from - c.Origin : Vector2.Zero,
+            Spin = -Mathx.Radians(spin), Follow = follow, Blink = blink, Homing = homing, Offset = follow ? from - c.Origin : Vector2.Zero,
         });
     }
 

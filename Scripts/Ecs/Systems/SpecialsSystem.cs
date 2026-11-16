@@ -62,7 +62,12 @@ public static class SpecialsSystem
             float before = slash.Age;
             slash.Age += delta;
             if (slash.Spin != 0) slash.Angle += slash.Spin * delta;                           // a laser that turns
-            if (slash.Follow) slash.Top = boss.Transform.Position + slash.Offset;            // one that goes with the boss
+            if (slash.Homing && slash.Age < slash.Telegraph - SlashData.HomingLockSeconds)
+            {
+                var to = player.Transform.Position - slash.Top;
+                slash.Angle = MathF.PI / 2 - MathF.Atan2(to.Y, to.X);                     // a laser that follows the boat while it warns
+            }
+            if (slash.Follow && slash.Age < slash.Telegraph + slash.Strike) slash.Top = boss.Transform.Position + slash.Offset;            // one that goes with the boss
             if (slash.Beam)
             {
                 // Lasers sound before they shoot, as in Touhou: a charging note when the warning line appears, the shot when the beam strikes, and (for a laser that blinks) a warning again shortly before it turns solid.

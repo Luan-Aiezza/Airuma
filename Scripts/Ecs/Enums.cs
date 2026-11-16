@@ -33,6 +33,10 @@ public enum BulletStyle
     FanBolt,
     // the round, homing lights of the second attack of the boat (5 x 5)
     HomingOrb,
+    // the petal of the lotus in blue (7 x 9), that turns the other way in the wheel of petals of Baylo
+    BluePetal,
+    // a great fish seen from above (25 x 25), only its silhouette, in blue: it points where it goes
+    GiantFish,
 }
 
 /// <summary>How the boat attacks: Stream, the bolts straight up one after another (a lot of damage, but it has to be aimed); Homing, round lights that chase the foes (they always hit, for half the damage).</summary>

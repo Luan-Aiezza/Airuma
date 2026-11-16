@@ -15,6 +15,7 @@ public static partial class SelfTest
         T("TheCurtainOfAWiderFieldHasNoPlaceToHideAtTheSides", TheCurtainOfAWiderFieldHasNoPlaceToHideAtTheSides);
         T("AtFullPowerHighInThePictureEveryLightFliesToTheBoat", AtFullPowerHighInThePictureEveryLightFliesToTheBoat);
         T("TheMainMenuEndsWithAButtonToQuit", TheMainMenuEndsWithAButtonToQuit);
+        T("ThePracticeOpensEveryBossAndItsAttacksWhenEverythingIsUnlocked", ThePracticeOpensEveryBossAndItsAttacksWhenEverythingIsUnlocked);
     }
 
     private static void TheBoatHasMoreRoomAtTheSidesOnceTheBanksHaveGone()
@@ -106,6 +107,31 @@ public static partial class SelfTest
         False(weak.Collecting, "high, but not at full power: no");
         Run(weak, 3);
         Greater(Active(weak), 0);
+    }
+
+    private static void ThePracticeOpensEveryBossAndItsAttacksWhenEverythingIsUnlocked()
+    {
+        if (!Progress.UnlockAll) return;
+        var menu = new MenuScene();
+        menu.Show(MenuScene.Screen.Practice);
+        Eq(menu.Entries.Count, Stages.All.Count + 1);                       // the bosses, and Back
+        foreach (var e in menu.Entries) True(!e.Locked, "no padlock");
+        int stage = Stages.All.Count - 1;
+        menu.Select(stage);
+        menu.ActivateSelection();
+        Eq(menu.CurrentScreen, MenuScene.Screen.PracticeAttacks);
+        Eq(menu.Entries.Count, Stages.All[stage].Boss.Phases.Count + 3);     // the difficulty, the whole stage, each attack, and Back
+        Eq(menu.Selection, 1);
+        (int stage, int phase)? asked = null;
+        menu.StartPractice += (s, p) => asked = (s, p);
+        menu.Select(0);
+        menu.AdjustSelection(1);                                             // Normal to Hard
+        Eq(menu.PracticeLevel, Difficulty.Hard);
+        menu.Select(3);
+        menu.ActivateSelection();
+        Eq(asked?.stage, stage);
+        Eq(asked?.phase, 2);
+        foreach (var track in MusicRoom.Tracks) True(track.Unlocked, "every song is open");
     }
 
     private static void TheMainMenuEndsWithAButtonToQuit()
