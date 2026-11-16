@@ -45,6 +45,7 @@ public partial class DialogueBox : Node2D
     private int _index;
     private List<string> _wrapped = new();
     private float _typed;
+    private string _flat = "";
     private int _total;
     private float _lock;
     private float _clock;
@@ -60,6 +61,8 @@ public partial class DialogueBox : Node2D
     public bool IsActive => _phase == Phase.In || _phase == Phase.Open;
     /// <summary>The box is on the screen, even if it is only fading away.</summary>
     public bool IsOnScreen => Visible;
+    /// <summary>The words of the line are all there (for the preview video, which turns the page when they have been read).</summary>
+    public bool IsFullyTyped => _typed >= _total;
     public int Index => _index;
 
     public DialogueBox()
@@ -147,6 +150,7 @@ public partial class DialogueBox : Node2D
         _wrapped = GameHud.Wrap(line.Text, LineWidth, MaxLines);
         _total = _wrapped.Sum(l => l.Length);
         _typed = 0;
+        _flat = string.Concat(_wrapped);
         ShowTyped();
     }
 
@@ -162,6 +166,18 @@ public partial class DialogueBox : Node2D
         _face.Texture = texture;
         _face.Visible = true;
         if (texture != null) _face.Scale = new Vector2(FaceSize / texture.GetWidth(), FaceSize / texture.GetWidth());
+    }
+
+    /// <summary>A little blip for each letter that appears (not for the spaces and the stops); the voice depends on who speaks.</summary>
+    private void TypeSound(int from, int to)
+    {
+        for (int i = from; i < to && i < _flat.Length; i++)
+        {
+            if (!char.IsLetterOrDigit(_flat[i])) continue;
+            var sound = _speaker == DialogueSpeaker.Atli ? SfxBank.Sound.TypeLow : _speaker == DialogueSpeaker.Airu ? SfxBank.Sound.TypeHigh : SfxBank.Sound.TypeMid;
+            if (_speaker != DialogueSpeaker.Narrator) SfxPlayer.Instance?.Play(sound);
+            break;
+        }
     }
 
     private void ShowTyped()
@@ -205,8 +221,10 @@ public partial class DialogueBox : Node2D
         if (_shake > 0) { _shake = Math.Max(0, _shake - dt); ApplyFade(); }
         if (_typed < _total)
         {
+            int before = (int)_typed;
             _typed = Math.Min(_total, _typed + TypeSpeed * dt);
             ShowTyped();
+            TypeSound(before, (int)_typed);
         }
     }
 

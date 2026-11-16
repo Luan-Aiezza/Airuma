@@ -30,12 +30,17 @@ public partial class GameScene : Node2D
     public bool Autoplay;
     /// <summary>The demonstration shown when the menu is left alone: a pilot plays a stage by itself, and any key, click, touch or move of the mouse goes back to the menu.</summary>
     public bool Demo;
+    /// <summary>For the preview video: the demonstration without its label and its end, or the opening of stage 1 played by itself (the talk goes on at a set pace).</summary>
+    public bool Preview, PreviewIntro;
     private DemoPilot _demoPilot;
     private PixelLabel _demoLabel;
     private double _demoClock;
     /// <summary>The demonstration ends after this many seconds if it has not ended by itself.</summary>
     private const double DemoSeconds = 80;
     private bool Scripted => Autoplay || Demo;
+    private double _previewTyped = -1;
+    private int _previewIndex = -1;
+    public int PreviewLines = 3;
 
     private double _accumulator;
     private PlayerInputComponent _sampledInput;
@@ -155,6 +160,7 @@ public partial class GameScene : Node2D
             _demoPilot = new DemoPilot();
             _demoLabel = new PixelLabel(PixelLabel.Style.Gold, 4, PixelLabel.Align.Center) { Position = new Vector2(Layout.FieldInset + 300, 40), ZIndex = 160 };
             _demoLabel.SetText(UIText.DemoLabel);
+            _demoLabel.Visible = !Preview;
             AddChild(_demoLabel);
         }
         SyncNodes();
@@ -206,7 +212,7 @@ public partial class GameScene : Node2D
         {
             _demoClock += delta;
             // it ends when the boat is lost, the stage is won or the time is up; the label blinks
-            if (World.Result != null || _demoClock > DemoSeconds) { DoExit(); return; }
+            if (!Preview && (World.Result != null || _demoClock > DemoSeconds)) { DoExit(); return; }
             _demoLabel.Modulate = new Color(1, 1, 1, (float)_demoClock % 1.2f < 0.8f ? 1 : 0.25f);
         }
         double dt = Math.Min(delta, 0.1);

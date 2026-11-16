@@ -31,6 +31,7 @@ public partial class GameScene : Node2D
     /// <summary>A line of a talk has appeared. A line spoken by no one is a happening, and it is shown: the tremor before the first boss rises shakes the whole picture.</summary>
     private void OnDialogueLine(DialogueLine line)
     {
+        if (Preview && line.Shout) GD.Print($"PREVIEW_SFX HitBoss {_clock:F3}");
         if (line.Speaker != DialogueSpeaker.Narrator) return;
         _tremor = 2.8f;
         SfxPlayer.Instance?.Play(SfxBank.Sound.Quake);

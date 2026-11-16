@@ -28,6 +28,8 @@ public static class DevTools
         else if (options.Value("--export-retired") is string retired) ExportRetired(retired);
         else if (options.Value("--export-cards") is string cards) ExportCards(cards);
         else if (options.Value("--export-spirits") is string spirits) ExportSpirits(spirits);
+        else if (options.Value("--export-web") is string web) WebExport.Run(web);
+        else if (options.Value("--export-web-audio") is string webAudio) WebExport.RunAudio(webAudio);
         else return false;
         return true;
     }

@@ -129,6 +129,7 @@ public partial class GameScene : Node2D
 
     private void StartStageMusic()
     {
+        if (Preview) GD.Print($"PREVIEW_MUSIC {_clock:F3}");
         MusicPlayer.Instance?.Play(World.Definition.Theme);
         _title.Show(World.Definition.Title, World.Definition.MusicTitle, fire: false, hold: 3.0f, difficulty: Difficulty);
     }

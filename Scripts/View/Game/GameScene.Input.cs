@@ -47,7 +47,7 @@ public partial class GameScene : Node2D
             _pickerLock = Math.Max(0, _pickerLock - dt);
             if (_pickerLock == 0)
             {
-                if (Scripted) { Take(0); return; }
+                if (Scripted || PreviewIntro) { Take(0); return; }
                 if (JustPressed(Key.Left, Key.A)) _picker.Move(-1);
                 if (JustPressed(Key.Right, Key.D)) _picker.Move(1);
                 if (JustPressed(Key.Z, Key.Enter, Key.KpEnter, Key.Space)) Take(_picker.Selected);
@@ -70,6 +70,22 @@ public partial class GameScene : Node2D
     /// <summary>Z / Enter / Space move the conversation on; X skips it. (The autoplay test pilot skips it at once.)</summary>
     private void UpdateDialogueKeys()
     {
+        if (PreviewIntro)
+        {
+            // the opening of the preview video, at the pace of a player: the line is read (a moment after it has all appeared) and the page is turned; after the third line the talk is over
+            if (_dialogue.Index != _previewIndex) { _previewIndex = _dialogue.Index; _previewTyped = -1; }
+            if (_dialogue.IsFullyTyped)
+            {
+                if (_previewTyped < 0) _previewTyped = _clock;
+                else if (_clock - _previewTyped >= 1.7)
+                {
+                    GD.Print($"PREVIEW_SFX DialogueNext {_clock:F3}");
+                    if (_dialogue.Index >= PreviewLines - 1) _dialogue.Skip(true); else _dialogue.Advance(true);
+                    _previewTyped = -1;
+                }
+            }
+            return;
+        }
         if (Scripted) { _dialogue.Skip(true); return; }
         bool Fresh(params Key[] keys) => keys.Any(k => KeyDown(k) && !_dialogueHeld.Contains(k));
         if (Fresh(Key.X)) _dialogue.Skip();
@@ -89,6 +105,7 @@ public partial class GameScene : Node2D
     public override void _Input(InputEvent @event)
     {
         if (Main.IsFullscreenKey(@event)) return;               // the window's own keys: Main takes them
+        if (Demo && Preview) return;
         if (Demo)
         {
             // any key, click, touch or move of the mouse brings the menu back (a moment of grace first, so what the scene change itself stirs up does not)

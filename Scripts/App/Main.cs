@@ -28,8 +28,23 @@ public partial class Main : Node2D
     private int _shotFrames, _shotAt = 90;
 
     /// <summary>For looking at the picture: `--shot=file.png` saves the view after a few frames (`--shot-frames=N`, 90 by default) and quits.</summary>
+    private int _dumpTick, _dumpSaved;
+
+    /// <summary>Saves the frames of the preview video: from tick `DumpFrom`, `DumpCount` of them, one picture each (the run is at a fixed rate: --fixed-fps 60).</summary>
+    private async void DumpFrame(int n)
+    {
+        await ToSignal(RenderingServer.Singleton, RenderingServer.SignalName.FramePostDraw);
+        GetViewport().GetTexture().GetImage().SavePng(System.IO.Path.Combine(_options.Dump, $"f{n:D4}.png"));
+        if (++_dumpSaved >= _options.DumpCount) GetTree().Quit();
+    }
+
     public override void _Process(double delta)
     {
+        if (_options.Dump != null)
+        {
+            System.IO.Directory.CreateDirectory(_options.Dump);
+            if (++_dumpTick > _options.DumpFrom && _dumpTick <= _options.DumpFrom + _options.DumpCount) DumpFrame(_dumpTick - _options.DumpFrom - 1);
+        }
         WatchScreenMode((float)delta);
         // the menu left alone for a while turns into a demonstration of the game
         if (_menu == null || _menu.CurrentScreen != MenuScene.Screen.Main) _idle = 0;     // only the main menu, left alone, turns into the demonstration: not a sub-menu
@@ -68,6 +83,21 @@ public partial class Main : Node2D
         _veilTween = CreateTween();
         _veilTween.TweenProperty(_veil, "color:a", alpha, FadeSeconds);
         _veilTween.TweenCallback(Callable.From(() => { if (alpha <= 0) _veil.Visible = false; then?.Invoke(); }));
+    }
+
+    /// <summary>For the preview video: the opening of stage 1, or a pilot that flies a stage (from a wave) or a boss attack, with no label and no end.</summary>
+    private void StartPreview()
+    {
+        var definition = Stages.All[System.Math.Clamp(_options.Stage, 0, Stages.All.Count - 1)];
+        _inMenu = false;
+        GameScene game;
+        if (_options.PreviewDemo)
+        {
+            game = new GameScene(_options.Practice, Difficulty.Normal, definition, null, stagePractice: !_options.Practice.HasValue) { Demo = true, Preview = true };
+            if (_options.Wave is int wave) game.World.JumpToWave(wave);
+        }
+        else game = new GameScene(null, Difficulty.Normal, definition, null) { PreviewIntro = true, Preview = true };
+        Swap(game);
     }
 
     private void StartDemo()
@@ -188,6 +218,7 @@ public partial class Main : Node2D
 
         _options = LaunchOptions.FromCommandLine();
         if (DevTools.Run(_options)) { GetTree().Quit(); return; }
+        if (_options.Lang != null && System.Enum.TryParse(_options.Lang, true, out Language chosen)) Loc.Set(chosen);
         if (_options.SelfTest) { GetTree().Quit(SelfTest.Run()); return; }
         Settings.Load();
         _shot = _options.Shot;
@@ -202,8 +233,10 @@ public partial class Main : Node2D
         AddChild(new MusicPlayer());
         AddChild(new SfxPlayer());
         _stage.AddChild(new AchievementToast());
-        if (_options.Practice is int phase) StartGame(phase, Difficulty.Normal, _options.Stage);
+        if (_options.Preview) StartPreview();
+        else if (_options.Practice is int phase) StartGame(phase, Difficulty.Normal, _options.Stage);
         else if (_options.Game) StartGame(null, _options.Difficulty, _options.Stage);
+        else if (System.Array.IndexOf(_options.Args, "--picker") >= 0) Swap(new WeaponPicker(WeaponStyle.Stream));      // (to look at the choice of the attack)
         else if (_shot != null) ShowMenu();
         else ShowIntro();
     }

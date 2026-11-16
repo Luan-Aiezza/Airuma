@@ -151,7 +151,8 @@ def styles():
 
 @step
 def program():
-    sub('Scripts/App/Main.cs', "        if (DevTools.Run(_options)) { GetTree().Quit(); return; }\n        if (_options.SelfTest) { GetTree().Quit(SelfTest.Run()); return; }\n", "")
+    sub('Scripts/App/Main.cs', "        if (DevTools.Run(_options)) { GetTree().Quit(); return; }\n", "")
+    sub('Scripts/App/Main.cs', "        if (_options.SelfTest) { GetTree().Quit(SelfTest.Run()); return; }\n", "")
     remove_member('Scripts/Audio/Songs.Endings.cs', 'EndlessNight()')
     remove_member('Scripts/Audio/Songs.Endings.cs', 'Daybreak()')
     # the songs of the demo: the menu, the stage, the boss and the game over

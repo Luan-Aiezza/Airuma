@@ -307,6 +307,9 @@ public partial class World
         _events.Add(WorldEvent.BossEntered());
     }
 
+    /// <summary>Jumps to the start of a wave of the stage, with no spirits about (for the preview video).</summary>
+    public void JumpToWave(int index) => WaveSystem.JumpTo(_waves, Enemies, Math.Clamp(index, 0, Definition.Waves.Count - 1));
+
     /// <summary>Takes the card at index of the current offer, and goes on.</summary>
     public void Choose(int index)
     {

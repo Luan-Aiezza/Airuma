@@ -22,6 +22,11 @@ public sealed class LaunchOptions
     public int Stage;                           // 0 for the first stage
     public Difficulty Difficulty = Difficulty.Normal;
     public string Shot;
+    /// <summary>For the preview video (see Docs/Video): --preview (the opening of stage 1) or --preview --demo (a pilot flies a stage or a boss attack), --wave=N, and the frames to save.</summary>
+    public bool Preview, PreviewDemo;
+    public int? Wave;
+    public string Dump, Lang;
+    public int DumpFrom, DumpCount = 120;
     public int ShotFrames = 90;
 
     public LaunchOptions(string[] args)
@@ -34,6 +39,13 @@ public sealed class LaunchOptions
         if (Value("--stage") is string stage && int.TryParse(stage, out int n)) Stage = Math.Max(0, n - 1);
         if (Value("--difficulty") is string level && Enum.TryParse(level, true, out Difficulty parsed)) Difficulty = parsed;
         Shot = Value("--shot");
+        Preview = Has("--preview");
+        PreviewDemo = Has("--demo");
+        if (Value("--wave") is string wave && int.TryParse(wave, out int w)) Wave = w;
+        Dump = Value("--dump");
+        Lang = Value("--lang");
+        if (Value("--dump-from") is string from && int.TryParse(from, out int df)) DumpFrom = df;
+        if (Value("--dump-count") is string dc && int.TryParse(dc, out int dn)) DumpCount = dn;
         if (Value("--shot-frames") is string frames && int.TryParse(frames, out int f)) ShotFrames = f;
     }
 

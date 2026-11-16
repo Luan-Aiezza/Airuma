@@ -21,6 +21,7 @@ public static class SfxBank
         OrbGreen, OrbRed, RiceRed, Fireball, FlameDart, Spark, VenomOrb, LotusPetal, MagmaOrb, FireSerpent, Ember,
         Bomb, Pickup, LevelUp, MenuMove, MenuSelect, MenuBack, DialogueNext,
         HitGunner, HitHeavy, HitBoss, Twirl, Splash, Jet, Rage, RagePulse, Thunder, Slash, Roar, Quake, Rock, Gravity, Tick, LaserWarn, LaserFire, Pulse, FireBurst,
+        TypeLow, TypeMid, TypeHigh,
     }
 
     /// <summary>Volume in dB, and the least time in seconds between two plays (so volleys do not pile up into noise).</summary>
@@ -33,7 +34,7 @@ public static class SfxBank
         Sound.Fireball => (-13f, 0.12f), Sound.FlameDart => (-15f, 0.12f), Sound.Spark => (-17f, 0.06f), Sound.VenomOrb => (-17f, 0.06f),
         Sound.LotusPetal => (-14f, 0.15f), Sound.MagmaOrb => (-9f, 0.2f), Sound.FireSerpent => (-18f, 0.05f), Sound.Ember => (-18f, 0.05f),
         Sound.Bomb => (-5f, 0.5f), Sound.Pickup => (-19f, 0.035f), Sound.LevelUp => (-8f, 0.3f),
-        Sound.MenuMove => (-15f, 0.03f), Sound.MenuSelect => (-11f, 0.1f), Sound.MenuBack => (-13f, 0.1f), Sound.DialogueNext => (-16f, 0.05f),
+        Sound.MenuMove => (-15f, 0.03f), Sound.MenuSelect => (-11f, 0.1f), Sound.MenuBack => (-13f, 0.1f), Sound.DialogueNext => (-16f, 0.05f), Sound.TypeLow => (-24f, 0.04f), Sound.TypeMid => (-24f, 0.04f), Sound.TypeHigh => (-25f, 0.04f),
         Sound.HitGunner => (-18f, 0.05f), Sound.HitHeavy => (-16f, 0.05f), Sound.HitBoss => (-14f, 0.06f), Sound.Twirl => (-12f, 0.3f), Sound.Splash => (-9f, 0.15f), Sound.Jet => (-8f, 0.5f), Sound.Rage => (-3f, 1.0f), Sound.Thunder => (-6f, 1.0f), Sound.RagePulse => (-17f, 0.5f), Sound.Slash => (-9f, 0.2f), Sound.Roar => (-3f, 1.0f), Sound.Quake => (-4f, 1.0f), Sound.Rock => (-17f, 0.07f),
         Sound.Gravity => (-11f, 1.0f), Sound.Tick => (-9f, 0.5f), Sound.LaserWarn => (-5f, 0.35f), Sound.Pulse => (-8f, 0.18f), Sound.FireBurst => (-6f, 0.1f), Sound.LaserFire => (-6f, 0.35f),
         _ => (-12f, 0.05f),
@@ -375,6 +376,12 @@ public static class SfxBank
             {
                 var tone = Sweep(t => 1000 + 500 * Math.Min(1, t / 0.03));
                 return Render(0.075, t => (tone(t) * 0.7 + HighNoise(18, 0.4)(t) * 0.05) * Env(t, 0.002, 38));
+            }
+            case Sound.TypeLow: case Sound.TypeMid: case Sound.TypeHigh: // one letter of a talk: a tiny round blip (the boy's is low, the lantern spirit's high, the others' in between)
+            {
+                double f0 = sound == Sound.TypeLow ? 330 : sound == Sound.TypeHigh ? 640 : 470;
+                var tone = Sweep(t => f0 * (1 + 0.35 * Math.Exp(-t * 90)));
+                return Render(0.035, t => tone(t) * Env(t, 0.001, 85) * 0.85);
             }
             case Sound.HitGunner: // a light "tk" on a sturdy spirit
             {
