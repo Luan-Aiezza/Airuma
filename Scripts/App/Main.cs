@@ -217,6 +217,7 @@ public partial class Main : Node2D
         DisplayServer.WindowSetMinSize(MinWindowSize);
 
         _options = LaunchOptions.FromCommandLine();
+        SfxPlayer.Log = System.Array.IndexOf(_options.Args, "--sfx-log") >= 0;
         if (DevTools.Run(_options)) { GetTree().Quit(); return; }
         if (_options.Lang != null && System.Enum.TryParse(_options.Lang, true, out Language chosen)) Loc.Set(chosen);
         if (_options.SelfTest) { GetTree().Quit(SelfTest.Run()); return; }

@@ -14,6 +14,8 @@ using System.Collections.Generic;
 public partial class SfxPlayer : Node
 {
     public static SfxPlayer Instance { get; private set; }
+    /// <summary>For the preview video: says (on the console) which sound was played and in which frame, to put it in the soundtrack of the video.</summary>
+    public static bool Log;
 
     private const int Voices = 20;
     private readonly Dictionary<SfxBank.Sound, AudioStreamWav> _streams = new();
@@ -47,6 +49,7 @@ public partial class SfxPlayer : Node
         double now = Time.GetTicksMsec() / 1000.0;
         if (_lastPlayed.TryGetValue(sound, out double last) && now - last < gap) return;
         _lastPlayed[sound] = now;
+        if (Log) GD.Print($"SFXLOG {sound} {Engine.GetProcessFrames()}");
         var player = _players[_next];
         _next = (_next + 1) % _players.Count;
         player.Stream = _streams[sound];
