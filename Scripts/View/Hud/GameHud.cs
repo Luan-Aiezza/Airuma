@@ -69,12 +69,16 @@ public partial class GameHud : Node2D
 
     private readonly Node2D _bossGroup = new();
     private readonly ColorRect[] _bossFillRows = { NewRect(Colors.Transparent), NewRect(Colors.Transparent), NewRect(Colors.Transparent) };
-    private const float BossBarInnerWidth = 360;
+    private const float BossBarInnerWidth = 328;
+    /// <summary>Where the boss bar begins in the field (the number of the lives is over its left end, so that the bar seems to come out of it), and the width of its frame in art pixels.</summary>
+    private const float BossBarX = 160;
+    private const int BossBarFrameWidth = 90;
+    private readonly PixelLabel _bossLives = new(PixelLabel.Style.LivesOutlined, 6, PixelLabel.Align.Center);
     private float _shownBossHealth = 1;
 
     private readonly Node2D _banner = new();
     private readonly PixelLabel _bannerLabel = new(PixelLabel.Style.Value, 3, PixelLabel.Align.Right);
-    private readonly PixelLabel _bossClock = new(PixelLabel.Style.Value, 4, PixelLabel.Align.Right);
+    private readonly PixelLabel _bossClock = new(PixelLabel.Style.ValueOutlined, 4, PixelLabel.Align.Right);
     private readonly PixelLabel _flash = new(PixelLabel.Style.Gold, 3, PixelLabel.Align.Center);
     private float _flashTime = 99;
     private bool _bannerActive;
@@ -310,13 +314,16 @@ public partial class GameHud : Node2D
         Label(_bossClock, "", 584, 30, _bossGroup, Space.Field);
         Label(_flash, "", 300, 120, this, Space.Field);
         _flash.ZIndex = Z(6);
-        MakeSprite(HudArt.BossBarFrame(98).ToTexture(), AtField(136, 28), 0, null, null, _bossGroup);
+        MakeSprite(HudArt.BossBarFrame(BossBarFrameWidth).ToTexture(), AtField(BossBarX, 28), 0, null, null, _bossGroup);
+        // the lives of the boss: a number over the left end of the bar, with an outline (the bar comes out of it)
+        Label(_bossLives, "", BossBarX - 6, 29, _bossGroup, Space.Field);
+        _bossLives.ZIndex = Z(2.5f);
 
         for (int i = 0; i < _bossFillRows.Length; i++)
         {
             var row = _bossFillRows[i];
             row.Color = FirePalette.Ramp[i + 1].ToColor();
-            row.Position = AtField(152, 36 + i * 4);
+            row.Position = AtField(BossBarX + 16, 36 + i * 4);
             row.Size = new Vector2(BossBarInnerWidth, 4);
             row.ZIndex = Z(1);
             _bossGroup.AddChild(row);
@@ -377,6 +384,7 @@ public partial class GameHud : Node2D
         ShowCards(state.Cards);
         UpdateWind(state.WindDirection, state.WindStrength);
         UpdateBossBar(state.BossHealth, dt);
+        _bossLives.SetText(state.BossLives is int lives && lives > 0 ? lives.ToString(CultureInfo.InvariantCulture) : "");
         UpdateClock(state.BossSeconds, dt);
         UpdateDialogue(dt);
         UpdateAnimations(dt);

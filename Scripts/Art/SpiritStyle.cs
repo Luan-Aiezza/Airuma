@@ -11,6 +11,21 @@ public sealed class SpiritStyle
 {
     public Func<SpiritKind, int, PixelCanvas> MakeCanvas;
     public Func<SpiritKind, PixelColor> SparkColour;
+    /// <summary>The figures of the spirits with a look of their own (see <see cref="SpiritLook"/>) that this style draws itself (null: none; the looks of the forest are drawn by <see cref="ForestSpiritArt"/>).</summary>
+    public Func<SpiritLook, bool> HasLook;
+    public Func<SpiritLook, int, PixelCanvas> MakeLook;
+
+    /// <summary>The frames of a look, from the style if it draws it, else from the forest; null if no one draws it.</summary>
+    public Texture2D[] LookFrames(SpiritLook look)
+    {
+        if (HasLook != null && HasLook(look))
+        {
+            var frames = new Texture2D[FrameCount];
+            for (int f = 0; f < frames.Length; f++) frames[f] = MakeLook(look, f).ToTexture();
+            return frames;
+        }
+        return ForestSpiritArt.Has(look) ? ForestSpiritArt.MakeFrames(look) : null;
+    }
     /// <summary>The size of the sprites, in art pixels (every kind of the style has the same), and the number of frames of each.</summary>
     public int Width = SpiritArt.Width, Height = SpiritArt.Height, FrameCount = SpiritArt.FrameCount;
     /// <summary>Screen pixels per art pixel.</summary>
@@ -56,5 +71,6 @@ public sealed class SpiritStyle
     {
         MakeCanvas = PartySpiritArt.MakeCanvas, SparkColour = PartySpiritArt.SparkColour, Width = PartySpiritArt.Width, Height = PartySpiritArt.Height,
         FrameCount = PartySpiritArt.FrameCount,
+        HasLook = PartyLookArt.Has, MakeLook = PartyLookArt.MakeCanvas,
     };
 }

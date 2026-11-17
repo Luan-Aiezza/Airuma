@@ -19,7 +19,7 @@ public static partial class Attacks
         Pat.Every(Pat.Beat * 2, c => Pat.Ring(c, c.Origin, 10, c.Count * 14f * (c.Count % 2 == 0 ? 1 : -1), new Shot(BulletStyle.VenomOrb, 130).Sized(0.9f).Dancing(100), alternate: true)),
         Pat.Every(Pat.Beat * 5, c => Pat.Shoot(c, c.Origin, Pat.Aim.FanAimed, 4, 2, 0, 17, 220, 160, new Shot(Notes[c.Count % 3], 0).Popping())).After(Pat.Beat * 2),
     })
-        .Pressured(1.00f).Tougher(1.7f);
+        .Pressured(1.00f).Tougher(1.30f);
 
     /// <summary>Confetti and music: pieces of line (streamers) thrown out of the dancer wherever he goes, in a fan, turned a little each time; and notes that fall from the top, swaying, at random places.</summary>
     public static BossPhase ConfettiRain() => Attack("AttackConfettiRain", BossMovementType.Roam, Centre, patterns: new[]
@@ -36,7 +36,7 @@ public static partial class Attacks
         }),
         Pat.Every(0.5f, c => Pat.Rain(c, Edge.Top, 1, 16, new Shot(Notes[c.Count % 3], 115).Sized(1.0f).Dancing(50))),
     })
-        .Pressured(1.24f).Tougher(1.7f);
+        .Pressured(1.24f).Tougher(1.37f);
 
     /// <summary>A turning wheel of petals (red and blue, turning against each other, never on the same spot), and great fish that swim out in eight directions.</summary>
     public static BossPhase SambaWheel() => Attack("AttackSambaWheel", BossMovementType.Stationary, Centre, patterns: new[]
@@ -48,7 +48,7 @@ public static partial class Attacks
         // great fish (seen from above) in the eight directions, as big as the great spheres of the jet; the ring is turned by half a gap every time
         Pat.Every(3.0f, c => Pat.Ring(c, c.Origin, 8, c.Count % 2 * 22.5f + 11f, new Shot(BulletStyle.GiantFish, 95).Zoomed(1.5f).Hitting(34).Steady(), scale: false)).After(1.2f),
     })
-        .Pressured(1.00f).Tougher(0.85f);
+        .Pressured(1.00f).Tougher(0.72f);
 
     private static readonly BulletStyle[] PartyPetals = { BulletStyle.LotusPetal };
     private static readonly BulletStyle[] BluePetals = { BulletStyle.BluePetal };
@@ -62,7 +62,7 @@ public static partial class Attacks
         Pat.Every(Pat.Beat * 2, c => Pat.Ring(c, c.Origin, 9, c.Count * 13f, new Shot(BulletStyle.VenomOrb, 120).Sized(1.0f).Dancing(90), alternate: true)),
         Pat.Every(2.4f, c => Pat.Shoot(c, c.Origin, Pat.Aim.FanAimed, 3, 2, 0, 18, 230, 160, new Shot(BulletStyle.NoteCyan, 0).Popping())).After(1.0f).OnlyOnHard(),
     })
-        .Pressured(2.51f).Tougher(1.6f);
+        .Pressured(2.51f).Tougher(1.40f);
 
     /// <summary>
     /// A great, wide jet of water. The boss goes to the left edge and charges, then sweeps the jet to the right, stopping short of the right edge so that the boat has a place to stand; crosses to the right edge,
@@ -83,7 +83,7 @@ public static partial class Attacks
             Pat.Every(1, c => GreatSpheres(c, 0)).WithTheJet(0),
             Pat.Every(1, c => GreatSpheres(c, 30)).WithTheJet(0.9f),
         })
-        .Pressured(1.0f).Tougher(1.5f);
+        .Pressured(1.0f).Tougher(1.15f);
 
     private static readonly Color WaterLaser = new Color(0.40f, 0.80f, 1f);
 
@@ -110,7 +110,7 @@ public static partial class Attacks
                 Pat.Ring(c, c.Body[body], c.N(5, 3), c.Count * 9f, new Shot(BulletStyle.NoteGold, 88).Pawning(90, 1.1f, 1.0f).Sized(1.0f), Notes);
         }).After(ReflectionSystem.Delay),
     })
-        .Pressured(1.0f).Tougher(1.1f).Reflected();
+        .Pressured(1.0f).Tougher(0.97f).Reflected();
 
     /// <summary>A ring of great spheres of water (white and blue in turns) opening out of the boss, `turn` degrees off the first ring.</summary>
     private static void GreatSpheres(PatternContext c, float turn)

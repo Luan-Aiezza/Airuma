@@ -645,7 +645,7 @@ public static partial class BulletSystem
     {
         var targets = new List<Vector2>();
         if (effects.HomingWisps <= 0 && !homingWeapon) return targets;
-        foreach (var e in enemies) if (e.Health > 0 && e.Position.Y > 10) targets.Add(e.Position);        // (not those that are still above the picture)
+        foreach (var e in enemies) if (e.Health > 0 && !e.Submerged && e.Position.Y > 10) targets.Add(e.Position);        // (not those that are still above the picture)
         if (bossActive && boss.Health.CurrentHealth > 0 && boss.Transform.Position.Y > 0) targets.Add(boss.Transform.Position);
         if (bossActive && twin != null && boss.Health.CurrentHealth > 0 && twin.Transform.Position.Y > 0) targets.Add(twin.Transform.Position);
         return targets;

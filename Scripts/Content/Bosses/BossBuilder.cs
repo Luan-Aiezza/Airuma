@@ -67,7 +67,8 @@ public sealed class BossBuilder
     /// <summary>The time limit of an attack of this health (stream weapon): about three times what a good player needs, in steps of 5 s.</summary>
     public static float TimeLimitOf(int health, BossMovementType movement)
     {
-        float kill = health / (movement == BossMovementType.Stationary ? 29f : 20f);
+        // (the dive and the sweep are hit for less of the time than a boss that moves about: the jet leaves him a few seconds to be hit, the dive hides him under the water)
+        float kill = health / (movement switch { BossMovementType.Stationary => 29f, BossMovementType.Sweep => 10f, BossMovementType.Dive => 18f, _ => 20f });
         return Math.Clamp(5 * MathF.Ceiling(kill * TimeLimitSlack / 5), MinTimeLimit, MaxTimeLimit) + ExtraTimeSeconds;
     }
 

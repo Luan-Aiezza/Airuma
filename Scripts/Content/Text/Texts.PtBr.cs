@@ -345,7 +345,7 @@ public static class TextsPtBr
     ["AttackSerpentTail"] = "Cauda da Serpente do Inferno",
     ["AttackTideOfEmbers"] = "Investida da Grande Serpente",
     ["Stage2Title"] = "Fase 2",
-    ["BayloName"] = "Baylo",
+    ["BayloName"] = "Baron Baylo",
     ["AttackDoubleStep"] = "Dança: Passo Duplo",
     ["AttackConfettiRain"] = "Música: Chuva de Notas",
     ["AttackSambaWheel"] = "Música: Roda de Pétalas",

@@ -19,4 +19,11 @@ public enum SpiritLook
     Stump,
     /// <summary>The flower: a slow spiral of petals.</summary>
     Bloom,
+    // The party of stage 2 (see PartyLookArt):
+    /// <summary>The dancer: a fairy without wings in a dress, who twirls and throws a pinwheel of notes.</summary>
+    Dancer,
+    /// <summary>The fish in a party hat: it swims down the field, diving and coming up in turns (while it is under the water nothing touches it); it fires nothing, and hurts the boat that touches it while it is up.</summary>
+    Fish,
+    /// <summary>The jester: a pair of streamers, thrown out in turning rings.</summary>
+    Jester,
 }

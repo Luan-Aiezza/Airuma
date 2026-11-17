@@ -136,15 +136,17 @@ public static class PixelFont
     public static int Columns(string text) => Math.Max(0, new StringInfo(text).LengthInTextElements * Advance - 1);
 
     /// <summary>Draws <paramref name="text"/> (upper-cased). <paramref name="color"/> gets the glyph row (0..6); <paramref name="shadow"/> adds a 1px drop shadow.</summary>
-    public static Rendered Render(string text, Func<int, PixelColor> color, PixelColor? shadow = null)
+    public static Rendered Render(string text, Func<int, PixelColor> color, PixelColor? shadow = null, PixelColor? outline = null)
     {
         var list = Cells(text);
         bool hasAccent = list.Exists(c => c.Accent != null);
         bool hasCedilla = list.Exists(c => c.Cedilla);
         int top = hasAccent ? 3 : 0;
         int extra = shadow == null ? 0 : 1;
-        int width = Math.Max(1, Columns(text)) + extra;
-        int height = top + GlyphHeight + (hasCedilla ? 2 : 0) + extra;
+        // an outline: a pixel all round every letter, in its own colour (the canvas is a pixel larger on every side)
+        int pad = outline == null ? 0 : 1;
+        int width = Math.Max(1, Columns(text)) + extra + 2 * pad;
+        int height = top + GlyphHeight + (hasCedilla ? 2 : 0) + extra + 2 * pad;
         var canvas = new PixelCanvas(width, height);
 
         void Draw(string[] rows, int x, int y, Func<int, PixelColor> colorAt)
@@ -162,6 +164,22 @@ public static class PixelFont
             }
         }
 
+        if (outline != null)
+        {
+            for (int dy = -1; dy <= 1; dy++)
+                for (int dx = -1; dx <= 1; dx++)
+                {
+                    if (dx == 0 && dy == 0) continue;
+                    for (int i = 0; i < list.Count; i++)
+                    {
+                        var cell = list[i];
+                        int x = i * Advance + pad + dx;
+                        Draw(Glyphs[cell.Base], x, top + pad + dy, _ => outline.Value);
+                        if (cell.Accent is char accent && Accents.TryGetValue(accent, out var rows)) Draw(rows, x, pad + dy, _ => outline.Value);
+                        if (cell.Cedilla) Draw(Cedilla, x, top + GlyphHeight + pad + dy, _ => outline.Value);
+                    }
+                }
+        }
         for (int pass = 0; pass < (shadow == null ? 1 : 2); pass++)
         {
             bool isShadow = shadow != null && pass == 0;
@@ -169,15 +187,15 @@ public static class PixelFont
             for (int i = 0; i < list.Count; i++)
             {
                 var cell = list[i];
-                int x = i * Advance + offset;
+                int x = i * Advance + offset + pad;
                 Func<int, PixelColor> paint = r => isShadow ? shadow.Value : color(r);
-                Draw(Glyphs[cell.Base], x, top + offset, paint);
+                Draw(Glyphs[cell.Base], x, top + pad + offset, paint);
                 if (cell.Accent is char accent && Accents.TryGetValue(accent, out var rows))
-                    Draw(rows, x, offset, _ => paint(0));
+                    Draw(rows, x, pad + offset, _ => paint(0));
                 if (cell.Cedilla)
-                    Draw(Cedilla, x, top + GlyphHeight + offset, _ => paint(6));
+                    Draw(Cedilla, x, top + GlyphHeight + pad + offset, _ => paint(6));
             }
         }
-        return new Rendered(canvas, top);
+        return new Rendered(canvas, top + pad);
     }
 }

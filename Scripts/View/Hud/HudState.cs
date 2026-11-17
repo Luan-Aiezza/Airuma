@@ -16,6 +16,8 @@ public struct HudState
     public float WindStrength;
     /// <summary>Boss health 0...1, or null when there is no boss to show.</summary>
     public float? BossHealth;
+    /// <summary>How many lives (attacks) the boss has left, shown by the bar of its life.</summary>
+    public int? BossLives;
     /// <summary>Whole seconds left of the boss's attack, or null when there is no clock to show.</summary>
     public int? BossSeconds;
     public int PhasesCleared;

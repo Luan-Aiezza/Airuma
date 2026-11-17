@@ -39,9 +39,8 @@ public static class SpiritFire
     // MARK: Stage 2, the party
 
     public static List<ScheduledPattern> Confetti => L(P(Fan(2.0f, 3, 1, 20, 190, 190, BulletStyle.NotePink, 1.0f), Always));
-    public static List<ScheduledPattern> Balloons => L(P(Ring(2.8f, 8, 14, 85, new[] { BulletStyle.OrbBlue }, dance: true), Always));
     public static List<ScheduledPattern> Streamers => L(P(F(0.32f, c => Pat.Ring(c, c.Origin, 2, c.Count * 23f, S(BulletStyle.BeadYellow, 120, 0.8f), scale: false)), 2.0f), Rest(2.6f));
-    public static List<ScheduledPattern> Pinwheel => L(P(F(2.0f, c => Pat.Rose(c, c.Origin, 4, 16, c.Count * 8f, 0.5f, S(BulletStyle.NoteGold, 95).Dancing(50))), Always));
+    public static List<ScheduledPattern> Pinwheel => L(P(F(2.0f, c => Pat.Rose(c, c.Origin, 4, 8, c.Count * 8f, 0.5f, S(BulletStyle.NoteGold, 95).Dancing(50))), Always));
 
     // MARK: Stage 3, the storm
 

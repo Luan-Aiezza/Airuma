@@ -17,6 +17,8 @@ public partial class PixelLabel : Sprite2D
         public string Name;
         public Func<int, PixelColor> Color;
         public PixelColor? Shadow;
+        /// <summary>A pixel of this colour all round every letter (instead of a shadow).</summary>
+        public PixelColor? Outline;
 
         public Style(string name, Func<int, PixelColor> color, PixelColor? shadow) { Name = name; Color = color; Shadow = shadow; }
 
@@ -28,6 +30,10 @@ public partial class PixelLabel : Sprite2D
 
         public static readonly Style Label = Flat("label", 0xE8D8B0);
         public static readonly Style Value = Flat("value", 0xFFFFFF);
+        /// <summary>White with a dark outline all round it: the clock of the attack, and the lives of the boss (readable over the field).</summary>
+        public static readonly Style ValueOutlined = new Style("valueOutlined", _ => PixelColor.Hex(0xFFFFFF), null) { Outline = PixelColor.Hex(0x120D11) };
+        /// <summary>The number of the boss's lives, gold with a dark outline: the bar of its life comes out of it.</summary>
+        public static readonly Style LivesOutlined = new Style("livesOutlined", r => FirePalette.Ramp[new[] { 0, 0, 1, 1, 2, 2, 3 }[Math.Max(0, Math.Min(6, r))]], null) { Outline = PixelColor.Hex(0x120D11) };
         public static readonly Style Gold = Flat("gold", 0xF2C14E);
         public static readonly Style Dim = Flat("dim", 0x9A8A6A);
         public static readonly Style Speech = Flat("speech", 0xFFF3B0);
@@ -73,7 +79,7 @@ public partial class PixelLabel : Sprite2D
         var key = (newText, LabelStyle.Name);
         if (!Cache.TryGetValue(key, out var entry))
         {
-            var rendered = PixelFont.Render(newText, LabelStyle.Color, LabelStyle.Shadow);
+            var rendered = PixelFont.Render(newText, LabelStyle.Color, LabelStyle.Shadow, LabelStyle.Outline);
             entry = new Entry { Texture = rendered.Canvas.ToTexture(), Width = rendered.Canvas.Width, Height = rendered.Canvas.Height, CapTop = rendered.CapTop };
             Cache[key] = entry;
         }

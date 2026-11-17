@@ -49,6 +49,9 @@ public partial class GameScene : Node2D
     public RiverBackground River { get; private set; }
     private readonly WakeEffect _wake = new();
     private BurstEffect _burst;
+    private readonly RippleEffect _ripples = new();
+    /// <summary>Which fish of the party were under the water at the last frame (to ripple the water, and sound, when one dives or comes up).</summary>
+    private readonly Dictionary<int, bool> _fishUnder = new();
     private readonly ConstellationLines _constellations = new();
     private readonly SlashEffect _slashes = new();
     private readonly MoonEffect _moon = new();
@@ -286,6 +289,7 @@ public partial class GameScene : Node2D
         SyncEnemies();
         SyncLights();
         _burst.Update(fdt);
+        _ripples.Update(fdt);
         HandleWorldEvents();
         var boss = World.Boss;
         _windEffect.SetWind(World.Wind.Direction, World.Wind.Strength);
@@ -332,6 +336,7 @@ public partial class GameScene : Node2D
         _picker.Hide();
         _wake.Reset();
         _burst.Reset();
+        _ripples.Reset(); _fishUnder.Clear();
         _accumulator = 0;
         _input.EndAll();
         StartRun();

@@ -22,6 +22,8 @@ public struct EnemySpec
     public SpiritLook Look;
     public float Size;
     public int Health;
+    /// <summary>A spirit that dives: it is up for half of `DivePeriod` seconds and under the water for the other half, `DiveOffset` seconds out of step (see <see cref="EnemyEntity.Submerged"/>).</summary>
+    public float DivePeriod, DiveOffset;
 
     public EnemySpec() { Time = 0; Kind = SpiritKind.Swarm; Position = Vector2.Zero; Path = default; Phase = 0; Patterns = new List<ScheduledPattern>(); FirstShotDelay = 0.6f; Tint = Colors.White; Size = 1; Health = 0; }
 }

@@ -31,6 +31,13 @@ public class EnemyEntity
     public SpiritLook Look = SpiritLook.Default;
     public float Size = 1;
 
+    /// <summary>A spirit that dives (the fish of the party): up for the first half of every `DivePeriod` seconds and under the water for the second half, `DiveOffset` seconds out of step with the others.</summary>
+    public float DivePeriod, DiveOffset;
+    /// <summary>It is under the water: nothing touches it (the boat's shots go through it, the bomb does not reach it, it does not hurt) and it fires nothing.</summary>
+    public bool Submerged => DivePeriod > 0 && (Age + DiveOffset) % DivePeriod >= DivePeriod / 2;
+    /// <summary>Seconds until it comes up (0 if it is up).</summary>
+    public float SecondsToSurface => Submerged ? DivePeriod - (Age + DiveOffset) % DivePeriod : 0;
+
     // For Dive
     public bool Arrived = false;
     public float HoldClock = 0;

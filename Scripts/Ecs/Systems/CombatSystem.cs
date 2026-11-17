@@ -35,7 +35,7 @@ public static class CombatSystem
                     if (player.Transform.Position.DistanceTo(d.Transform.Position) < player.Hitbox.Radius + d.Hitbox.Radius) touchesBoss = true;
             if (enemies != null)
                 foreach (var e in enemies)
-                    if (e.Health > 0 && player.Transform.Position.DistanceTo(e.Position) < player.Hitbox.Radius + e.Kind.HitboxRadius())
+                    if (e.Health > 0 && !e.Submerged && player.Transform.Position.DistanceTo(e.Position) < player.Hitbox.Radius + e.Kind.HitboxRadius())
                     { touchesSpirit = true; break; }
             // The thin lines of a constellation that hangs still.
             bool hitByLine = false;
@@ -175,7 +175,7 @@ public static class CombatSystem
         if (!player.Bomb.IsActive) return defeated;
         foreach (var enemy in enemies)
         {
-            if (!(enemy.Health > 0)) continue;
+            if (!(enemy.Health > 0) || enemy.Submerged) continue;
             if (!(player.Transform.Position.DistanceTo(enemy.Position) <= player.Bomb.Radius)) continue;
             if (Damage(enemy, BombSystem.SpiritDamagePerSecond * damageMultiplier * delta)) defeated.Add((enemy.Kind, enemy.Position));
         }
@@ -212,7 +212,7 @@ public static class CombatSystem
             ref BulletData b = ref pool[i];
             foreach (var enemy in enemies)
             {
-                if (!(enemy.Health > 0 && enemy.Id != b.LastHit)) continue;
+                if (!(enemy.Health > 0 && enemy.Id != b.LastHit) || enemy.Submerged) continue;
                 if (!(b.Position.DistanceTo(enemy.Position) < b.HitboxRadius + enemy.Kind.HitboxRadius())) continue;
                 float strength = b.Damage * b.Power;
                 if (Damage(enemy, strength)) report.Defeated.Add((enemy.Kind, enemy.Position));
@@ -223,7 +223,7 @@ public static class CombatSystem
                     // The bolt bursts and scorches whoever is close.
                     foreach (var other in enemies)
                     {
-                        if (other != enemy && other.Health > 0
+                        if (other != enemy && other.Health > 0 && !other.Submerged
                             && other.Position.DistanceTo(enemy.Position) < b.BurstRadius + other.Kind.HitboxRadius())
                         {
                             if (Damage(other, strength * BurstShare * b.BurstScale)) report.Defeated.Add((other.Kind, other.Position));

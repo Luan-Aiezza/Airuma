@@ -31,7 +31,7 @@ public partial class GameScene : Node2D
         }
 
         foreach (var kind in Enum.GetValues<SpiritKind>()) _spiritFrames[kind] = Stage.Spirits.MakeFrames(kind);
-        foreach (var look in Enum.GetValues<SpiritLook>()) if (look != SpiritLook.Default) _lookFrames[look] = ForestSpiritArt.MakeFrames(look);
+        foreach (var look in Enum.GetValues<SpiritLook>()) if (look != SpiritLook.Default && Stage.Spirits.LookFrames(look) is { } own) _lookFrames[look] = own;
         var spiritSize = Stage.Spirits.SpriteSize;
         for (int i = 0; i < 48; i++)
         {
@@ -65,6 +65,8 @@ public partial class GameScene : Node2D
         AddChild(_moon);
         _burst.ZIndex = Z(2.6f);
         AddChild(_burst);
+        _ripples.ZIndex = Z(1.2f);          // on the water, under the spirits
+        AddChild(_ripples);
 
         _wake.ZIndex = Z(-5); // on the water: above the river, below bullets and boats
         AddChild(_wake);
@@ -322,6 +324,7 @@ public partial class GameScene : Node2D
             WindStrength = wind.Strength,
             BossHealth = World.Part == StagePart.Boss && _bossSequence == BossSequence.None && boss.Health.Lives > 0
                 ? (float)Math.Max(0, boss.Health.CurrentHealth) / boss.Health.MaxHealth : (float?)null,
+            BossLives = World.Part == StagePart.Boss && _bossSequence == BossSequence.None && boss.Health.Lives > 0 ? boss.Health.Lives : (int?)null,
             BossSeconds = _bossSequence == BossSequence.None ? World.BossSeconds : null,
             PhasesCleared = boss.Definition.Lives - Math.Max(0, boss.Health.Lives),
             PowerProgress = PowerCurve.Progress(player.Energy),
@@ -333,6 +336,7 @@ public partial class GameScene : Node2D
     private void SyncEnemies()
     {
         int frame = (int)(_animationClock * 10);
+        bool fishDived = false, fishSurfaced = false;
         for (int i = 0; i < _enemyNodes.Count; i++)
         {
             var node = _enemyNodes[i]; var mirror = _enemyMirrors[i];
@@ -343,9 +347,33 @@ public partial class GameScene : Node2D
             node.Position = Point(enemy.Position);
             node.Modulate = enemy.Tint;
             FitTo(node, Stage.Spirits.SpriteSize * enemy.Size);
-            mirror.Modulate = new Color(enemy.Tint.R, enemy.Tint.G, enemy.Tint.B, 0.55f);
+            float under = 0;
+            if (enemy.DivePeriod > 0)
+            {
+                // a fish that dives: it takes a moment to sink (it shrinks, goes dark and flat, and the water closes over it) and to come up (it leaps out in a spray and takes its colours back);
+                // under the water it is only a dark silhouette with a swirl on the surface above it, that flickers just before it comes up (so that the boat knows)
+                const float turn = 0.35f;
+                float half = enemy.DivePeriod / 2, since = (enemy.Age + enemy.DiveOffset) % half;
+                under = enemy.Submerged ? Math.Min(1, since / turn) : Math.Max(0, 1 - since / turn);
+                if (_fishUnder.TryGetValue(enemy.Id, out bool was) && was != enemy.Submerged)
+                {
+                    _ripples.Add(Point(enemy.Position), !enemy.Submerged);
+                    if (enemy.Submerged) fishDived = true; else fishSurfaced = true;
+                }
+                _fishUnder[enemy.Id] = enemy.Submerged;
+                float soon = enemy.SecondsToSurface;
+                bool flicker = enemy.Submerged && soon < 0.35f && (int)(_animationClock * 20) % 2 == 0;
+                float leap = !enemy.Submerged && since < 0.4f ? MathF.Sin(MathF.PI * since / 0.4f) : 0;          // it jumps a little as it comes up
+                node.Modulate = new Color(1, 1, 1, 1 - (flicker ? 0.62f : 0.4f) * under);
+                node.Scale = new Vector2(node.Scale.X * (1 - 0.12f * under + 0.18f * leap), node.Scale.Y * (1 - 0.2f * under + 0.18f * leap));
+                node.Position += new Vector2(0, 12 * under - 16 * leap);
+                if (under > 0.5f) _ripples.Mark(Point(enemy.Position));
+            }
+            if (node.Material is ShaderMaterial silhouette)
+                silhouette.SetShaderParameter("target", under > 0.01f ? new Vector3(0.03f, 0.1f, 0.18f) : Vector3.One);
+            mirror.Modulate = new Color(enemy.Tint.R, enemy.Tint.G, enemy.Tint.B, 0.55f * (1 - under));
             mirror.Scale = new Vector2(node.Scale.X, -node.Scale.Y);
-            SetBlend(node, enemy.HitFlash > 0 ? 0.7f : 0);
+            SetBlend(node, under > 0.01f ? under : (enemy.HitFlash > 0 ? 0.7f : 0));
             node.Visible = true;
 
             // The spirit hovers a little above the water; its reflection is as far under the surface as it is above it.
@@ -356,6 +384,9 @@ public partial class GameScene : Node2D
             mirror.Visible = reflect;
             if (reflect) mirror.Position = new Vector2(node.Position.X, node.Position.Y + height + 2 * hover);
         }
+        // one sound for all the fish of a line that dive together, and one for all that come up
+        if (fishDived) SfxPlayer.Instance?.Play(SfxBank.Sound.FishDive);
+        if (fishSurfaced) SfxPlayer.Instance?.Play(SfxBank.Sound.FishSurface);
     }
 
     /// <summary>Draws the little lights falling through the picture.</summary>

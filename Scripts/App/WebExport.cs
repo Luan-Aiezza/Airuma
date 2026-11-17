@@ -55,7 +55,7 @@ public static class WebExport
         foreach (var kind in new[] { SpiritKind.Swarm, SpiritKind.Gunner })
             for (int f = 0; f < SpiritArt.FrameCount; f++) Save(SpiritArt.MakeCanvas(kind, f), $"spirit/{kind}_{f}");
         foreach (var look in Enum.GetValues<SpiritLook>())
-            if (look != SpiritLook.Default) for (int f = 0; f < ForestSpiritArt.FrameCount; f++) Save(ForestSpiritArt.MakeCanvas(look, f), $"spirit/{look}_{f}");
+            if (look != SpiritLook.Default && ForestSpiritArt.Has(look)) for (int f = 0; f < ForestSpiritArt.FrameCount; f++) Save(ForestSpiritArt.MakeCanvas(look, f), $"spirit/{look}_{f}");
         Meta["spirit"] = new Dictionary { ["w"] = SpiritArt.Width * SpiritArt.Scale, ["h"] = SpiritArt.Height * SpiritArt.Scale, ["frames"] = SpiritArt.FrameCount };
 
         // The boss

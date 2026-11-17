@@ -66,8 +66,9 @@ public static class EnemySystem
     public static bool IsOffScreen(EnemyEntity e, Rect2 bounds)
     {
         if (!(e.Age > 1)) return false;
-        return e.Position.X < bounds.Position.X - Margin || e.Position.X > bounds.End.X + Margin
-            || e.Position.Y < bounds.Position.Y - Margin || e.Position.Y > bounds.End.Y + Margin;
+        // outside the field and going away from it (one that is still on its way in, from far above or to the side, is not gone)
+        return (e.Position.X < bounds.Position.X - Margin && e.Velocity.X <= 0) || (e.Position.X > bounds.End.X + Margin && e.Velocity.X >= 0)
+            || (e.Position.Y < bounds.Position.Y - Margin && e.Velocity.Y <= 0) || (e.Position.Y > bounds.End.Y + Margin && e.Velocity.Y >= 0);
     }
 
     // Shooting
@@ -80,7 +81,7 @@ public static class EnemySystem
     /// <summary>Enemies only shoot while they are inside the play area.</summary>
     public static void Fire(EnemyEntity e, Vector2 target, BulletData[] pool, Rect2 bounds, float delta, Difficulty difficulty = Difficulty.Easy)
     {
-        if (e.Patterns.Count == 0 || !(e.Age > 0.25f)
+        if (e.Patterns.Count == 0 || e.Submerged || !(e.Age > 0.25f)
             || !(e.Position.X > bounds.Position.X) || !(e.Position.X < bounds.End.X)
             || !(e.Position.Y > bounds.Position.Y) || !(e.Position.Y < bounds.End.Y) || e.Position.Y > FireLimitY)
             return;

@@ -142,6 +142,8 @@ public static class ForestSpiritArt
     /// <summary>The vertical bob of each frame, in pixels.</summary>
     private static readonly int[] Bob = { 0, -1, 1 };
 
+    public static bool Has(SpiritLook look) => Figures.ContainsKey(look);
+
     public static PixelCanvas MakeCanvas(SpiritLook look, int frame)
     {
         var (palette, left) = Figures[look];

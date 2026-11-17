@@ -20,7 +20,7 @@ public static class SfxBank
         DefeatSwarm, DefeatGunner, DefeatHeavy, BossBroken,
         OrbGreen, OrbRed, RiceRed, Fireball, FlameDart, Spark, VenomOrb, LotusPetal, MagmaOrb, FireSerpent, Ember,
         Bomb, Pickup, LevelUp, MenuMove, MenuSelect, MenuBack, DialogueNext,
-        HitGunner, HitHeavy, HitBoss, Twirl, Splash, Emerge, DiveWarn, Jet, Rage, RagePulse, Thunder, Slash, Roar, Quake, Rock, Gravity, Tick, LaserWarn, LaserFire, Pulse, FireBurst,
+        HitGunner, HitHeavy, HitBoss, Twirl, Splash, Emerge, DiveWarn, FishDive, FishSurface, Jet, Rage, RagePulse, Thunder, Slash, Roar, Quake, Rock, Gravity, Tick, LaserWarn, LaserFire, Pulse, FireBurst,
         TypeLow, TypeMid, TypeHigh,
     }
 
@@ -35,7 +35,7 @@ public static class SfxBank
         Sound.LotusPetal => (-14f, 0.15f), Sound.MagmaOrb => (-9f, 0.2f), Sound.FireSerpent => (-18f, 0.05f), Sound.Ember => (-18f, 0.05f),
         Sound.Bomb => (-5f, 0.5f), Sound.Pickup => (-19f, 0.035f), Sound.LevelUp => (-8f, 0.3f),
         Sound.MenuMove => (-15f, 0.03f), Sound.MenuSelect => (-11f, 0.1f), Sound.MenuBack => (-13f, 0.1f), Sound.DialogueNext => (-16f, 0.05f), Sound.TypeLow => (-24f, 0.04f), Sound.TypeMid => (-24f, 0.04f), Sound.TypeHigh => (-25f, 0.04f),
-        Sound.HitGunner => (-18f, 0.05f), Sound.HitHeavy => (-16f, 0.05f), Sound.HitBoss => (-14f, 0.06f), Sound.Twirl => (-12f, 0.3f), Sound.Splash => (-9f, 0.15f), Sound.Emerge => (-6f, 0.4f), Sound.DiveWarn => (-8f, 0.2f), Sound.Jet => (-8f, 0.5f), Sound.Rage => (-3f, 1.0f), Sound.Thunder => (-6f, 1.0f), Sound.RagePulse => (-17f, 0.5f), Sound.Slash => (-9f, 0.2f), Sound.Roar => (-3f, 1.0f), Sound.Quake => (-4f, 1.0f), Sound.Rock => (-17f, 0.07f),
+        Sound.HitGunner => (-18f, 0.05f), Sound.HitHeavy => (-16f, 0.05f), Sound.HitBoss => (-14f, 0.06f), Sound.Twirl => (-12f, 0.3f), Sound.Splash => (-9f, 0.15f), Sound.Emerge => (-6f, 0.4f), Sound.DiveWarn => (-8f, 0.2f), Sound.FishDive => (-13f, 0.12f), Sound.FishSurface => (-13f, 0.12f), Sound.Jet => (-8f, 0.5f), Sound.Rage => (-3f, 1.0f), Sound.Thunder => (-6f, 1.0f), Sound.RagePulse => (-17f, 0.5f), Sound.Slash => (-9f, 0.2f), Sound.Roar => (-3f, 1.0f), Sound.Quake => (-4f, 1.0f), Sound.Rock => (-17f, 0.07f),
         Sound.Gravity => (-11f, 1.0f), Sound.Tick => (-9f, 0.5f), Sound.LaserWarn => (-5f, 0.35f), Sound.Pulse => (-8f, 0.18f), Sound.FireBurst => (-6f, 0.1f), Sound.LaserFire => (-6f, 0.35f),
         _ => (-12f, 0.05f),
     };
@@ -420,6 +420,26 @@ public static class SfxBank
                 var thump = Sweep(t => 150 * Math.Exp(-t * 6) + 55);
                 var wash = LowNoise(32, t => 0.35 * Math.Exp(-t * 5) + 0.04);
                 return Render(0.5, t => hi(t) * Math.Exp(-t * 14) * 0.5 + wash(t) * Math.Exp(-t * 6) * 0.9 + thump(t) * Env(t, 0.002, 9) * 0.7);
+            }
+            case Sound.FishDive: // a fish plunges: a "bloop" that falls, with a little hiss of water
+            {
+                double p = 0;
+                var hiss = HighNoise(51, 0.5);
+                return Render(0.28, t =>
+                {
+                    p += 2 * Math.PI * (620 - 420 * Math.Min(1, t / 0.2)) / Rate;
+                    return Math.Sin(p) * Env(t, 0.003, 14) * 0.8 + hiss(t) * Math.Exp(-t * 22) * 0.35;
+                });
+            }
+            case Sound.FishSurface: // a fish comes up: a "blip" that rises, and the drops that fall back
+            {
+                double p = 0;
+                var hiss = HighNoise(52, 0.6);
+                return Render(0.3, t =>
+                {
+                    p += 2 * Math.PI * (260 + 520 * Math.Min(1, t / 0.12)) / Rate;
+                    return Math.Sin(p) * Env(t, 0.003, 16) * 0.75 + hiss(t) * Math.Exp(-Math.Max(0, t - 0.04) * 18) * (t > 0.04 ? 0.4 : 0.1);
+                });
             }
             case Sound.DiveWarn: // the shadow under the boat: a sonar ping, a clear note that falls a little, with a bubble on top (it is repeated, quicker and quicker, until he comes out)
             {

@@ -345,7 +345,7 @@ public static class TextsEn
     ["AttackSerpentTail"] = "Tail of the Hellfire Serpent",
     ["AttackTideOfEmbers"] = "Charge of the Great Serpent",
     ["Stage2Title"] = "Stage 2",
-    ["BayloName"] = "Baylo",
+    ["BayloName"] = "Baron Baylo",
     ["AttackDoubleStep"] = "Dance: Double Step",
     ["AttackConfettiRain"] = "Music: Rain of Notes",
     ["AttackSambaWheel"] = "Music: Wheel of Petals",

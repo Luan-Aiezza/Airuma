@@ -25,6 +25,8 @@ public static partial class SelfTest
         T("LosingALifeRefillsTheBombs", LosingALifeRefillsTheBombs);
         T("PracticeNeverCostsALife", PracticeNeverCostsALife);
         T("TheJetSweepsTheFieldAndLeavesAPlaceToStand", TheJetSweepsTheFieldAndLeavesAPlaceToStand);
+        T("NoSpiritLeavesTheScreenBeforeTheBoatCanBeatIt", NoSpiritLeavesTheScreenBeforeTheBoatCanBeatIt);
+        T("TheFishDiveInTurnsAndNothingTouchesThoseUnderTheWater", TheFishDiveInTurnsAndNothingTouchesThoseUnderTheWater);
         T("TheStagesFollowEachOther", TheStagesFollowEachOther);
         T("StageTwoTalksFitTheDialogueBox", StageTwoTalksFitTheDialogueBox);
         T("TheCarryPassesToTheNextStage", TheCarryPassesToTheNextStage);
@@ -232,6 +234,78 @@ public static partial class SelfTest
         Greater(restSeconds, 3, "a few seconds to hit it");
         // the jet is a laser (a warning while he charges, then a strike that goes with him)
         True(Attacks.WaterJet().Patterns.Any(sp => sp.OnWarn), "the jet is a laser fired with the charge");
+    }
+
+    private static void TheFishDiveInTurnsAndNothingTouchesThoseUnderTheWater()
+    {
+        var line = WaveBuilder.FishLine(12, 44, 556, 0);
+        Eq(line.Count(f => f.Look == SpiritLook.Fish), 12);
+        True(line.All(f => f.Patterns.Count == 0), "the fish fire nothing");
+        var fish = line.Select((sp, i) => new EnemyEntity(i + 1, sp.Kind, V(sp.Position.X, 120), sp.Path, sp.Phase, sp.Patterns) { DivePeriod = sp.DivePeriod, DiveOffset = sp.DiveOffset, Look = sp.Look }).ToList();
+        // half of them are up and half are under, and they trade places every half dive
+        bool traded = false; var first = fish.Select(f => f.Submerged).ToArray();
+        for (float t = 0; t < 7; t += 0.1f)
+        {
+            foreach (var f in fish) f.Age = t;
+            Eq(fish.Count(f => f.Submerged), 6, $"half of the line is under the water at {t:0.0} s");
+            if (fish.Select(f => f.Submerged).SequenceEqual(first.Select(b => !b))) traded = true;
+        }
+        True(traded, "the ones that were under come up and the others go under");
+        foreach (var f in fish) f.Age = 0.1f;
+        var up = fish.First(f => !f.Submerged); var under = fish.First(f => f.Submerged);
+        // a shot of the boat goes through the one that is under and hits the one that is up
+        var pool = BulletSystem.NewPool(8);
+        BulletSystem.Spawn(pool, under.Position, V(0, 0), Faction.Player, BulletStyle.LightBolt, scale: 1.7f, power: 20);
+        BulletSystem.Spawn(pool, up.Position, V(0, 0), Faction.Player, BulletStyle.LightBolt, scale: 1.7f, power: 20);
+        CombatSystem.ProcessEnemyHits(pool, fish);
+        True(under.Health > 0, "the fish under the water is not hurt");
+        True(up.Health < up.Kind.MaxHealth() || up.Health <= 0, "the fish that is up is");
+        // touching the one that is up hurts the boat; the one that is under does not
+        var touched = fish.Last(f => !f.Submerged && f != up);
+        var hurt = new PlayerEntity(); hurt.Transform.Position = touched.Position;
+        CombatSystem.ProcessCollisions(BulletSystem.NewPool(), hurt, BossEntity.Create(BayloBoss.Definition), false, new List<EnemyEntity> { touched });
+        Less(hurt.Health.CurrentHealth, hurt.Health.MaxHealth, "a fish that is up hurts");
+        var safe = new PlayerEntity(); safe.Transform.Position = under.Position;
+        CombatSystem.ProcessCollisions(BulletSystem.NewPool(), safe, BossEntity.Create(BayloBoss.Definition), false, new List<EnemyEntity> { under });
+        Eq(safe.Health.CurrentHealth, safe.Health.MaxHealth);
+        foreach (var look in new[] { SpiritLook.Dancer, SpiritLook.Fish, SpiritLook.Jester })
+            True(PartyLookArt.Has(look) && Stages.Two.Spirits.LookFrames(look) != null, $"{look} has its own figure");
+        // they come down the whole field and out of the bottom
+        True(line[0].Path.Velocity.Y > 0 && line.All(f => f.Position.Y < 0), "the fish come from above, from the top");
+    }
+
+    /// <summary>Seconds that a spirit spends inside the field, from its coming in to its going out (red ones aside, which repeat their figures until they are beaten).</summary>
+    private static float SecondsOnScreen(EnemySpec sp)
+    {
+        var e = new EnemyEntity(1, sp.Kind, sp.Position, sp.Path, sp.Phase, sp.Patterns);
+        float t = 0;
+        for (int i = 0; i < 60 * 60; i++)
+        {
+            EnemySystem.Move(e, 1 / 60f);
+            var p = e.Position;
+            if (p.X > 0 && p.X < 600 && p.Y > 0 && p.Y < 800) t += 1 / 60f;
+            if (EnemySystem.IsOffScreen(e, World.PlayArea)) break;
+        }
+        return t;
+    }
+
+    private static void NoSpiritLeavesTheScreenBeforeTheBoatCanBeatIt()
+    {
+        // every spirit stays long enough to be beaten: the ones that fire come in, fire and stay a good while (coming down slowly, or standing and leaving later)
+        foreach (var (stage, number) in new[] { (Stages.One, 1), (Stages.Two, 2) })
+        {
+            int wave = 0;
+            foreach (var w in stage.Waves)
+            {
+                wave++;
+                foreach (var sp in w.Spawns.Where(x => x.Kind != SpiritKind.Heavy))
+                {
+                    float seconds = SecondsOnScreen(sp);
+                    bool shoots = sp.Patterns.Count > 0 && sp.Patterns.Any(p => p.Pattern.Kind != FirePatternKind.None);
+                    GreaterEq(seconds, shoots ? 6f : 3.5f, $"stage {number}, wave {wave}: a {sp.Look} {sp.Kind} spirit stays on the screen {seconds:0.0} s");
+                }
+            }
+        }
     }
 
     private static bool HitsBoss(BossEntity boss)

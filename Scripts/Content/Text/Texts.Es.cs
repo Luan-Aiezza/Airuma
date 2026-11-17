@@ -333,7 +333,7 @@ public static class TextsEs
     ["AttackSerpentTail"] = "Cola de la Serpiente del Infierno",
     ["AttackTideOfEmbers"] = "Embestida de la Gran Serpiente",
     ["Stage2Title"] = "Fase 2",
-    ["BayloName"] = "Baylo",
+    ["BayloName"] = "Baron Baylo",
     ["AttackDoubleStep"] = "Baile: Paso Doble",
     ["AttackConfettiRain"] = "Música: Lluvia de Notas",
     ["AttackSambaWheel"] = "Música: Rueda de Pétalos",

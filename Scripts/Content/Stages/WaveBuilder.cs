@@ -224,6 +224,60 @@ public static class WaveBuilder
         }).ToList();
     }
 
+    // MARK: The party of stage 2
+
+    /// <summary>The spirits of a formation made divers (the fish): `period` seconds a dive, half of it up and half of it under the water, every other one out of step, so that half of the line is always up (`flip` turns the line the other way).</summary>
+    public static List<EnemySpec> Diving(this List<EnemySpec> specs, float period, bool flip = false) =>
+        specs.Select((sp, i) => { var c = sp; c.DivePeriod = period; c.DiveOffset = (i % 2 == 0) == flip ? period / 2 : 0; return c; }).ToList();
+
+    /// <summary>The shapes in which a school of fish comes down the field (all of them reach from one side of it to the other).</summary>
+    public enum FishShape
+    {
+        /// <summary>A straight line, level.</summary>
+        Line,
+        /// <summary>A line that rolls like a wave (one and a half turns of it across the field).</summary>
+        Wave,
+        /// <summary>A V with its point down: the middle comes first.</summary>
+        Vee,
+        /// <summary>An arrowhead: the middle comes last, the sides first.</summary>
+        Arrow,
+        /// <summary>A slanting line: the left comes first (the right comes last).</summary>
+        Diagonal,
+        /// <summary>The same, the other way round.</summary>
+        DiagonalBack,
+        /// <summary>Two staggered rows: every other fish a little behind.</summary>
+        Stagger,
+    }
+
+    /// <summary>
+    /// A school of fish side by side, from one side of the field to the other, in a `shape`, that swims down it and crosses the whole picture (they fire nothing: they hurt whoever touches them). They dive and come up in turns,
+    /// half of them up and half under the water: the boat shoots the ones that are up, or slips through the places of the ones that are under (`flip` turns the school the other way).
+    /// </summary>
+    public static List<EnemySpec> FishSchool(FishShape shape, int count, float from, float to, float start, float speed = 85, float period = 2.4f, bool flip = false)
+    {
+        float mid = (count - 1) / 2f;
+        return Enumerable.Range(0, count).Select(i =>
+        {
+            float t = count > 1 ? (float)i / (count - 1) : 0.5f;
+            float x = from + (to - from) * t;
+            float behind = shape switch
+            {
+                FishShape.Wave => 36 * (0.5f + 0.5f * MathF.Sin(2 * MathF.PI * 1.5f * t)),
+                FishShape.Vee => Math.Abs(i - mid) * 32,
+                FishShape.Arrow => (mid - Math.Abs(i - mid)) * 32,
+                FishShape.Diagonal => i * 26,
+                FishShape.DiagonalBack => (count - 1 - i) * 26,
+                FishShape.Stagger => i % 2 == 1 ? 64 : 0,
+                _ => 0,
+            };
+            return new EnemySpec { Time = start, Kind = SpiritKind.Gunner, Position = new Vector2(x, Top - behind), Path = EnemyPath.Straight(new Vector2(0, speed)), Patterns = new List<ScheduledPattern>(), Look = SpiritLook.Fish };
+        }).ToList().Diving(period, flip);
+    }
+
+    /// <summary>A straight line of fish (see <see cref="FishSchool"/>).</summary>
+    public static List<EnemySpec> FishLine(int count, float from, float to, float start, float speed = 85, float period = 2.4f, bool flip = false) =>
+        FishSchool(FishShape.Line, count, from, to, start, speed, period, flip);
+
     public static Vector2 V(float x, float y) => new Vector2(x, y);
     public static ScheduledPattern P(FirePattern pattern, float duration) => new ScheduledPattern(pattern, duration);
     public const SpiritKind Swarm = SpiritKind.Swarm, Gunner = SpiritKind.Gunner;
