@@ -110,7 +110,7 @@ public static partial class Attacks
                 Pat.Ring(c, c.Body[body], c.N(5, 3), c.Count * 9f, new Shot(BulletStyle.NoteGold, 88).Pawning(90, 1.1f, 1.0f).Sized(1.0f), Notes);
         }).After(ReflectionSystem.Delay),
     })
-        .Pressured(1.0f).Tougher(0.97f).Reflected();
+        .Pressured(1.0f).Tougher(0.82f).Reflected();
 
     /// <summary>A ring of great spheres of water (white and blue in turns) opening out of the boss, `turn` degrees off the first ring.</summary>
     private static void GreatSpheres(PatternContext c, float turn)
